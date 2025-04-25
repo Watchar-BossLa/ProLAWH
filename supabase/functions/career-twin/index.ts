@@ -1,91 +1,131 @@
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7'
-import { OpenAI } from 'https://esm.sh/openai@4.28.0'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+};
+
+// Define types to ensure consistent data structure
+interface CareerRecommendation {
+  user_id: string;
+  type: 'skill_gap' | 'job_match' | 'mentor_suggest' | 'learning_path';
+  recommendation: string;
+  relevance_score: number;
+  status: 'pending';
+  created_at?: string;
+  updated_at?: string;
+  expires_at?: string;
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+// Sample recommendations for demonstration purposes
+// In production, these would come from an AI model
+const sampleRecommendations = [
+  {
+    type: "skill_gap",
+    recommendation: "Based on market trends, you should consider developing skills in Rust programming language. This could increase your job opportunities by 24% in the next 6 months.",
+    relevance_score: 0.89
+  },
+  {
+    type: "job_match",
+    recommendation: "Your profile shows a strong match for Senior Backend Developer positions at fintech companies. Consider applying to Stripe, Square, or similar companies.",
+    relevance_score: 0.92
+  },
+  {
+    type: "mentor_suggest",
+    recommendation: "You would benefit from connecting with mentors who have experience transitioning from backend to full-stack development. This matches your career trajectory.",
+    relevance_score: 0.78
+  },
+  {
+    type: "learning_path",
+    recommendation: "To reach your career goal of becoming a Technical Lead, focus on developing architectural design skills and team leadership experience.",
+    relevance_score: 0.85
+  }
+];
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-    )
-
-    const openai = new OpenAI({
-      apiKey: Deno.env.get('OPENAI_API_KEY')
-    })
-
-    // Get session from headers
-    const authHeader = req.headers.get('Authorization')?.split('Bearer ')[1]
-    const { data: { user } } = await supabase.auth.getUser(authHeader)
-
-    if (!user) throw new Error('Not authenticated')
-
-    // Get user activity logs
-    const { data: activities } = await supabase
-      .from('user_activity_logs')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(10)
-
-    // Get user skills
-    const { data: skills } = await supabase
-      .from('user_skills')
-      .select('skills(*)')
-      .eq('user_id', user.id)
-
-    // Generate AI recommendation
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content: "You are an AI career advisor analyzing user activity and skills to provide career recommendations."
+    // Create Supabase client
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      {
+        global: {
+          headers: { Authorization: req.headers.get("Authorization")! },
         },
-        {
-          role: "user",
-          content: `Based on the following user data, provide a career development recommendation:
-            Activities: ${JSON.stringify(activities)}
-            Skills: ${JSON.stringify(skills)}`
-        }
-      ]
-    })
+      }
+    );
 
-    const recommendation = {
-      type: 'skill_gap',
-      recommendation: completion.choices[0].message.content,
-      relevance_score: 0.95,
+    // Get the user
+    const {
+      data: { user },
+    } = await supabaseClient.auth.getUser();
+
+    if (!user) {
+      return new Response(
+        JSON.stringify({ error: "You must be logged in to use this feature" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 401,
+        }
+      );
     }
 
-    // Store recommendation
-    const { error: insertError } = await supabase
+    // Get a random recommendation for demo purposes
+    const randomIndex = Math.floor(Math.random() * sampleRecommendations.length);
+    const recommendationTemplate = sampleRecommendations[randomIndex];
+
+    // Create the recommendation object
+    const recommendation: CareerRecommendation = {
+      user_id: user.id,
+      type: recommendationTemplate.type as any,
+      recommendation: recommendationTemplate.recommendation,
+      relevance_score: recommendationTemplate.relevance_score,
+      status: 'pending',
+      expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+    };
+
+    // Insert the recommendation
+    const { data, error } = await supabaseClient
       .from('career_recommendations')
-      .insert([
-        {
-          user_id: user.id,
-          ...recommendation,
-          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 1 week
-        }
-      ])
+      .insert(recommendation);
 
-    if (insertError) throw insertError
+    if (error) {
+      console.error("Error inserting recommendation:", error);
+      throw error;
+    }
 
-    return new Response(JSON.stringify(recommendation), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    })
+    // Log user activity
+    await supabaseClient
+      .from('user_activity_logs')
+      .insert({
+        user_id: user.id,
+        activity_type: 'career_twin_recommendation_generated',
+        metadata: { recommendation_type: recommendation.type }
+      });
+
+    return new Response(
+      JSON.stringify({ success: true, data }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      }
+    );
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
-    })
+    console.error("Career Twin error:", error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      }
+    );
   }
-})
+});
