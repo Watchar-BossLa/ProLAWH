@@ -1403,6 +1403,50 @@ export type Database = {
           },
         ]
       }
+      skill_stakes: {
+        Row: {
+          amount_usdc: number
+          created_at: string
+          ends_at: string | null
+          id: string
+          skill_id: string
+          started_at: string
+          status: Database["public"]["Enums"]["stake_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_usdc: number
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          skill_id: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["stake_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_usdc?: number
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          skill_id?: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["stake_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_stakes_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       skill_verifications: {
         Row: {
           created_at: string
@@ -1676,13 +1720,37 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      active_stakes: {
+        Row: {
+          amount_usdc: number | null
+          created_at: string | null
+          ends_at: string | null
+          id: string | null
+          skill_category: string | null
+          skill_id: string | null
+          skill_name: string | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["stake_status"] | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_stakes_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       [_ in never]: never
     }
     Enums: {
       connection_status: "pending" | "accepted" | "declined"
+      stake_status: "active" | "completed" | "withdrawn"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1799,6 +1867,7 @@ export const Constants = {
   public: {
     Enums: {
       connection_status: ["pending", "accepted", "declined"],
+      stake_status: ["active", "completed", "withdrawn"],
     },
   },
 } as const
