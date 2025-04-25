@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
@@ -24,11 +23,9 @@ export default function CameraChallenge({ challenge, onComplete }: CameraChallen
   const [detectedObjects, setDetectedObjects] = useState<Set<string>>(new Set());
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Required items from the challenge
   const requiredItems = challenge.validation_rules.required_items || [];
   const minConfidence = challenge.validation_rules.min_confidence || 0.7;
   
-  // Initialize camera
   useEffect(() => {
     const startCamera = async () => {
       try {
@@ -53,7 +50,6 @@ export default function CameraChallenge({ challenge, onComplete }: CameraChallen
     
     startCamera();
     
-    // Cleanup function to stop camera on unmount
     return () => {
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
@@ -61,7 +57,6 @@ export default function CameraChallenge({ challenge, onComplete }: CameraChallen
     };
   }, []);
 
-  // Capture image from video
   const captureImage = () => {
     if (!videoRef.current || !canvasRef.current) return;
     
@@ -71,36 +66,26 @@ export default function CameraChallenge({ challenge, onComplete }: CameraChallen
     
     if (!context) return;
     
-    // Set canvas dimensions to match video
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     
-    // Draw video frame to canvas
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     
-    // Convert canvas to image data URL
     const imageDataUrl = canvas.toDataURL('image/jpeg');
     setCapturedImages(prev => [...prev, imageDataUrl]);
     
-    // Mock object detection (in a real app, this would use a proper model)
     processImage(imageDataUrl);
   };
   
-  // Process image to detect objects (simplified mock version)
   const processImage = async (imageData: string) => {
     setIsProcessing(true);
     
     try {
-      // In a real application, this would call an AI service to identify objects
-      // For this demo, we'll randomly "detect" items from the required list
-      
-      // Simulating API processing time
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Randomly "detect" an object from the required list that hasn't been detected yet
       const undetectedItems = requiredItems.filter(item => !detectedObjects.has(item));
       
-      if (undetectedItems.length > 0 && Math.random() > 0.3) { // 70% chance of detection
+      if (undetectedItems.length > 0 && Math.random() > 0.3) {
         const randomIndex = Math.floor(Math.random() * undetectedItems.length);
         const detectedItem = undetectedItems[randomIndex];
         
@@ -113,16 +98,13 @@ export default function CameraChallenge({ challenge, onComplete }: CameraChallen
           description: `Found: ${detectedItem}`,
         });
         
-        // Check if all required items have been found
         if (newDetectedObjects.size === requiredItems.length) {
-          // Challenge completed successfully
           onComplete(true, {
             images: capturedImages,
             detected_objects: Array.from(newDetectedObjects)
           }, challenge.points);
         }
       } else {
-        // Failed to detect an object
         toast({
           title: "No Objects Detected",
           description: "Try a different angle or lighting",
@@ -140,7 +122,6 @@ export default function CameraChallenge({ challenge, onComplete }: CameraChallen
     }
   };
   
-  // Give up on challenge
   const handleGiveUp = () => {
     onComplete(false, {
       images: capturedImages,

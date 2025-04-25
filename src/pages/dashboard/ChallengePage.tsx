@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,7 +20,11 @@ interface Challenge {
   time_limit: number;
   type: "ar" | "camera" | "code" | "quiz";
   instructions: string;
-  validation_rules: Record<string, any>;
+  validation_rules: {
+    required_items?: string[];
+    min_confidence?: number;
+    [key: string]: any;
+  };
 }
 
 export default function ChallengePage() {
@@ -39,10 +42,8 @@ export default function ChallengePage() {
     message: string;
   } | null>(null);
 
-  // Check auth and load challenge data
   useEffect(() => {
     const checkAuthAndLoadChallenge = async () => {
-      // Check authentication
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         toast({
@@ -55,7 +56,6 @@ export default function ChallengePage() {
       }
       setUserId(session.user.id);
 
-      // Load challenge
       if (!challengeId) {
         toast({
           title: "Invalid Challenge",
@@ -90,12 +90,10 @@ export default function ChallengePage() {
     checkAuthAndLoadChallenge();
   }, [challengeId, navigate]);
 
-  // Start challenge
   const startChallenge = async () => {
     if (!challenge || !userId) return;
 
     try {
-      // Record attempt
       const { data: attemptData, error } = await supabase
         .from("challenge_attempts")
         .insert({
@@ -119,7 +117,6 @@ export default function ChallengePage() {
     }
   };
 
-  // Handle challenge completion
   const handleComplete = async (
     success: boolean,
     submissionData: Record<string, any>,
@@ -128,10 +125,8 @@ export default function ChallengePage() {
     if (!attemptId) return;
 
     try {
-      // Calculate time taken (original time limit - time left)
       const timeTaken = challenge ? challenge.time_limit - timeLeft : 0;
       
-      // Update attempt
       const { error } = await supabase
         .from("challenge_attempts")
         .update({
@@ -162,25 +157,21 @@ export default function ChallengePage() {
     }
   };
 
-  // Handle time up
   const handleTimeUp = () => {
     setStatus("failed");
     handleComplete(false, {}, 0);
   };
 
-  // Return to arcade
   const returnToArcade = () => {
     navigate("/dashboard/arcade");
   };
 
-  // Retry challenge
   const retryChallenge = () => {
     setStatus("ready");
     setTimeLeft(challenge?.time_limit || 0);
     setResult(null);
   };
 
-  // Render appropriate content based on status
   const renderChallengeContent = () => {
     if (!challenge) return null;
 
@@ -230,12 +221,18 @@ export default function ChallengePage() {
             
             {challenge.type === "camera" && (
               <CameraChallenge 
-                challenge={challenge} 
+                challenge={{
+                  id: challenge.id,
+                  validation_rules: {
+                    required_items: challenge.validation_rules.required_items || [],
+                    min_confidence: challenge.validation_rules.min_confidence
+                  },
+                  points: challenge.points
+                }} 
                 onComplete={handleComplete}
               />
             )}
             
-            {/* Placeholder for other challenge types that will be implemented later */}
             {challenge.type !== "camera" && (
               <div className="text-center py-12">
                 <p className="text-lg text-muted-foreground">
