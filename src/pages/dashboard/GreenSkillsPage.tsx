@@ -9,7 +9,7 @@ import { GreenSkillStats } from '@/components/skills/GreenSkillStats';
 const fetchGreenSkills = async () => {
   const { data, error } = await supabase
     .from('green_skills')
-    .select('*');  // Removed .distinct()
+    .select('*');
 
   if (error) throw error;
   return data;
@@ -66,9 +66,9 @@ export default function GreenSkillsPage() {
         </div>
       </div>
 
-      <GreenSkillStats skills={greenSkills || []} />
+      {greenSkills && <GreenSkillStats skills={greenSkills} />}
 
-      <GreenSkillsList skills={filteredSkills || []} />
+      {filteredSkills && <GreenSkillsList skills={filteredSkills} />}
     </div>
   );
 }

@@ -12,7 +12,6 @@ export * from "./sidebar/variants"
 
 // Core components
 export * from "./sidebar/core/sidebar"
-export * from "./sidebar/core/main"
 
 // Menu components
 export * from "./sidebar/menu/menu"
@@ -20,16 +19,10 @@ export * from "./sidebar/menu/menu-item"
 export * from "./sidebar/menu/menu-button"
 export * from "./sidebar/menu/menu-sub"
 
-// Navigation components
-export * from "./sidebar/navigation/trigger"
-export * from "./sidebar/navigation/rail"
-
 // Structure components
 export * from "./sidebar/structure/header-footer"
 export * from "./sidebar/structure/group"
 export * from "./sidebar/structure/content"
 
 // Utility components
-export * from "./sidebar/utils/separator"
 export * from "./sidebar/utils/input"
-
