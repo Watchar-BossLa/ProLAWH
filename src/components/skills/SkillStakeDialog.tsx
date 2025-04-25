@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,13 +22,35 @@ export function SkillStakeDialog({ skillId, skillName }: SkillStakeDialogProps) 
   const [amount, setAmount] = useState("");
   const [isStaking, setIsStaking] = useState(false);
   const [open, setOpen] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  
+  // Get the current user ID on component mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUserId(user?.id || null);
+    };
+    
+    fetchUser();
+  }, []);
 
   const handleStake = async () => {
+    // Validate input amount
     const amountNum = parseFloat(amount);
     if (isNaN(amountNum) || amountNum <= 0) {
       toast({
         title: "Invalid amount",
         description: "Please enter a valid positive number",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if user is authenticated
+    if (!userId) {
+      toast({
+        title: "Authentication required",
+        description: "You must be logged in to stake on a skill",
         variant: "destructive",
       });
       return;
@@ -41,6 +63,7 @@ export function SkillStakeDialog({ skillId, skillName }: SkillStakeDialogProps) 
         .insert({
           skill_id: skillId,
           amount_usdc: amountNum,
+          user_id: userId, // Include the user ID in the insert operation
         });
 
       if (error) throw error;
@@ -88,7 +111,7 @@ export function SkillStakeDialog({ skillId, skillName }: SkillStakeDialogProps) 
           <Button variant="ghost" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={handleStake} disabled={isStaking}>
+          <Button onClick={handleStake} disabled={isStaking || !userId}>
             {isStaking ? "Staking..." : "Stake"}
           </Button>
         </div>
