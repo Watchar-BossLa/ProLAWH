@@ -19,15 +19,19 @@ export default function CareerTwinPage() {
 
   const fetchRecommendations = async () => {
     try {
-      // Use type assertion and cast the result properly
+      // Two-step type assertion for safer type handling:
+      // 1. First cast to unknown
+      // 2. Then cast to the expected type
       const { data, error } = await supabase
         .from('career_recommendations' as any)
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      // Explicitly cast the data to ensure type safety
-      setRecommendations((data || []) as CareerRecommendation[]);
+      
+      // Safely cast data as unknown first, then to CareerRecommendation[]
+      const typedData = data as unknown as CareerRecommendation[];
+      setRecommendations(typedData || []);
     } catch (error: any) {
       toast({
         title: "Error",

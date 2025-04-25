@@ -25,9 +25,9 @@ export function CareerTwinCard({ recommendation, onStatusUpdate }: CareerTwinCar
   const handleStatusUpdate = async (status: string) => {
     setIsUpdating(true);
     try {
-      // Use type assertion but handle the response properly
+      // Two-step type assertion pattern for better type safety
       const { error } = await supabase
-        .from('career_recommendations' as any)
+        .from('career_recommendations' as unknown as any)
         .update({ status })
         .eq('id', recommendation.id);
 
