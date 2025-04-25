@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -6,13 +7,24 @@ import { Button } from '@/components/ui/button';
 import { GreenSkillsList } from '@/components/skills/GreenSkillsList';
 import { GreenSkillStats } from '@/components/skills/GreenSkillStats';
 
+interface GreenSkill {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  co2_reduction_potential: number;
+  market_growth_rate: number;
+  created_at: string;
+  updated_at: string;
+}
+
 const fetchGreenSkills = async () => {
   const { data, error } = await supabase
     .from('green_skills')
     .select('*');
 
   if (error) throw error;
-  return data;
+  return data as GreenSkill[];
 };
 
 export default function GreenSkillsPage() {
@@ -28,7 +40,7 @@ export default function GreenSkillsPage() {
   });
 
   if (isLoading) return <div>Loading green skills...</div>;
-  if (error) return <div>Error fetching green skills: {error.message}</div>;
+  if (error) return <div>Error fetching green skills: {(error as Error).message}</div>;
 
   const categories = [...new Set(greenSkills?.map(skill => skill.category) || [])];
 
@@ -68,8 +80,8 @@ export default function GreenSkillsPage() {
 
       {greenSkills && (
         <>
-          <GreenSkillStats greenSkills={greenSkills} />
-          <GreenSkillsList greenSkills={filteredSkills || []} />
+          <GreenSkillStats data={greenSkills} />
+          <GreenSkillsList data={filteredSkills || []} />
         </>
       )}
     </div>
