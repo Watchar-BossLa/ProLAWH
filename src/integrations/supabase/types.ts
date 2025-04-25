@@ -9,6 +9,48 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      arcade_challenges: {
+        Row: {
+          created_at: string
+          description: string | null
+          difficulty_level: string
+          id: string
+          instructions: string
+          points: number
+          time_limit: number
+          title: string
+          type: string
+          updated_at: string
+          validation_rules: Json
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          difficulty_level: string
+          id?: string
+          instructions: string
+          points?: number
+          time_limit: number
+          title: string
+          type: string
+          updated_at?: string
+          validation_rules?: Json
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          difficulty_level?: string
+          id?: string
+          instructions?: string
+          points?: number
+          time_limit?: number
+          title?: string
+          type?: string
+          updated_at?: string
+          validation_rules?: Json
+        }
+        Relationships: []
+      }
       assessment_skills: {
         Row: {
           assessment_id: string
@@ -203,6 +245,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      challenge_attempts: {
+        Row: {
+          challenge_id: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          points_earned: number | null
+          started_at: string
+          status: string
+          submission_data: Json | null
+          time_taken: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          points_earned?: number | null
+          started_at?: string
+          status: string
+          submission_data?: Json | null
+          time_taken?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          points_earned?: number | null
+          started_at?: string
+          status?: string
+          submission_data?: Json | null
+          time_taken?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_attempts_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "arcade_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       collaborative_projects: {
         Row: {
