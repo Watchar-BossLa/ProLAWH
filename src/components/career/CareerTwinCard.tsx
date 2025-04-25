@@ -6,14 +6,16 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
+interface CareerRecommendation {
+  id: string;
+  type: string;
+  recommendation: string;
+  relevance_score: number;
+  status: string;
+}
+
 interface CareerTwinCardProps {
-  recommendation: {
-    id: string;
-    type: string;
-    recommendation: string;
-    relevance_score: number;
-    status: string;
-  };
+  recommendation: CareerRecommendation;
   onStatusUpdate: (id: string, status: string) => void;
 }
 
@@ -23,10 +25,11 @@ export function CareerTwinCard({ recommendation, onStatusUpdate }: CareerTwinCar
   const handleStatusUpdate = async (status: string) => {
     setIsUpdating(true);
     try {
+      // Use generic query to avoid TypeScript issues with the table
       const { error } = await supabase
         .from('career_recommendations')
         .update({ status })
-        .eq('id', recommendation.id);
+        .eq('id', recommendation.id) as { error: any };
 
       if (error) throw error;
       onStatusUpdate(recommendation.id, status);
@@ -53,7 +56,7 @@ export function CareerTwinCard({ recommendation, onStatusUpdate }: CareerTwinCar
           {recommendation.type === 'skill_gap' && <BookOpen className="h-5 w-5" />}
           {recommendation.type === 'job_match' && <Lightbulb className="h-5 w-5" />}
           {recommendation.type === 'mentor_suggest' && <BadgeCheck className="h-5 w-5" />}
-          {recommendation.type.replace('_', ' ').charAt(0).toUpperCase() + recommendation.type.slice(1)}
+          {recommendation.type.replace('_', ' ').charAt(0).toUpperCase() + recommendation.type.slice(1).replace('_', ' ')}
         </CardTitle>
         <CardDescription>
           Relevance: {Math.round(recommendation.relevance_score * 100)}%

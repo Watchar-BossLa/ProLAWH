@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -49,7 +50,7 @@ export function DashboardSidebar() {
     { icon: Users, label: "Mentorship", href: "/dashboard/mentorship" },
     { icon: Briefcase, label: "Opportunities", href: "/dashboard/opportunities" },
     { icon: Trophy, label: "Nano-Arcade", href: "/dashboard/arcade" },
-    { icon: BarChart, label: "Career Twin", href: "/dashboard/career" },
+    { icon: BarChart, label: "Career Twin", href: "/dashboard/career-twin" },
     { icon: Settings, label: "Settings", href: "/profile" }
   ];
   
