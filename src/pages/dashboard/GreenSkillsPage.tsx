@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -80,8 +79,8 @@ export default function GreenSkillsPage() {
 
       {greenSkills && (
         <>
-          <GreenSkillStats data={greenSkills} />
-          <GreenSkillsList data={filteredSkills || []} />
+          <GreenSkillStats skills={greenSkills} />
+          <GreenSkillsList skills={filteredSkills || []} />
         </>
       )}
     </div>
