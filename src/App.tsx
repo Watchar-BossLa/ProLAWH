@@ -14,6 +14,7 @@ import DashboardPlaceholder from "./pages/dashboard/DashboardPlaceholder";
 import CareerTwinPage from "./pages/dashboard/CareerTwinPage";
 import ArcadePage from "./pages/dashboard/ArcadePage";
 import ChallengePage from "./pages/dashboard/ChallengePage";
+import SkillStakingPage from "./pages/dashboard/SkillStakingPage";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="arcade" element={<ArcadePage />} />
             <Route path="arcade/challenge/:challengeId" element={<ChallengePage />} />
             <Route path="career-twin" element={<CareerTwinPage />} />
+            <Route path="staking" element={<SkillStakingPage />} />
           </Route>
           
           <Route path="/profile" element={<ProfilePage />} />
