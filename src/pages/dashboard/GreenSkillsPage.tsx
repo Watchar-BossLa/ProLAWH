@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+
+import React from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { Leaf } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { GreenSkillsList } from '@/components/skills/GreenSkillsList';
 import { GreenSkillStats } from '@/components/skills/GreenSkillStats';
+import { Separator } from "@/components/ui/separator";
 
 interface GreenSkill {
   id: string;
@@ -27,10 +28,8 @@ const fetchGreenSkills = async () => {
 };
 
 export default function GreenSkillsPage() {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
   const { 
-    data: greenSkills, 
+    data: greenSkills = [], 
     isLoading, 
     error 
   } = useQuery({
@@ -38,49 +37,33 @@ export default function GreenSkillsPage() {
     queryFn: fetchGreenSkills
   });
 
-  if (isLoading) return <div>Loading green skills...</div>;
-  if (error) return <div>Error fetching green skills: {(error as Error).message}</div>;
-
-  const categories = [...new Set(greenSkills?.map(skill => skill.category) || [])];
-
-  const filteredSkills = selectedCategory
-    ? greenSkills?.filter(skill => skill.category === selectedCategory)
-    : greenSkills;
+  if (error) return (
+    <div className="min-h-[400px] flex items-center justify-center">
+      <p className="text-destructive">Error fetching green skills: {(error as Error).message}</p>
+    </div>
+  );
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4 flex items-center gap-2">
+    <div className="container mx-auto p-6 space-y-6 animate-in fade-in">
+      <div className="flex items-center gap-2">
         <Leaf className="h-6 w-6 text-green-500" />
-        Green Skills
-      </h1>
-
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold mb-2">Filter by Category:</h2>
-        <div className="flex flex-wrap gap-2">
-          <Button 
-            variant="outline"
-            onClick={() => setSelectedCategory(null)}
-            className={selectedCategory === null ? "bg-secondary text-secondary-foreground" : ""}
-          >
-            All Categories
-          </Button>
-          {categories.map(category => (
-            <Button
-              key={category}
-              variant="outline"
-              onClick={() => setSelectedCategory(category)}
-              className={selectedCategory === category ? "bg-secondary text-secondary-foreground" : ""}
-            >
-              {category}
-            </Button>
-          ))}
-        </div>
+        <h1 className="text-2xl font-bold">Green Skills</h1>
       </div>
+      
+      <p className="text-muted-foreground max-w-2xl">
+        Explore sustainable skills that contribute to environmental conservation and eco-friendly practices.
+        Track their CO2 reduction potential and market growth rates.
+      </p>
 
-      {greenSkills && (
+      {isLoading ? (
+        <div className="min-h-[400px] flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      ) : (
         <>
           <GreenSkillStats skills={greenSkills} />
-          <GreenSkillsList skills={filteredSkills || []} />
+          <Separator className="my-6" />
+          <GreenSkillsList skills={greenSkills} />
         </>
       )}
     </div>
