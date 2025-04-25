@@ -7,8 +7,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/auth/AuthPage";
-import DashboardPage from "./pages/dashboard/DashboardPage";
 import ProfilePage from "./pages/profile/ProfilePage";
+import { DashboardLayout } from "./components/dashboard/DashboardLayout";
+import { DashboardHome } from "./components/dashboard/DashboardHome";
+import DashboardPlaceholder from "./pages/dashboard/DashboardPlaceholder";
 
 const queryClient = new QueryClient();
 
@@ -21,7 +23,18 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<AuthPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
+          
+          {/* Dashboard Routes with Layout */}
+          <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route index element={<DashboardHome />} />
+            <Route path="learning" element={<DashboardPlaceholder title="Learning Paths" />} />
+            <Route path="skills" element={<DashboardPlaceholder title="Skills & Badges" />} />
+            <Route path="mentorship" element={<DashboardPlaceholder title="Mentorship" />} />
+            <Route path="opportunities" element={<DashboardPlaceholder title="Opportunities" />} />
+            <Route path="arcade" element={<DashboardPlaceholder title="Nano-Arcade" />} />
+            <Route path="career" element={<DashboardPlaceholder title="Career Twin" />} />
+          </Route>
+          
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
