@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { Timer } from 'lucide-react';
@@ -72,9 +71,6 @@ export default function ChallengeTimer({
       
       <Progress 
         value={progressPercentage} 
-        className="h-2"
-        // Apply the color class to the Progress component and let the styling
-        // cascade to the indicator through CSS
         className={cn("h-2", getColorClass())}
       />
     </div>
