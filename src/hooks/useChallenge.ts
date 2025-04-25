@@ -1,59 +1,88 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-import type { Challenge } from "@/types/arcade";
+import type { ChallengeResult } from "@/types/arcade";
 
-export function useChallenge(challengeId: string | undefined) {
-  const [challenge, setChallenge] = useState<Challenge | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const navigate = useNavigate();
+export type ChallengeStatus = "ready" | "active" | "completed" | "failed";
 
-  useEffect(() => {
-    const checkAuthAndLoadChallenge = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast({
-          title: "Authentication Required",
-          description: "Please sign in to access challenges",
-          variant: "destructive",
-        });
-        navigate("/auth");
-        return;
-      }
-      setUserId(session.user.id);
+export function useChallengeState(challengeId: string, userId: string) {
+  const [attemptId, setAttemptId] = useState<string | null>(null);
+  const [status, setStatus] = useState<ChallengeStatus>("ready");
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [result, setResult] = useState<ChallengeResult | null>(null);
 
-      if (!challengeId) {
-        toast({
-          title: "Invalid Challenge",
-          description: "Challenge not found",
-          variant: "destructive",
-        });
-        navigate("/dashboard/arcade");
-        return;
-      }
-
-      const { data: challengeData, error } = await supabase
-        .from("arcade_challenges")
-        .select("*")
-        .eq("id", challengeId)
+  const startChallenge = async () => {
+    try {
+      const { data: attemptData, error } = await supabase
+        .from("challenge_attempts")
+        .insert({
+          challenge_id: challengeId,
+          user_id: userId,
+          status: "started",
+        })
+        .select()
         .single();
 
-      if (error || !challengeData) {
-        toast({
-          title: "Challenge Not Found",
-          description: "The requested challenge could not be found",
-          variant: "destructive",
-        });
-        navigate("/dashboard/arcade");
-        return;
-      }
+      if (error) throw error;
 
-      setChallenge(challengeData as unknown as Challenge);
-    };
+      setAttemptId(attemptData.id);
+      setStatus("active");
+    } catch (error: any) {
+      toast({
+        title: "Error Starting Challenge",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
-    checkAuthAndLoadChallenge();
-  }, [challengeId, navigate]);
+  const handleComplete = async (
+    success: boolean,
+    submissionData: Record<string, any>,
+    pointsEarned: number,
+    timeTaken: number
+  ) => {
+    if (!attemptId) return;
 
-  return { challenge, userId };
+    try {
+      const { error } = await supabase
+        .from("challenge_attempts")
+        .update({
+          status: success ? "completed" : "failed",
+          completed_at: new Date().toISOString(),
+          submission_data: submissionData,
+          points_earned: pointsEarned,
+          time_taken: timeTaken,
+        })
+        .eq("id", attemptId);
+
+      if (error) throw error;
+
+      setStatus("completed");
+      setResult({
+        success,
+        points: pointsEarned,
+        message: success 
+          ? "Congratulations! Challenge completed successfully." 
+          : "Challenge failed. Try again!"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error Completing Challenge",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  return {
+    status,
+    timeLeft,
+    result,
+    setTimeLeft,
+    startChallenge,
+    handleComplete,
+    setStatus
+  };
 }
