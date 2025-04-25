@@ -20,8 +20,7 @@ interface CareerRecommendation {
   expires_at?: string;
 }
 
-// Sample recommendations for demonstration purposes
-// In production, these would come from an AI model
+// Enhanced recommendations with more specific career guidance
 const sampleRecommendations = [
   {
     type: "skill_gap",
@@ -42,6 +41,21 @@ const sampleRecommendations = [
     type: "learning_path",
     recommendation: "To reach your career goal of becoming a Technical Lead, focus on developing architectural design skills and team leadership experience.",
     relevance_score: 0.85
+  },
+  {
+    type: "skill_gap", 
+    recommendation: "Adding GraphQL expertise to your skill set would complement your existing REST API knowledge and make you more attractive to modern tech companies.",
+    relevance_score: 0.88
+  },
+  {
+    type: "job_match",
+    recommendation: "With your background in cloud infrastructure, you're well-positioned for Cloud Architecture roles. AWS Solution Architect certification could be your next step.",
+    relevance_score: 0.91
+  },
+  {
+    type: "mentor_suggest",
+    recommendation: "Finding a mentor with product management experience would help you bridge the gap between technical implementation and business requirements.",
+    relevance_score: 0.82
   }
 ];
 
@@ -52,6 +66,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log("Career Twin function invoked");
+    
     // Create Supabase client
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -69,6 +85,7 @@ serve(async (req) => {
     } = await supabaseClient.auth.getUser();
 
     if (!user) {
+      console.log("Unauthorized access attempt");
       return new Response(
         JSON.stringify({ error: "You must be logged in to use this feature" }),
         {
@@ -79,6 +96,7 @@ serve(async (req) => {
     }
 
     // Get a random recommendation for demo purposes
+    // In production, this would use an AI model based on user data
     const randomIndex = Math.floor(Math.random() * sampleRecommendations.length);
     const recommendationTemplate = sampleRecommendations[randomIndex];
 
@@ -91,6 +109,8 @@ serve(async (req) => {
       status: 'pending',
       expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
     };
+
+    console.log("Generating recommendation:", recommendation.type);
 
     // Insert the recommendation
     const { data, error } = await supabaseClient
@@ -108,9 +128,15 @@ serve(async (req) => {
       .insert({
         user_id: user.id,
         activity_type: 'career_twin_recommendation_generated',
-        metadata: { recommendation_type: recommendation.type }
-      });
+        metadata: { 
+          recommendation_type: recommendation.type,
+          timestamp: new Date().toISOString()
+        }
+      })
+      .catch(error => console.error("Failed to log activity:", error));
 
+    console.log("Recommendation successfully generated");
+    
     return new Response(
       JSON.stringify({ success: true, data }),
       {
