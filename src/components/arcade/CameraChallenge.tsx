@@ -1,81 +1,30 @@
-import { useState, useRef, useEffect } from 'react';
+
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { Camera } from 'lucide-react';
+import { useCamera } from '@/hooks/useCamera';
+import { RequiredItemsList } from './camera/RequiredItemsList';
+import { CameraView } from './camera/CameraView';
+import { CapturedImagesGallery } from './camera/CapturedImagesGallery';
+import type { ChallengeValidationRules } from '@/types/arcade';
 
 interface CameraChallengeProps {
   challenge: {
     id: string;
-    validation_rules: {
-      required_items: string[];
-      min_confidence?: number;
-    };
+    validation_rules: ChallengeValidationRules;
     points: number;
   };
   onComplete: (success: boolean, data: Record<string, any>, points: number) => void;
 }
 
 export default function CameraChallenge({ challenge, onComplete }: CameraChallengeProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [stream, setStream] = useState<MediaStream | null>(null);
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
   const [detectedObjects, setDetectedObjects] = useState<Set<string>>(new Set());
   const [isProcessing, setIsProcessing] = useState(false);
+  const { videoRef, canvasRef, captureImage } = useCamera();
 
-  const requiredItems = challenge.validation_rules.required_items || [];
+  const requiredItems = challenge.validation_rules.required_items;
   const minConfidence = challenge.validation_rules.min_confidence || 0.7;
-  
-  useEffect(() => {
-    const startCamera = async () => {
-      try {
-        const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: 'environment' }
-        });
-        
-        setStream(mediaStream);
-        
-        if (videoRef.current) {
-          videoRef.current.srcObject = mediaStream;
-        }
-      } catch (error) {
-        console.error('Error accessing camera:', error);
-        toast({
-          title: "Camera Error",
-          description: "Failed to access camera. Please check permissions.",
-          variant: "destructive",
-        });
-      }
-    };
-    
-    startCamera();
-    
-    return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, []);
-
-  const captureImage = () => {
-    if (!videoRef.current || !canvasRef.current) return;
-    
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-    
-    if (!context) return;
-    
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    
-    const imageDataUrl = canvas.toDataURL('image/jpeg');
-    setCapturedImages(prev => [...prev, imageDataUrl]);
-    
-    processImage(imageDataUrl);
-  };
   
   const processImage = async (imageData: string) => {
     setIsProcessing(true);
@@ -121,6 +70,14 @@ export default function CameraChallenge({ challenge, onComplete }: CameraChallen
       setIsProcessing(false);
     }
   };
+
+  const handleCapture = () => {
+    const imageDataUrl = captureImage();
+    if (imageDataUrl) {
+      setCapturedImages(prev => [...prev, imageDataUrl]);
+      processImage(imageDataUrl);
+    }
+  };
   
   const handleGiveUp = () => {
     onComplete(false, {
@@ -131,74 +88,23 @@ export default function CameraChallenge({ challenge, onComplete }: CameraChallen
   
   return (
     <div className="space-y-4">
-      <div className="bg-muted p-4 rounded-md">
-        <h3 className="font-medium mb-2">Find these items:</h3>
-        <ul className="grid grid-cols-2 gap-2">
-          {requiredItems.map(item => (
-            <li 
-              key={item}
-              className={`flex items-center p-2 rounded ${
-                detectedObjects.has(item) ? 'bg-green-100 dark:bg-green-900' : 'bg-gray-100 dark:bg-gray-800'
-              }`}
-            >
-              <span className={`mr-2 ${
-                detectedObjects.has(item) ? 'text-green-600 dark:text-green-400' : ''
-              }`}>
-                {detectedObjects.has(item) ? '✓' : '○'} 
-              </span>
-              <span className="capitalize">{item}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <RequiredItemsList 
+        requiredItems={requiredItems} 
+        detectedObjects={detectedObjects}
+      />
       
-      <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
-        <video 
-          ref={videoRef}
-          autoPlay 
-          playsInline 
-          muted 
-          className="w-full h-full object-cover"
-        />
-        
-        <canvas ref={canvasRef} className="hidden" />
-        
-        {isProcessing && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <div className="text-white text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
-              <p className="mt-2">Analyzing image...</p>
-            </div>
-          </div>
-        )}
-      </div>
+      <CameraView
+        videoRef={videoRef}
+        canvasRef={canvasRef}
+        isProcessing={isProcessing}
+        onCapture={handleCapture}
+      />
       
-      <div className="flex justify-between">
-        <Button onClick={handleGiveUp} variant="outline">
-          Give Up
-        </Button>
-        
-        <Button 
-          onClick={captureImage} 
-          disabled={isProcessing}
-          className="flex items-center gap-2"
-        >
-          <Camera className="h-4 w-4" />
-          Capture Image
-        </Button>
-      </div>
+      <Button onClick={handleGiveUp} variant="outline" className="w-full">
+        Give Up
+      </Button>
       
-      <div className="flex flex-wrap gap-2 mt-4">
-        {capturedImages.map((image, index) => (
-          <div key={index} className="relative w-20 h-20">
-            <img 
-              src={image} 
-              alt={`Captured ${index}`} 
-              className="w-full h-full object-cover rounded"
-            />
-          </div>
-        ))}
-      </div>
+      <CapturedImagesGallery images={capturedImages} />
     </div>
   );
 }

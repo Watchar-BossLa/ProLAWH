@@ -1,23 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-
-export interface Challenge {
-  id: string;
-  title: string;
-  description: string | null;
-  difficulty_level: "beginner" | "intermediate" | "advanced";
-  points: number;
-  time_limit: number;
-  type: "ar" | "camera" | "code" | "quiz";
-  instructions: string;
-  validation_rules: {
-    required_items: string[];
-    min_confidence?: number;
-  };
-}
+import type { Challenge } from "@/types/arcade";
 
 export function useChallenge(challengeId: string | undefined) {
   const [challenge, setChallenge] = useState<Challenge | null>(null);
@@ -64,7 +49,7 @@ export function useChallenge(challengeId: string | undefined) {
         return;
       }
 
-      setChallenge(challengeData as Challenge);
+      setChallenge(challengeData as unknown as Challenge);
     };
 
     checkAuthAndLoadChallenge();
