@@ -10,16 +10,27 @@ import {
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown, Leaf } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export function GreenSkillsList() {
+interface GreenSkillsListProps {
+  categoryFilter: string | null;
+}
+
+export function GreenSkillsList({ categoryFilter }: GreenSkillsListProps) {
   const { data: greenSkills, isLoading } = useQuery({
-    queryKey: ['green-skills-index'],
+    queryKey: ['green-skills-index', categoryFilter],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('green_skill_index')
         .select('*')
         .order('sustainability_score', { ascending: false });
+      
+      if (categoryFilter) {
+        query = query.eq('category', categoryFilter);
+      }
+      
+      const { data, error } = await query;
       
       if (error) throw error;
       return data;
@@ -27,7 +38,31 @@ export function GreenSkillsList() {
   });
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <Card className="p-6">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+        </div>
+      </Card>
+    );
+  }
+
+  if (!greenSkills?.length) {
+    return (
+      <Card className="p-6 flex flex-col items-center justify-center">
+        <Leaf className="h-10 w-10 text-green-500 mb-2" />
+        <h3 className="text-xl font-semibold">No green skills found</h3>
+        <p className="text-muted-foreground">
+          {categoryFilter 
+            ? `No green skills found in the ${categoryFilter} category.` 
+            : "No green skills currently available."}
+        </p>
+      </Card>
+    );
   }
 
   return (
@@ -44,11 +79,11 @@ export function GreenSkillsList() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {greenSkills?.map((skill) => (
+            {greenSkills.map((skill) => (
               <TableRow key={skill.id}>
                 <TableCell className="font-medium">{skill.name}</TableCell>
                 <TableCell>{skill.category}</TableCell>
-                <TableCell>{skill.user_count}</TableCell>
+                <TableCell>{skill.user_count || 0}</TableCell>
                 <TableCell>
                   {skill.avg_proficiency 
                     ? (skill.avg_proficiency as number).toFixed(1) 

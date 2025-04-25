@@ -12,7 +12,7 @@ import {
   LucideIcon, 
   Home, 
   Settings,
-  Compass
+  Leaf
 } from 'lucide-react';
 
 interface NavItemProps {
@@ -51,6 +51,7 @@ export function DashboardSidebar() {
     { icon: Briefcase, label: "Opportunities", href: "/dashboard/opportunities" },
     { icon: Trophy, label: "Nano-Arcade", href: "/dashboard/arcade" },
     { icon: BarChart, label: "Career Twin", href: "/dashboard/career-twin" },
+    { icon: Leaf, label: "Green Skills", href: "/dashboard/green-skills" },
     { icon: Settings, label: "Settings", href: "/profile" }
   ];
   
