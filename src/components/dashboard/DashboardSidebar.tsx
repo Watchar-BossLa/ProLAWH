@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -11,7 +10,8 @@ import {
   BarChart, 
   LucideIcon, 
   Home, 
-  Settings
+  Settings,
+  Compass
 } from 'lucide-react';
 
 interface NavItemProps {
@@ -38,7 +38,7 @@ const NavItem = ({ icon: Icon, label, href, isActive }: NavItemProps) => {
   );
 };
 
-export const DashboardSidebar = () => {
+export function DashboardSidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -54,7 +54,7 @@ export const DashboardSidebar = () => {
   ];
   
   return (
-    <div className="w-64 border-r h-full flex flex-col">
+    <nav className="w-64 border-r h-full flex flex-col">
       <div className="p-4 border-b">
         <h2 className="font-semibold text-xl">ProLawh</h2>
         <p className="text-sm text-muted-foreground">Learning & Workforce Hub</p>
@@ -83,6 +83,6 @@ export const DashboardSidebar = () => {
           </div>
         </div>
       </div>
-    </div>
+    </nav>
   );
 };

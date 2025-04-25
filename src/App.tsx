@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +10,7 @@ import ProfilePage from "./pages/profile/ProfilePage";
 import { DashboardLayout } from "./components/dashboard/DashboardLayout";
 import { DashboardHome } from "./components/dashboard/DashboardHome";
 import DashboardPlaceholder from "./pages/dashboard/DashboardPlaceholder";
+import CareerTwinPage from "./pages/dashboard/CareerTwinPage";
 
 const queryClient = new QueryClient();
 
@@ -24,7 +24,6 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<AuthPage />} />
           
-          {/* Dashboard Routes with Layout */}
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<DashboardHome />} />
             <Route path="learning" element={<DashboardPlaceholder title="Learning Paths" />} />
@@ -32,7 +31,7 @@ const App = () => (
             <Route path="mentorship" element={<DashboardPlaceholder title="Mentorship" />} />
             <Route path="opportunities" element={<DashboardPlaceholder title="Opportunities" />} />
             <Route path="arcade" element={<DashboardPlaceholder title="Nano-Arcade" />} />
-            <Route path="career" element={<DashboardPlaceholder title="Career Twin" />} />
+            <Route path="career-twin" element={<CareerTwinPage />} />
           </Route>
           
           <Route path="/profile" element={<ProfilePage />} />
