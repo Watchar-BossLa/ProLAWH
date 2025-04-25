@@ -25,7 +25,7 @@ export function CareerTwinCard({ recommendation, onStatusUpdate }: CareerTwinCar
   const handleStatusUpdate = async (status: string) => {
     setIsUpdating(true);
     try {
-      // Use type assertion to bypass TypeScript's strict table checking
+      // Use type assertion but handle the response properly
       const { error } = await supabase
         .from('career_recommendations' as any)
         .update({ status })

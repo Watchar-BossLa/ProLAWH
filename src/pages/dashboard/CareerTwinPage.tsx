@@ -19,14 +19,15 @@ export default function CareerTwinPage() {
 
   const fetchRecommendations = async () => {
     try {
-      // Use type assertion to bypass TypeScript's strict table checking
+      // Use type assertion and cast the result properly
       const { data, error } = await supabase
         .from('career_recommendations' as any)
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setRecommendations(data || []);
+      // Explicitly cast the data to ensure type safety
+      setRecommendations((data || []) as CareerRecommendation[]);
     } catch (error: any) {
       toast({
         title: "Error",
