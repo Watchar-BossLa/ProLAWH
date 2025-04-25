@@ -1,17 +1,28 @@
-
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { DashboardSidebar } from './DashboardSidebar';
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { 
+  Sidebar,
+  SidebarProvider,
+  SidebarContent,
+  SidebarHeader,
+  SidebarFooter,
+} from "@/components/ui/sidebar"
 
-export const DashboardLayout = () => {
+export function DashboardLayout() {
   return (
-    <div className="flex h-screen w-full overflow-hidden">
-      <DashboardSidebar />
-      <main className="flex-1 overflow-auto">
-        <div className="container py-6">
+    <SidebarProvider>
+      <div className="flex h-screen bg-gray-100 text-gray-700">
+        <Sidebar>
+          <SidebarContent>
+            <DashboardSidebar />
+          </SidebarContent>
+        </Sidebar>
+        
+        <div className="flex-1 p-4">
           <Outlet />
         </div>
-      </main>
-    </div>
+      </div>
+    </SidebarProvider>
   );
-};
+}
