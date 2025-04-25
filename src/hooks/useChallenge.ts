@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Challenge } from '@/types/arcade';
+import { Challenge, ChallengeValidationRules } from '@/types/arcade';
 
 export function useChallenge(challengeId: string | undefined) {
   const [challenge, setChallenge] = useState<Challenge | null>(null);
@@ -18,7 +18,23 @@ export function useChallenge(challengeId: string | undefined) {
         .single();
 
       if (!error && data) {
-        setChallenge(data as Challenge);
+        // Ensure validation_rules matches the expected type
+        const validationRules = data.validation_rules as ChallengeValidationRules;
+        
+        // Create a properly typed Challenge object
+        const typedChallenge: Challenge = {
+          id: data.id,
+          title: data.title,
+          description: data.description,
+          type: data.type,
+          difficulty_level: data.difficulty_level,
+          points: data.points,
+          time_limit: data.time_limit,
+          instructions: data.instructions,
+          validation_rules: validationRules
+        };
+        
+        setChallenge(typedChallenge);
       }
     };
 

@@ -1,7 +1,7 @@
 
 import { Challenge } from "@/types/arcade";
 import ChallengeTimer from "../ChallengeTimer";
-import { CameraChallenge } from "@/components/arcade/camera/CameraChallenge";
+import CameraChallenge from "@/components/arcade/CameraChallenge";
 import { Button } from "@/components/ui/button";
 
 interface ActiveStateProps {
