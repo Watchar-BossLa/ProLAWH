@@ -35,15 +35,19 @@ export function CareerTwinCard({ recommendation, onStatusUpdate }: CareerTwinCar
       onStatusUpdate(recommendation.id, status);
       
       // Track user engagement with recommendations
-      await supabase
-        .from('user_activity_logs' as unknown as any)
-        .insert({
-          activity_type: 'career_recommendation_status_change',
-          metadata: { 
-            recommendation_id: recommendation.id,
-            new_status: status
-          }
-        }).catch(err => console.error("Failed to log activity:", err));
+      try {
+        await supabase
+          .from('user_activity_logs' as unknown as any)
+          .insert({
+            activity_type: 'career_recommendation_status_change',
+            metadata: { 
+              recommendation_id: recommendation.id,
+              new_status: status
+            }
+          });
+      } catch (activityError) {
+        console.error("Failed to log activity:", activityError);
+      }
       
       toast({
         title: "Status updated",
