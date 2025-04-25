@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 import { useSidebar } from "./sidebar/context"
 import type { SidebarProps } from "./sidebar/types"
 
-// Export all components from their respective files
+// Export all components from their respective directories
 export * from "./sidebar/context"
 export * from "./sidebar/types"
 export * from "./sidebar/variants"
@@ -26,3 +26,8 @@ export * from "./sidebar/structure/content"
 
 // Utility components
 export * from "./sidebar/utils/input"
+export * from "./sidebar/utils/separator"
+
+// Navigation components
+export * from "./sidebar/navigation"
+

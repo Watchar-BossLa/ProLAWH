@@ -66,9 +66,12 @@ export default function GreenSkillsPage() {
         </div>
       </div>
 
-      {greenSkills && <GreenSkillStats skills={greenSkills} />}
-
-      {filteredSkills && <GreenSkillsList skills={filteredSkills} />}
+      {greenSkills && (
+        <>
+          <GreenSkillStats greenSkills={greenSkills} />
+          <GreenSkillsList greenSkills={filteredSkills || []} />
+        </>
+      )}
     </div>
   );
 }
