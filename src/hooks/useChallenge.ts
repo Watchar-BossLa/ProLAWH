@@ -12,7 +12,7 @@ export function useChallenge(challengeId: string | undefined) {
       if (!challengeId) return;
       
       const { data, error } = await supabase
-        .from('challenges')
+        .from('arcade_challenges')
         .select('*')
         .eq('id', challengeId)
         .single();
