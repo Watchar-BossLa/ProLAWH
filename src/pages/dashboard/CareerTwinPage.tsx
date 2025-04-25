@@ -19,11 +19,11 @@ export default function CareerTwinPage() {
 
   const fetchRecommendations = async () => {
     try {
-      // Use generic query to avoid TypeScript issues with the table
+      // Use type assertion to bypass TypeScript's strict table checking
       const { data, error } = await supabase
-        .from('career_recommendations')
+        .from('career_recommendations' as any)
         .select('*')
-        .order('created_at', { ascending: false }) as { data: CareerRecommendation[] | null, error: any };
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setRecommendations(data || []);

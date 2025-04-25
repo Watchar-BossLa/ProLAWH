@@ -25,11 +25,11 @@ export function CareerTwinCard({ recommendation, onStatusUpdate }: CareerTwinCar
   const handleStatusUpdate = async (status: string) => {
     setIsUpdating(true);
     try {
-      // Use generic query to avoid TypeScript issues with the table
+      // Use type assertion to bypass TypeScript's strict table checking
       const { error } = await supabase
-        .from('career_recommendations')
+        .from('career_recommendations' as any)
         .update({ status })
-        .eq('id', recommendation.id) as { error: any };
+        .eq('id', recommendation.id);
 
       if (error) throw error;
       onStatusUpdate(recommendation.id, status);
