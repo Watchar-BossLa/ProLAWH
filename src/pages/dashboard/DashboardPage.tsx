@@ -1,6 +1,6 @@
 
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
@@ -38,9 +38,13 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold">Dashboard</h1>
-          <Button onClick={handleSignOut}>Sign Out</Button>
+          <div className="space-x-4">
+            <Button variant="outline" asChild>
+              <Link to="/profile">Profile Settings</Link>
+            </Button>
+            <Button onClick={handleSignOut}>Sign Out</Button>
+          </div>
         </div>
-        {/* Dashboard content will be implemented in next iteration */}
       </div>
     </div>
   );
