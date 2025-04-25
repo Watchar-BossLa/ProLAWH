@@ -1,140 +1,87 @@
 
-import { BadgeCheck, Lightbulb, BookOpen, CheckCircle, XCircle, Clock } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import React from 'react'
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { CheckCheck, Clock, XCircle } from "lucide-react"
+import { toast } from "@/hooks/use-toast"
+import { supabase } from "@/integrations/supabase/client"
 
 interface CareerRecommendation {
-  id: string;
-  type: string;
-  recommendation: string;
-  relevance_score: number;
-  status: string;
+  id: string
+  type: string
+  recommendation: string
+  relevance_score: number
+  status: string
 }
 
 interface CareerTwinCardProps {
-  recommendation: CareerRecommendation;
-  onStatusUpdate: (id: string, status: string) => void;
+  recommendation: CareerRecommendation
+  onStatusUpdate: (id: string, status: string) => void
 }
 
-export function CareerTwinCard({ recommendation, onStatusUpdate }: CareerTwinCardProps) {
-  const [isUpdating, setIsUpdating] = useState(false);
-
+export const CareerTwinCard = ({ recommendation, onStatusUpdate }: CareerTwinCardProps) => {
   const handleStatusUpdate = async (status: string) => {
-    setIsUpdating(true);
     try {
-      // Two-step type assertion pattern for better type safety
       const { error } = await supabase
-        .from('career_recommendations' as unknown as any)
+        .from('career_recommendations')
         .update({ status })
-        .eq('id', recommendation.id);
+        .eq('id', recommendation.id)
 
-      if (error) throw error;
-      onStatusUpdate(recommendation.id, status);
-      
-      // Track user engagement with recommendations
-      try {
-        await supabase
-          .from('user_activity_logs' as unknown as any)
-          .insert({
-            activity_type: 'career_recommendation_status_change',
-            metadata: { 
-              recommendation_id: recommendation.id,
-              new_status: status
-            }
-          });
-      } catch (activityError) {
-        console.error("Failed to log activity:", activityError);
-      }
-      
+      if (error) throw error
+
+      onStatusUpdate(recommendation.id, status)
       toast({
         title: "Status updated",
         description: `Recommendation marked as ${status}`,
-      });
+      })
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message,
         variant: "destructive",
-      });
-    } finally {
-      setIsUpdating(false);
+      })
     }
-  };
-
-  // Determine status icon
-  const StatusIcon = () => {
-    switch (recommendation.status) {
-      case 'accepted':
-        return <Clock className="h-5 w-5 text-blue-500" />;
-      case 'implemented':
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'rejected':
-        return <XCircle className="h-5 w-5 text-red-500" />;
-      default:
-        return null;
-    }
-  };
+  }
 
   return (
-    <Card className={recommendation.status === 'rejected' ? "opacity-70" : ""}>
-      <CardHeader className="flex flex-row justify-between">
-        <div>
-          <CardTitle className="flex items-center gap-2">
-            {recommendation.type === 'skill_gap' && <BookOpen className="h-5 w-5" />}
-            {recommendation.type === 'job_match' && <Lightbulb className="h-5 w-5" />}
-            {recommendation.type === 'mentor_suggest' && <BadgeCheck className="h-5 w-5" />}
-            {recommendation.type.replace('_', ' ').charAt(0).toUpperCase() + recommendation.type.slice(1).replace('_', ' ')}
-          </CardTitle>
-          <CardDescription>
-            Relevance: {Math.round(recommendation.relevance_score * 100)}%
-          </CardDescription>
-        </div>
-        <StatusIcon />
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          {recommendation.type === 'skill_gap' && 'Skill Gap Analysis'}
+          {recommendation.type === 'job_match' && 'Job Match'}
+          {recommendation.type === 'mentor_suggest' && 'Mentorship Suggestion'}
+          {recommendation.type === 'learning_path' && 'Learning Path'}
+          {recommendation.status === 'pending' && <Clock className="h-4 w-4 text-yellow-500" />}
+          {recommendation.status === 'accepted' && <CheckCheck className="h-4 w-4 text-green-500" />}
+          {recommendation.status === 'rejected' && <XCircle className="h-4 w-4 text-red-500" />}
+        </CardTitle>
+        <CardDescription>
+          Relevance Score: {Math.round(recommendation.relevance_score * 100)}%
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-gray-600">{recommendation.recommendation}</p>
-      </CardContent>
-      <CardFooter className="flex gap-2">
+        <p className="text-sm text-gray-600 mb-4">{recommendation.recommendation}</p>
         {recommendation.status === 'pending' && (
-          <>
-            <Button 
-              variant="default" 
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-green-600"
               onClick={() => handleStatusUpdate('accepted')}
-              disabled={isUpdating}
             >
               Accept
             </Button>
-            <Button 
-              variant="secondary" 
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-red-600"
               onClick={() => handleStatusUpdate('rejected')}
-              disabled={isUpdating}
             >
-              Dismiss
+              Reject
             </Button>
-          </>
+          </div>
         )}
-        {recommendation.status === 'accepted' && (
-          <Button 
-            variant="outline" 
-            onClick={() => handleStatusUpdate('implemented')}
-            disabled={isUpdating}
-          >
-            Mark as Done
-          </Button>
-        )}
-        {recommendation.status === 'rejected' && (
-          <Button 
-            variant="outline" 
-            onClick={() => handleStatusUpdate('pending')}
-            disabled={isUpdating}
-          >
-            Reconsider
-          </Button>
-        )}
-      </CardFooter>
+      </CardContent>
     </Card>
-  );
+  )
 }

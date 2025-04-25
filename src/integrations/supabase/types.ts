@@ -246,6 +246,42 @@ export type Database = {
         }
         Relationships: []
       }
+      career_recommendations: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          recommendation: string
+          relevance_score: number | null
+          status: string | null
+          type: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          recommendation: string
+          relevance_score?: number | null
+          status?: string | null
+          type?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          recommendation?: string
+          relevance_score?: number | null
+          status?: string | null
+          type?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       challenge_attempts: {
         Row: {
           challenge_id: string
@@ -1611,6 +1647,30 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+        }
+        Relationships: []
+      }
+      user_activity_logs: {
+        Row: {
+          activity_type: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string
         }
         Relationships: []
       }
