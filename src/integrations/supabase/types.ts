@@ -82,6 +82,13 @@ export type Database = {
             foreignKeyName: "assessment_skills_skill_id_fkey"
             columns: ["skill_id"]
             isOneToOne: false
+            referencedRelation: "green_skill_index"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_skills_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
             referencedRelation: "skills"
             referencedColumns: ["id"]
           },
@@ -158,6 +165,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "blockchain_credentials_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "green_skill_index"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "blockchain_credentials_skill_id_fkey"
             columns: ["skill_id"]
@@ -453,6 +467,42 @@ export type Database = {
           },
         ]
       }
+      companies: {
+        Row: {
+          co2_score: number | null
+          created_at: string
+          description: string | null
+          id: string
+          industry: string
+          name: string
+          sustainability_initiatives: Json | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          co2_score?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          industry: string
+          name: string
+          sustainability_initiatives?: Json | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          co2_score?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          industry?: string
+          name?: string
+          sustainability_initiatives?: Json | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       content_templates: {
         Row: {
           content_type: string
@@ -630,6 +680,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      green_skills: {
+        Row: {
+          category: string
+          co2_reduction_potential: number | null
+          created_at: string
+          description: string | null
+          id: string
+          market_growth_rate: number | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          co2_reduction_potential?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          market_growth_rate?: number | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          co2_reduction_potential?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          market_growth_rate?: number | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       incorporation_status: {
         Row: {
@@ -1192,6 +1275,13 @@ export type Database = {
             foreignKeyName: "project_skills_skill_id_fkey"
             columns: ["skill_id"]
             isOneToOne: false
+            referencedRelation: "green_skill_index"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_skills_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
             referencedRelation: "skills"
             referencedColumns: ["id"]
           },
@@ -1519,6 +1609,13 @@ export type Database = {
             foreignKeyName: "skill_endorsements_skill_id_fkey"
             columns: ["skill_id"]
             isOneToOne: false
+            referencedRelation: "green_skill_index"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_endorsements_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
             referencedRelation: "skills"
             referencedColumns: ["id"]
           },
@@ -1566,6 +1663,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "skill_stakes_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "green_skill_index"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "skill_stakes_skill_id_fkey"
             columns: ["skill_id"]
@@ -1632,21 +1736,27 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_green_skill: boolean | null
           name: string
+          sustainability_score: number | null
         }
         Insert: {
           category: string
           created_at?: string
           description?: string | null
           id?: string
+          is_green_skill?: boolean | null
           name: string
+          sustainability_score?: number | null
         }
         Update: {
           category?: string
           created_at?: string
           description?: string | null
           id?: string
+          is_green_skill?: boolean | null
           name?: string
+          sustainability_score?: number | null
         }
         Relationships: []
       }
@@ -1858,6 +1968,13 @@ export type Database = {
             foreignKeyName: "user_skills_skill_id_fkey"
             columns: ["skill_id"]
             isOneToOne: false
+            referencedRelation: "green_skill_index"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_skills_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
             referencedRelation: "skills"
             referencedColumns: ["id"]
           },
@@ -1891,10 +2008,29 @@ export type Database = {
             foreignKeyName: "skill_stakes_skill_id_fkey"
             columns: ["skill_id"]
             isOneToOne: false
+            referencedRelation: "green_skill_index"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_stakes_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
             referencedRelation: "skills"
             referencedColumns: ["id"]
           },
         ]
+      }
+      green_skill_index: {
+        Row: {
+          avg_proficiency: number | null
+          category: string | null
+          id: string | null
+          is_green_skill: boolean | null
+          name: string | null
+          sustainability_score: number | null
+          user_count: number | null
+        }
+        Relationships: []
       }
     }
     Functions: {

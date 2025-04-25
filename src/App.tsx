@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +14,7 @@ import CareerTwinPage from "./pages/dashboard/CareerTwinPage";
 import ArcadePage from "./pages/dashboard/ArcadePage";
 import ChallengePage from "./pages/dashboard/ChallengePage";
 import SkillStakingPage from "./pages/dashboard/SkillStakingPage";
+import GreenSkillsPage from "./pages/dashboard/GreenSkillsPage";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +37,7 @@ const App = () => (
             <Route path="arcade" element={<ArcadePage />} />
             <Route path="arcade/challenge/:challengeId" element={<ChallengePage />} />
             <Route path="career-twin" element={<CareerTwinPage />} />
+            <Route path="green-skills" element={<GreenSkillsPage />} />
             <Route path="staking" element={<SkillStakingPage />} />
           </Route>
           
