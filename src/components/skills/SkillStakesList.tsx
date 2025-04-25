@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -8,8 +9,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Coins } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { Skeleton, Coins } from "@/components/ui";
 
 interface SkillStake {
   id: string;
