@@ -3,19 +3,25 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Trophy } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import type { ArcadeChallenge } from "@/hooks/useArcadeChallenges";
 
 interface ChallengeCardProps {
   challenge: ArcadeChallenge;
-  onStart: (challenge: ArcadeChallenge) => void;
 }
 
-export function ChallengeCard({ challenge, onStart }: ChallengeCardProps) {
+export function ChallengeCard({ challenge }: ChallengeCardProps) {
+  const navigate = useNavigate();
+  
   const difficultyColor = {
     beginner: "bg-green-500",
     intermediate: "bg-yellow-500",
     advanced: "bg-red-500",
   }[challenge.difficulty_level];
+
+  const handleStartChallenge = () => {
+    navigate(`/dashboard/arcade/challenge/${challenge.id}`);
+  };
 
   return (
     <Card className="w-full">
@@ -41,7 +47,7 @@ export function ChallengeCard({ challenge, onStart }: ChallengeCardProps) {
         </div>
       </CardContent>
       <CardFooter>
-        <Button onClick={() => onStart(challenge)} className="w-full">
+        <Button onClick={handleStartChallenge} className="w-full">
           Start Challenge
         </Button>
       </CardFooter>

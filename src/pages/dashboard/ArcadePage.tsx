@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { useArcadeChallenges, type ArcadeChallenge } from "@/hooks/useArcadeChallenges";
+import { useArcadeChallenges } from "@/hooks/useArcadeChallenges";
 import { ChallengeCard } from "@/components/arcade/ChallengeCard";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,44 +30,6 @@ export default function ArcadePage() {
     checkAuth();
   }, [navigate]);
 
-  const handleStartChallenge = async (challenge: ArcadeChallenge) => {
-    try {
-      if (!userId) {
-        toast({
-          title: "Authentication Required",
-          description: "Please sign in to start challenges",
-          variant: "destructive",
-        });
-        navigate("/auth");
-        return;
-      }
-
-      const { error } = await supabase
-        .from("challenge_attempts")
-        .insert({
-          challenge_id: challenge.id,
-          user_id: userId,
-          status: "started",
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Challenge Started!",
-        description: challenge.instructions,
-      });
-
-      // We'll implement the actual challenge UI in the next iteration
-      
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
   if (isLoading) {
     return <div className="p-8">Loading challenges...</div>;
   }
@@ -80,7 +42,6 @@ export default function ArcadePage() {
           <ChallengeCard
             key={challenge.id}
             challenge={challenge}
-            onStart={handleStartChallenge}
           />
         ))}
       </div>
