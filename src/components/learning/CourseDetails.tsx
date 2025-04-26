@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCourseDetails } from "@/hooks/useCourseDetails";
 import { useEnrollment } from "@/hooks/useEnrollment";
-import { book, list } from "lucide-react";
+import { Book, List } from "lucide-react";
 
 interface CourseDetailsProps {
   courseId: string;
@@ -32,7 +32,7 @@ export function CourseDetails({ courseId }: CourseDetailsProps) {
           onClick={() => enroll({ courseId })}
           disabled={isEnrolling}
         >
-          <book className="mr-2" />
+          <Book className="mr-2" />
           Enroll Now
         </Button>
       </div>
@@ -40,7 +40,7 @@ export function CourseDetails({ courseId }: CourseDetailsProps) {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <list />
+            <List />
             Course Contents
           </CardTitle>
         </CardHeader>
