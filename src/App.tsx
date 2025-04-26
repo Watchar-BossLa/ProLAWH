@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -46,6 +47,7 @@ const App = () => (
               <Route path="staking" element={<SkillStakingPage />} />
               <Route path="study-bee" element={<StudyBeePage />} />
               <Route path="network" element={<NetworkDashboard />} />
+              <Route path="network/:connectionId" element={<DashboardPlaceholder title="Connection Profile" />} />
             </Route>
             
             <Route path="/profile" element={<ProfilePage />} />
