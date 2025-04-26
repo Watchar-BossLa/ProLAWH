@@ -142,7 +142,7 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
             <Button variant="ghost" size="icon" type="button" className="rounded-full">
               <Paperclip className="h-4 w-4" />
             </Button>
-            <Button variant="primary" size="icon" onClick={handleSendMessage} className="rounded-full">
+            <Button variant="default" size="icon" onClick={handleSendMessage} className="rounded-full">
               <Send className="h-4 w-4" />
             </Button>
           </div>

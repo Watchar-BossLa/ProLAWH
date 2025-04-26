@@ -19,6 +19,7 @@ import GreenSkillsPage from "./pages/dashboard/GreenSkillsPage";
 import StudyBeePage from "./pages/dashboard/StudyBeePage";
 import OpportunityMarketplace from "./pages/dashboard/OpportunityMarketplace";
 import NetworkDashboard from "./pages/dashboard/NetworkDashboard";
+import NetworkConnectionProfile from "./pages/dashboard/NetworkConnectionProfile";
 import { AuthProvider } from "./hooks/useAuth";
 
 const queryClient = new QueryClient();
@@ -47,7 +48,7 @@ const App = () => (
               <Route path="staking" element={<SkillStakingPage />} />
               <Route path="study-bee" element={<StudyBeePage />} />
               <Route path="network" element={<NetworkDashboard />} />
-              <Route path="network/:connectionId" element={<DashboardPlaceholder title="Connection Profile" />} />
+              <Route path="network/:connectionId" element={<NetworkConnectionProfile />} />
             </Route>
             
             <Route path="/profile" element={<ProfilePage />} />
