@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +17,7 @@ import SkillStakingPage from "./pages/dashboard/SkillStakingPage";
 import GreenSkillsPage from "./pages/dashboard/GreenSkillsPage";
 import StudyBeePage from "./pages/dashboard/StudyBeePage";
 import OpportunityMarketplace from "./pages/dashboard/OpportunityMarketplace";
+import NetworkDashboard from "./pages/dashboard/NetworkDashboard";
 import { AuthProvider } from "./hooks/useAuth";
 
 const queryClient = new QueryClient();
@@ -45,6 +45,7 @@ const App = () => (
               <Route path="green-skills" element={<GreenSkillsPage />} />
               <Route path="staking" element={<SkillStakingPage />} />
               <Route path="study-bee" element={<StudyBeePage />} />
+              <Route path="network" element={<NetworkDashboard />} />
             </Route>
             
             <Route path="/profile" element={<ProfilePage />} />

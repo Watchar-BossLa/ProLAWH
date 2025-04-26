@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils";
 import { 
   Book, 
   GraduationCap, 
-  Users, 
+  Users,
+  Network, 
   Trophy, 
   Briefcase, 
   BarChart, 
@@ -44,6 +45,7 @@ export function DashboardSidebar() {
 
   const navItems = [
     { icon: Home, label: "Dashboard", href: "/dashboard" },
+    { icon: Network, label: "Network", href: "/dashboard/network" },
     { icon: Book, label: "Learning Paths", href: "/dashboard/learning" },
     { icon: GraduationCap, label: "Skills & Badges", href: "/dashboard/skills" },
     { icon: Users, label: "Mentorship", href: "/dashboard/mentorship" },
