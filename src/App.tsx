@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,6 +17,7 @@ import ChallengePage from "./pages/dashboard/ChallengePage";
 import SkillStakingPage from "./pages/dashboard/SkillStakingPage";
 import GreenSkillsPage from "./pages/dashboard/GreenSkillsPage";
 import StudyBeePage from "./pages/dashboard/StudyBeePage";
+import OpportunityMarketplace from "./pages/dashboard/OpportunityMarketplace";
 import { AuthProvider } from "./hooks/useAuth";
 
 const queryClient = new QueryClient();
@@ -36,7 +38,7 @@ const App = () => (
               <Route path="learning" element={<DashboardPlaceholder title="Learning Paths" />} />
               <Route path="skills" element={<DashboardPlaceholder title="Skills & Badges" />} />
               <Route path="mentorship" element={<DashboardPlaceholder title="Mentorship" />} />
-              <Route path="opportunities" element={<DashboardPlaceholder title="Opportunities" />} />
+              <Route path="opportunities" element={<OpportunityMarketplace />} />
               <Route path="arcade" element={<ArcadePage />} />
               <Route path="arcade/challenge/:challengeId" element={<ChallengePage />} />
               <Route path="career-twin" element={<CareerTwinPage />} />
