@@ -11,3 +11,11 @@ export interface Opportunity {
   green_score: number;
   created_at: string;
 }
+
+export interface FilterState {
+  query: string;
+  remote: boolean;
+  insured: boolean;
+  minGreenScore: number;
+  skillFilter: string[];
+}
