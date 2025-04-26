@@ -136,7 +136,7 @@ export function SkillStakesList() {
               <TableCell>{stake.amount_usdc}</TableCell>
               <TableCell>
                 <Badge variant={stake.status === 'active' ? 'default' : 
-                               stake.status === 'completed' ? 'success' : 'destructive'}>
+                               stake.status === 'completed' ? 'secondary' : 'destructive'}>
                   {stake.status}
                 </Badge>
               </TableCell>

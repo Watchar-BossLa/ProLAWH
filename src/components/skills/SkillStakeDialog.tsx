@@ -27,12 +27,19 @@ interface SkillStakeDialogProps {
   skillName: string;
 }
 
+// Define interface for the staking contract since it's not in the generated types yet
+interface StakingContract {
+  id: string;
+  contract_address: string;
+  network: string;
+}
+
 export function SkillStakeDialog({ skillId, skillName }: SkillStakeDialogProps) {
   const [amount, setAmount] = useState("");
   const [isStaking, setIsStaking] = useState(false);
   const [open, setOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
-  const [stakingContracts, setStakingContracts] = useState<Array<{id: string, contract_address: string, network: string}>>([]);
+  const [stakingContracts, setStakingContracts] = useState<StakingContract[]>([]);
   const [selectedContract, setSelectedContract] = useState<string>("");
   
   const { address, isConnected, connect } = usePolygonWallet();
@@ -44,20 +51,23 @@ export function SkillStakeDialog({ skillId, skillName }: SkillStakeDialogProps) 
       const { data: { user } } = await supabase.auth.getUser();
       setUserId(user?.id || null);
       
-      // Fetch available staking contracts
-      const { data: contracts, error } = await supabase
-        .from("staking_contracts")
-        .select("id, contract_address, network")
-        .eq("active", true);
+      // Fetch available staking contracts using raw query to avoid type issues
+      const { data, error } = await supabase
+        .from('staking_contracts')
+        .select('id, contract_address, network')
+        .eq('active', true) as unknown as { 
+          data: StakingContract[] | null, 
+          error: Error | null 
+        };
       
       if (error) {
         console.error("Error fetching staking contracts:", error);
         return;
       }
       
-      if (contracts && contracts.length > 0) {
-        setStakingContracts(contracts);
-        setSelectedContract(contracts[0].id);
+      if (data && data.length > 0) {
+        setStakingContracts(data);
+        setSelectedContract(data[0].id);
       }
     };
     
