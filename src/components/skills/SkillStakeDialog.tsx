@@ -14,6 +14,8 @@ import { usePolygonWallet } from "@/hooks/usePolygonWallet";
 import { polygonClient } from "@/integrations/polygon/client";
 import { StakeForm } from "./StakeForm";
 import { useStakingContracts } from "@/hooks/useStakingContracts";
+import { SkillStake } from "@/types/staking";
+import { useAuth } from "@/hooks/useAuth";
 
 interface SkillStakeDialogProps {
   skillId: string;
@@ -24,6 +26,7 @@ export function SkillStakeDialog({ skillId, skillName }: SkillStakeDialogProps) 
   const [isStaking, setIsStaking] = useState(false);
   const [open, setOpen] = useState(false);
   const { address, isConnected, connect } = usePolygonWallet();
+  const { user } = useAuth();
   const {
     stakingContracts,
     selectedContract,
@@ -31,12 +34,21 @@ export function SkillStakeDialog({ skillId, skillName }: SkillStakeDialogProps) 
     isLoading: isLoadingContracts
   } = useStakingContracts();
 
-  const handleStake = async (amount: string) => {
+  const handleStake = async (amount: string): Promise<void> => {
     const amountNum = parseFloat(amount);
     if (isNaN(amountNum) || amountNum <= 0) {
       toast({
         title: "Invalid amount",
         description: "Please enter a valid positive number",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to stake",
         variant: "destructive",
       });
       return;
@@ -53,15 +65,19 @@ export function SkillStakeDialog({ skillId, skillName }: SkillStakeDialogProps) 
         amountNum
       );
       
+      const stakeData: SkillStake = {
+        skill_id: skillId,
+        amount_usdc: amountNum,
+        user_id: user.id,
+        polygon_tx_hash: txResult.transactionHash,
+        polygon_contract_address: contract.contract_address,
+        stake_token_amount: Math.floor(amountNum * 1000000),
+        status: 'active'
+      };
+
       const { error } = await supabase
         .from("skill_stakes")
-        .insert({
-          skill_id: skillId,
-          amount_usdc: amountNum,
-          polygon_tx_hash: txResult.transactionHash,
-          polygon_contract_address: contract.contract_address,
-          stake_token_amount: Math.floor(amountNum * 1000000)
-        });
+        .insert(stakeData);
 
       if (error) throw error;
 

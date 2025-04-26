@@ -1,12 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-
-interface StakingContract {
-  id: string;
-  contract_address: string;
-  network: string;
-}
+import { StakingContract } from "@/types/staking";
 
 export function useStakingContracts() {
   const [stakingContracts, setStakingContracts] = useState<StakingContract[]>([]);
@@ -17,7 +12,6 @@ export function useStakingContracts() {
   useEffect(() => {
     const fetchContracts = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         const { data, error } = await supabase.rpc('get_active_staking_contracts');
 
         if (error) throw error;

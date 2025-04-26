@@ -1760,6 +1760,33 @@ export type Database = {
         }
         Relationships: []
       }
+      staking_contracts: {
+        Row: {
+          active: boolean | null
+          contract_address: string
+          created_at: string
+          id: string
+          network: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean | null
+          contract_address: string
+          created_at?: string
+          id?: string
+          network: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean | null
+          contract_address?: string
+          created_at?: string
+          id?: string
+          network?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_activity_logs: {
         Row: {
           activity_type: string
@@ -2034,7 +2061,14 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      get_active_staking_contracts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          contract_address: string
+          network: string
+        }[]
+      }
     }
     Enums: {
       connection_status: "pending" | "accepted" | "declined"
