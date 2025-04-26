@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
@@ -11,8 +10,8 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { pageTransitions } from "@/lib/transitions";
-import { supabase } from "@/integrations/supabase/client";
-import { Briefcase, Filter, Leaf, Search, Shield, Tags } from "lucide-react";
+import { Briefcase, Filter, Leaf, Search, Shield } from "lucide-react";
+import type { Opportunity } from "@/types/marketplace";
 
 interface Opportunity {
   id: string;
@@ -27,6 +26,22 @@ interface Opportunity {
   created_at: string;
 }
 
+const mockOpportunities: Opportunity[] = [
+  {
+    id: "1",
+    title: "Senior React Developer",
+    description: "Looking for an experienced React developer to join our team...",
+    company: "TechCorp",
+    rate_range: "$80-120/hr",
+    skills_required: ["React", "TypeScript", "Node.js"],
+    is_remote: true,
+    has_insurance: true,
+    green_score: 85,
+    created_at: new Date().toISOString()
+  },
+  // Add more mock data as needed
+];
+
 export default function OpportunityMarketplace() {
   const [filter, setFilter] = useState({
     query: "",
@@ -39,32 +54,14 @@ export default function OpportunityMarketplace() {
   const { data: opportunities, isLoading } = useQuery({
     queryKey: ['opportunities', filter],
     queryFn: async () => {
-      let query = supabase
-        .from('opportunities')
-        .select('*');
-      
-      if (filter.remote) {
-        query = query.eq('is_remote', true);
-      }
-      
-      if (filter.insured) {
-        query = query.eq('has_insurance', true);
-      }
-      
-      if (filter.minGreenScore > 0) {
-        query = query.gte('green_score', filter.minGreenScore);
-      }
-      
-      if (filter.query) {
-        query = query.ilike('title', `%${filter.query}%`);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      return (data || []) as Opportunity[];
-    },
-    placeholderData: []
+      return mockOpportunities.filter(opp => {
+        if (filter.remote && !opp.is_remote) return false;
+        if (filter.insured && !opp.has_insurance) return false;
+        if (filter.minGreenScore > 0 && opp.green_score < filter.minGreenScore) return false;
+        if (filter.query && !opp.title.toLowerCase().includes(filter.query.toLowerCase())) return false;
+        return true;
+      });
+    }
   });
 
   const updateFilter = (key: string, value: any) => {
@@ -81,14 +78,15 @@ export default function OpportunityMarketplace() {
       <div className="flex items-center gap-3 mb-6">
         <Briefcase className="h-8 w-8 text-primary" />
         <div>
-          <h1 className="text-3xl font-bold">Opportunity Marketplace</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+            Opportunity Marketplace
+          </h1>
           <p className="text-muted-foreground">Find and apply for personalized opportunities</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Filters Sidebar */}
-        <Card className="lg:col-span-1">
+        <Card className="lg:col-span-1 glass-card hover-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5" />
@@ -178,9 +176,8 @@ export default function OpportunityMarketplace() {
           </CardContent>
         </Card>
 
-        {/* Main Content */}
         <div className="lg:col-span-3 space-y-6">
-          <Tabs defaultValue="all">
+          <Tabs defaultValue="all" className="w-full">
             <TabsList>
               <TabsTrigger value="all">All Opportunities</TabsTrigger>
               <TabsTrigger value="recommended">Recommended for You</TabsTrigger>
@@ -286,13 +283,9 @@ export default function OpportunityMarketplace() {
   );
 }
 
-interface OpportunityCardProps {
-  opportunity: Opportunity;
-}
-
-function OpportunityCard({ opportunity }: OpportunityCardProps) {
+function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
   return (
-    <Card>
+    <Card className="glass-card hover-card gradient-border">
       <CardHeader>
         <div className="flex justify-between">
           <div>
