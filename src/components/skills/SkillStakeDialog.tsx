@@ -12,6 +12,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { usePolygonWallet } from "@/hooks/usePolygonWallet";
+import { polygonClient } from "@/integrations/polygon/client";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface SkillStakeDialogProps {
   skillId: string;
@@ -23,16 +32,41 @@ export function SkillStakeDialog({ skillId, skillName }: SkillStakeDialogProps) 
   const [isStaking, setIsStaking] = useState(false);
   const [open, setOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [stakingContracts, setStakingContracts] = useState<Array<{id: string, contract_address: string, network: string}>>([]);
+  const [selectedContract, setSelectedContract] = useState<string>("");
   
-  // Get the current user ID on component mount
+  const { address, isConnected, connect } = usePolygonWallet();
+  
+  // Get the current user ID and staking contracts on component mount
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchInitialData = async () => {
+      // Fetch current user
       const { data: { user } } = await supabase.auth.getUser();
       setUserId(user?.id || null);
+      
+      // Fetch available staking contracts
+      const { data: contracts, error } = await supabase
+        .from("staking_contracts")
+        .select("id, contract_address, network")
+        .eq("active", true);
+      
+      if (error) {
+        console.error("Error fetching staking contracts:", error);
+        return;
+      }
+      
+      if (contracts && contracts.length > 0) {
+        setStakingContracts(contracts);
+        setSelectedContract(contracts[0].id);
+      }
     };
     
-    fetchUser();
+    fetchInitialData();
   }, []);
+
+  const handleConnectWallet = async () => {
+    await connect();
+  };
 
   const handleStake = async () => {
     // Validate input amount
@@ -56,26 +90,78 @@ export function SkillStakeDialog({ skillId, skillName }: SkillStakeDialogProps) 
       return;
     }
 
+    // Check wallet connection
+    if (!isConnected || !address) {
+      toast({
+        title: "Wallet not connected",
+        description: "Please connect your Polygon wallet first",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check selected contract
+    if (!selectedContract) {
+      toast({
+        title: "Contract required",
+        description: "Please select a staking contract",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const contract = stakingContracts.find(c => c.id === selectedContract);
+    if (!contract) {
+      toast({
+        title: "Contract error",
+        description: "Selected contract not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsStaking(true);
     try {
+      // First create blockchain transaction
+      const txResult = await polygonClient.createStake(
+        contract.contract_address,
+        skillId,
+        amountNum
+      );
+      
+      const txHash = txResult.transactionHash;
+      const txUrl = polygonClient.getTransactionUrl(txHash);
+      
+      // Then save to database
       const { error } = await supabase
         .from("skill_stakes")
         .insert({
           skill_id: skillId,
           amount_usdc: amountNum,
-          user_id: userId, // Include the user ID in the insert operation
+          user_id: userId,
+          polygon_tx_hash: txHash,
+          polygon_contract_address: contract.contract_address,
+          stake_token_amount: Math.floor(amountNum * 1000000) // Convert to token units (6 decimals)
         });
 
       if (error) throw error;
 
       toast({
         title: "Stake created",
-        description: `Successfully staked ${amount} USDC on ${skillName}`,
+        description: (
+          <div>
+            Successfully staked {amount} USDC on {skillName}
+            <br />
+            <a href={txUrl} target="_blank" rel="noopener noreferrer" className="underline">
+              View transaction
+            </a>
+          </div>
+        ),
       });
       setOpen(false);
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: "Staking Error",
         description: error.message,
         variant: "destructive",
       });
@@ -94,24 +180,55 @@ export function SkillStakeDialog({ skillId, skillName }: SkillStakeDialogProps) 
           <DialogTitle>Stake on {skillName}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="amount">Amount (USDC)</Label>
-            <Input
-              id="amount"
-              type="number"
-              step="0.000001"
-              min="0"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="Enter stake amount"
-            />
-          </div>
+          {!isConnected && (
+            <div className="mb-4">
+              <Button onClick={handleConnectWallet} className="w-full">
+                Connect Polygon Wallet
+              </Button>
+            </div>
+          )}
+          
+          {isConnected && (
+            <>
+              <div className="grid gap-2">
+                <Label htmlFor="contract">Staking Contract</Label>
+                <Select value={selectedContract} onValueChange={setSelectedContract}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a staking contract" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stakingContracts.map((contract) => (
+                      <SelectItem key={contract.id} value={contract.id}>
+                        {contract.network} ({contract.contract_address.slice(0, 6)}...{contract.contract_address.slice(-4)})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="amount">Amount (USDC)</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  step="0.000001"
+                  min="0"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="Enter stake amount"
+                />
+              </div>
+            </>
+          )}
         </div>
         <div className="flex justify-end gap-3">
           <Button variant="ghost" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={handleStake} disabled={isStaking || !userId}>
+          <Button 
+            onClick={handleStake} 
+            disabled={isStaking || !userId || (!isConnected && !isStaking)}
+          >
             {isStaking ? "Staking..." : "Stake"}
           </Button>
         </div>

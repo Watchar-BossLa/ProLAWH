@@ -10,8 +10,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Coins } from "lucide-react";
+import { Coins, Link } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface SkillStake {
   id: string;
@@ -20,6 +22,8 @@ interface SkillStake {
   amount_usdc: number;
   status: "active" | "completed" | "withdrawn";
   started_at: string;
+  polygon_tx_hash?: string;
+  polygon_contract_address?: string;
 }
 
 export function SkillStakesList() {
@@ -63,6 +67,11 @@ export function SkillStakesList() {
     };
   }, []);
 
+  const getTransactionUrl = (txHash: string, contractAddress: string) => {
+    // For now, default to Mumbai testnet
+    return `https://mumbai.polygonscan.com/tx/${txHash}`;
+  };
+
   if (isLoading) {
     return (
       <div className="rounded-md border">
@@ -74,6 +83,7 @@ export function SkillStakesList() {
               <TableHead>Amount (USDC)</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Started</TableHead>
+              <TableHead>Blockchain</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -83,6 +93,7 @@ export function SkillStakesList() {
                 <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-24" /></TableCell>
               </TableRow>
             ))}
@@ -114,6 +125,7 @@ export function SkillStakesList() {
             <TableHead>Amount (USDC)</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Started</TableHead>
+            <TableHead>Blockchain</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -122,11 +134,36 @@ export function SkillStakesList() {
               <TableCell>{stake.skill_name}</TableCell>
               <TableCell>{stake.skill_category}</TableCell>
               <TableCell>{stake.amount_usdc}</TableCell>
-              <TableCell className="capitalize">{stake.status}</TableCell>
+              <TableCell>
+                <Badge variant={stake.status === 'active' ? 'default' : 
+                               stake.status === 'completed' ? 'success' : 'destructive'}>
+                  {stake.status}
+                </Badge>
+              </TableCell>
               <TableCell>
                 {formatDistanceToNow(new Date(stake.started_at), {
                   addSuffix: true,
                 })}
+              </TableCell>
+              <TableCell>
+                {stake.polygon_tx_hash ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center gap-1 text-xs"
+                    asChild
+                  >
+                    <a 
+                      href={getTransactionUrl(stake.polygon_tx_hash, stake.polygon_contract_address || '')} 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Link className="h-3 w-3" /> View
+                    </a>
+                  </Button>
+                ) : (
+                  <span className="text-muted-foreground text-xs">Not on-chain</span>
+                )}
               </TableCell>
             </TableRow>
           ))}
