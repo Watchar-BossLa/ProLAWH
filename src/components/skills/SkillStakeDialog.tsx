@@ -110,6 +110,13 @@ export function SkillStakeDialog({ skillId, skillName }: SkillStakeDialogProps) 
     }
   };
 
+  // Wrapper function to handle the connect wallet functionality
+  const handleConnectWallet = async (): Promise<void> => {
+    // Call the connect function but ignore its return value
+    await connect();
+    // This function returns void as required by the StakeForm props
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -127,7 +134,7 @@ export function SkillStakeDialog({ skillId, skillName }: SkillStakeDialogProps) 
             onSubmit={handleStake}
             isLoading={isStaking || isLoadingContracts}
             isWalletConnected={isConnected}
-            onConnectWallet={connect}
+            onConnectWallet={handleConnectWallet}
           />
         </div>
       </DialogContent>

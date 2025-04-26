@@ -19,7 +19,7 @@ interface StakeFormProps {
   onSubmit: (amount: string) => Promise<void>;
   isLoading: boolean;
   isWalletConnected: boolean;
-  onConnectWallet: () => Promise<void>;
+  onConnectWallet: () => Promise<void>; // Updated to return Promise<void>
 }
 
 export function StakeForm({
