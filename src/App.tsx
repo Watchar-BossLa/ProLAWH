@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,6 +20,7 @@ import OpportunityMarketplace from "./pages/dashboard/OpportunityMarketplace";
 import NetworkDashboard from "./pages/dashboard/NetworkDashboard";
 import NetworkConnectionProfile from "./pages/dashboard/NetworkConnectionProfile";
 import { AuthProvider } from "./hooks/useAuth";
+import LearningDashboard from "./pages/dashboard/LearningDashboard";
 
 const queryClient = new QueryClient();
 
@@ -37,7 +37,7 @@ const App = () => (
             
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route index element={<DashboardHome />} />
-              <Route path="learning" element={<DashboardPlaceholder title="Learning Paths" />} />
+              <Route path="learning" element={<LearningDashboard />} />
               <Route path="skills" element={<DashboardPlaceholder title="Skills & Badges" />} />
               <Route path="mentorship" element={<DashboardPlaceholder title="Mentorship" />} />
               <Route path="opportunities" element={<OpportunityMarketplace />} />
