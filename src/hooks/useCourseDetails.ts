@@ -3,10 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/useAuth";
-import { CourseInstructor, CourseModule, CoursePrerequisite, CourseReview, EnrollmentStatus } from "@/types/learning";
+import { CourseInstructor, CourseModule, CoursePrerequisite, CourseReview, CourseContent, EnrollmentStatus } from "@/types/learning";
 
 type Course = Database["public"]["Tables"]["courses"]["Row"];
-type CourseContent = Database["public"]["Tables"]["course_contents"]["Row"];
 
 export function useCourseDetails(courseId: string) {
   const { user } = useAuth();
@@ -36,7 +35,13 @@ export function useCourseDetails(courseId: string) {
         .order("order", { ascending: true });
       
       if (error) throw error;
-      return data as CourseContent[];
+      
+      // Convert the content_type to ContentType
+      return data.map(content => ({
+        ...content,
+        content_type: content.content_type as unknown as ContentType,
+        module_id: content.module_id || undefined
+      })) as CourseContent[];
     },
     enabled: !!courseId,
   });
@@ -108,10 +113,34 @@ export function useCourseDetails(courseId: string) {
     enabled: !!courseId && !!user?.id,
   });
 
-  // Fetch course reviews
+  // Fetch course reviews (mock data since table doesn't exist)
   const { data: reviews, isLoading: reviewsLoading } = useQuery({
     queryKey: ["course-reviews", courseId],
     queryFn: async () => {
+      // Return mock data for now
+      return [
+        {
+          id: "1",
+          user_id: "user1",
+          username: "John Doe",
+          avatar_url: "/placeholder.svg",
+          rating: 5,
+          comment: "Great course! Very informative.",
+          created_at: new Date().toISOString()
+        },
+        {
+          id: "2",
+          user_id: "user2",
+          username: "Jane Smith",
+          avatar_url: "/placeholder.svg",
+          rating: 4,
+          comment: "I learned a lot from this course.",
+          created_at: new Date().toISOString()
+        }
+      ] as CourseReview[];
+      
+      // Once the course_reviews table exists, we would use:
+      /*
       const { data, error } = await supabase
         .from("course_reviews")
         .select(`
@@ -136,6 +165,7 @@ export function useCourseDetails(courseId: string) {
         comment: review.comment,
         created_at: review.created_at
       })) as CourseReview[];
+      */
     },
     enabled: !!courseId,
   });
@@ -165,7 +195,7 @@ function organizeContentIntoModules(contents: CourseContent[]): CourseModule[] {
   const moduleMap: Record<string, CourseModule> = {};
   
   // Group contents by their module_id or create a default module
-  contents.forEach((content, index) => {
+  contents.forEach((content) => {
     const moduleId = content.module_id || 'default';
     
     if (!moduleMap[moduleId]) {

@@ -13,7 +13,6 @@ import { useCourseProgress } from "@/hooks/useCourseProgress";
 import { useCoursesWishlist } from "@/hooks/useCoursesWishlist";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 interface CourseDetailsProps {
   courseId: string;
@@ -29,8 +28,6 @@ export function CourseDetails({ courseId }: CourseDetailsProps) {
   
   const [selectedContentId, setSelectedContentId] = useState<string | undefined>();
   const [activeTab, setActiveTab] = useState("content");
-
-  const navigate = useNavigate();
 
   if (isLoading) {
     return (
@@ -66,8 +63,6 @@ export function CourseDetails({ courseId }: CourseDetailsProps) {
 
   const handleSelectContent = (contentId: string) => {
     setSelectedContentId(contentId);
-    // If the content is in a preview mode, we might want to show it in a dialog
-    // For now, we'll just mark it as selected
   };
 
   const handleCompleteContent = async () => {
@@ -127,8 +122,8 @@ export function CourseDetails({ courseId }: CourseDetailsProps) {
           <CourseNotes
             notes={filteredNotes}
             contentId={selectedContentId}
-            onSaveNote={saveNote}
-            onDeleteNote={deleteNote}
+            onSaveNote={(contentId, note) => saveNote(contentId, note)}
+            onDeleteNote={(noteId) => deleteNote(noteId)}
             isEnrolled={enrollmentStatus?.is_enrolled || false}
           />
         </TabsContent>

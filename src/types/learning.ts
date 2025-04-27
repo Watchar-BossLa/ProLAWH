@@ -48,6 +48,8 @@ export interface CourseReview {
 export interface UserNote {
   id: string;
   content_id: string;
+  course_id: string;
+  user_id: string;
   note: string;
   created_at: string;
   updated_at: string;
