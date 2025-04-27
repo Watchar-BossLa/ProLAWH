@@ -36,11 +36,11 @@ export function useCourseDetails(courseId: string) {
       
       if (error) throw error;
       
-      // Add module_id property if it doesn't exist and convert content_type
+      // Transform data to ensure it has all required properties including module_id
       return data.map(content => ({
         ...content,
         content_type: content.content_type as ContentType,
-        module_id: content.module_id || undefined
+        module_id: content.module_id || "default" // Ensure module_id exists with a default value
       })) as CourseContent[];
     },
     enabled: !!courseId,
