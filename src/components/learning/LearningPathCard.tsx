@@ -1,5 +1,9 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Clock, BookOpen, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 
 type LearningPath = Database["public"]["Tables"]["learning_paths"]["Row"];
@@ -10,7 +14,7 @@ interface LearningPathCardProps {
 
 export function LearningPathCard({ path }: LearningPathCardProps) {
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="flex flex-col hover:shadow-lg transition-shadow">
       {path.cover_image && (
         <div className="relative aspect-video w-full overflow-hidden rounded-t-lg">
           <img
@@ -22,18 +26,20 @@ export function LearningPathCard({ path }: LearningPathCardProps) {
       )}
       <CardHeader>
         <CardTitle className="line-clamp-2">{path.title}</CardTitle>
+        <CardDescription className="line-clamp-2">
+          {path.description}
+        </CardDescription>
       </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground line-clamp-2">
-          {path.description || "No description available"}
-        </p>
-        {path.estimated_duration && (
-          <div className="mt-4">
-            <span className="text-sm text-muted-foreground">
-              {path.estimated_duration}
-            </span>
-          </div>
-        )}
+      <CardContent className="mt-auto">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+          <Clock className="h-4 w-4" />
+          <span>{path.estimated_duration}</span>
+        </div>
+        <Button asChild className="w-full">
+          <Link to={`/dashboard/learning/path/${path.id}`} className="flex items-center justify-center gap-2">
+            Start Learning <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
       </CardContent>
     </Card>
   );

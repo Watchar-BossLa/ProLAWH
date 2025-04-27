@@ -13,6 +13,7 @@ export function useLearningData() {
       const { data, error } = await supabase
         .from("courses")
         .select("*")
+        .eq("is_published", true)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
@@ -25,7 +26,8 @@ export function useLearningData() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("learning_paths")
-        .select("*")
+        .select("*, courses!learning_path_courses(*)")
+        .eq("is_published", true)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
