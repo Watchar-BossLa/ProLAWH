@@ -14,25 +14,9 @@ export function useCourseNotes(courseId: string, contentId?: string) {
     queryFn: async () => {
       if (!user?.id) return [];
       
-      // We'll use a workaround since the user_notes table doesn't exist
-      // This returns an empty array for now, but would normally fetch from the user_notes table
+      // Using mock data since user_notes table doesn't exist
+      // In a real implementation, this would query the database
       return [] as UserNote[];
-      
-      // Once the user_notes table exists, we would use:
-      /*
-      const { data, error } = await supabase
-        .from("user_notes")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("course_id", courseId);
-        
-      if (contentId) {
-        query.eq("content_id", contentId);
-      }
-      
-      if (error) throw error;
-      return data as UserNote[];
-      */
     },
     enabled: !!courseId && !!user?.id,
   });
@@ -41,29 +25,14 @@ export function useCourseNotes(courseId: string, contentId?: string) {
     mutationFn: async ({ contentId, note }: { contentId: string, note: string }): Promise<void> => {
       if (!user?.id) throw new Error("You must be logged in to save notes");
       
-      // We'll create a mock response since the user_notes table doesn't exist
-      // Once the table exists, we would use:
-      /*
-      const { data, error } = await supabase
-        .from("user_notes")
-        .insert({
-          user_id: user.id,
-          course_id: courseId,
-          content_id: contentId,
-          note: note
-        })
-        .select()
-        .single();
-      
-      if (error) throw error;
-      */
-      
+      // Mock implementation - in a real app, this would insert data to a database
       toast({
         title: "Note saved",
         description: "Your note has been saved successfully.",
       });
-
-      // Return void to match the expected return type
+      
+      // Return void as expected by function signature
+      return Promise.resolve();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["course-notes"] });
@@ -74,22 +43,14 @@ export function useCourseNotes(courseId: string, contentId?: string) {
     mutationFn: async (noteId: string): Promise<void> => {
       if (!user?.id) throw new Error("You must be logged in to delete notes");
       
-      // We'll create a mock response since the user_notes table doesn't exist
-      // Once the table exists, we would use:
-      /*
-      const { error } = await supabase
-        .from("user_notes")
-        .delete()
-        .eq("id", noteId)
-        .eq("user_id", user.id);
-      
-      if (error) throw error;
-      */
-      
+      // Mock implementation - in a real app, this would delete from the database
       toast({
         title: "Note deleted",
         description: "Your note has been deleted successfully.",
       });
+      
+      // Return void as expected by function signature
+      return Promise.resolve();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["course-notes"] });

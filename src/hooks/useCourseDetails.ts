@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/useAuth";
-import { CourseInstructor, CourseModule, CoursePrerequisite, CourseReview, CourseContent, EnrollmentStatus } from "@/types/learning";
+import { CourseInstructor, CourseModule, CoursePrerequisite, CourseReview, CourseContent, EnrollmentStatus, ContentType } from "@/types/learning";
 
 type Course = Database["public"]["Tables"]["courses"]["Row"];
 
@@ -36,10 +36,10 @@ export function useCourseDetails(courseId: string) {
       
       if (error) throw error;
       
-      // Convert the content_type to ContentType
+      // Add module_id property if it doesn't exist and convert content_type
       return data.map(content => ({
         ...content,
-        content_type: content.content_type as unknown as ContentType,
+        content_type: content.content_type as ContentType,
         module_id: content.module_id || undefined
       })) as CourseContent[];
     },
@@ -113,11 +113,11 @@ export function useCourseDetails(courseId: string) {
     enabled: !!courseId && !!user?.id,
   });
 
-  // Fetch course reviews (mock data since table doesn't exist)
+  // Use mock data for course reviews instead of attempting to query non-existent table
   const { data: reviews, isLoading: reviewsLoading } = useQuery({
     queryKey: ["course-reviews", courseId],
     queryFn: async () => {
-      // Return mock data for now
+      // Return mock data
       return [
         {
           id: "1",
@@ -138,34 +138,6 @@ export function useCourseDetails(courseId: string) {
           created_at: new Date().toISOString()
         }
       ] as CourseReview[];
-      
-      // Once the course_reviews table exists, we would use:
-      /*
-      const { data, error } = await supabase
-        .from("course_reviews")
-        .select(`
-          id, 
-          rating, 
-          comment, 
-          created_at,
-          profiles:user_id (id, full_name, avatar_url)
-        `)
-        .eq("course_id", courseId)
-        .order("created_at", { ascending: false })
-        .limit(10);
-      
-      if (error) return [];
-      
-      return data.map(review => ({
-        id: review.id,
-        user_id: review.profiles.id,
-        username: review.profiles.full_name || "Anonymous",
-        avatar_url: review.profiles.avatar_url,
-        rating: review.rating,
-        comment: review.comment,
-        created_at: review.created_at
-      })) as CourseReview[];
-      */
     },
     enabled: !!courseId,
   });
