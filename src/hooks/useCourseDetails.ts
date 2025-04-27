@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { CourseInstructor, CourseModule, CoursePrerequisite, CourseReview, CourseContent, EnrollmentStatus, ContentType } from "@/types/learning";
 
 type Course = Database["public"]["Tables"]["courses"]["Row"];
+type CourseContentFromDB = Database["public"]["Tables"]["course_contents"]["Row"];
 
 export function useCourseDetails(courseId: string) {
   const { user } = useAuth();
@@ -36,8 +37,8 @@ export function useCourseDetails(courseId: string) {
       
       if (error) throw error;
       
-      // Transform data to ensure it has all required properties including module_id
-      return data.map(content => ({
+      // Transform data to ensure it has all required properties
+      return data.map((content: CourseContentFromDB & { module_id?: string }) => ({
         ...content,
         content_type: content.content_type as ContentType,
         module_id: content.module_id || "default" // Ensure module_id exists with a default value
