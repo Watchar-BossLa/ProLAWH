@@ -5,6 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Leaf } from 'lucide-react';
 import { GreenSkillsList } from '@/components/skills/GreenSkillsList';
 import { GreenSkillStats } from '@/components/skills/GreenSkillStats';
+import { GreenSkillsOverview } from '@/components/skills/GreenSkillsOverview';
+import { GreenSkillCategories } from '@/components/skills/GreenSkillCategories';
 import { Separator } from "@/components/ui/separator";
 
 interface GreenSkill {
@@ -52,7 +54,7 @@ export default function GreenSkillsPage() {
       
       <p className="text-muted-foreground max-w-2xl">
         Explore sustainable skills that contribute to environmental conservation and eco-friendly practices.
-        Track their CO2 reduction potential and market growth rates.
+        Track their CO2 reduction potential and market growth rates to stay ahead in the green economy.
       </p>
 
       {isLoading ? (
@@ -61,8 +63,12 @@ export default function GreenSkillsPage() {
         </div>
       ) : (
         <>
+          <GreenSkillsOverview />
+          <Separator className="my-8" />
           <GreenSkillStats skills={greenSkills} />
-          <Separator className="my-6" />
+          <Separator className="my-8" />
+          <GreenSkillCategories skills={greenSkills} />
+          <Separator className="my-8" />
           <GreenSkillsList skills={greenSkills} />
         </>
       )}
