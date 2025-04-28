@@ -106,9 +106,9 @@ export default function NetworkConnectionProfile() {
   
   const handleMentorshipRequest = (request: MentorshipRequest) => {
     console.log("Mentorship request:", request);
-    toast({
-      title: "Mentorship Request Sent",
-      description: `Your request to ${connection?.name} has been sent successfully.`,
+    // Fix: Changed from object with title/description properties to string arguments
+    toast("Mentorship Request Sent", {
+      description: `Your request to ${connection?.name} has been sent successfully.`
     });
     setShowMentorshipForm(false);
   };

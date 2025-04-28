@@ -26,7 +26,7 @@ export function NetworkCard({ connection, onChatOpen }: NetworkCardProps) {
 
   const handleMentorshipRequest = (request: MentorshipRequest) => {
     console.log("Mentorship request:", request);
-    // Correctly use the toast function according to Sonner's API
+    // Fixed toast usage to match sonner's API
     toast("Mentorship Request Sent", {
       description: `Your mentorship request has been sent to ${connection.name}.`
     });
