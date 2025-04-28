@@ -1,20 +1,14 @@
-
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NetworkStats, NetworkConnection } from "@/types/network";
-import { NetworkGrid } from "@/components/network/NetworkGrid";
 import { NetworkMetrics } from "@/components/network/NetworkMetrics";
-import { NetworkFilters } from "@/components/network/NetworkFilters";
+import { NetworkStatsCards } from "@/components/network/stats/NetworkStatsCards";
+import { NetworkHeader } from "@/components/network/header/NetworkHeader";
+import { NetworkTabsContent } from "@/components/network/tabs/NetworkTabsContent";
 import { ChatInterface } from "@/components/network/ChatInterface";
-import { NetworkGraph } from "@/components/network/visualization/NetworkGraph";
-import { NetworkRecommendations } from "@/components/network/recommendations/NetworkRecommendations";
-import { SkillMatchMatrix } from "@/components/network/skills/SkillMatchMatrix";
 import { useNetworkRecommendations } from "@/hooks/useNetworkRecommendations";
-import { Users, UserRound, Network, Search, Bell, BarChart, Brain } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Users, Network, Brain, BarChart } from "lucide-react";
 import { toast } from "sonner";
 
 // Mock data - Replace with actual data from your backend
@@ -47,7 +41,7 @@ export default function NetworkDashboard() {
     insights, 
     isLoading: isLoadingRecommendations 
   } = useNetworkRecommendations();
-  
+
   // Mock connection data for the active chat
   const activeChatConnection: NetworkConnection | undefined = {
     id: "1",
@@ -195,87 +189,15 @@ export default function NetworkDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Professional Network</h2>
-          <p className="text-muted-foreground">
-            Connect, collaborate, and grow with other professionals
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          {isSearchExpanded ? (
-            <div className="flex gap-2 items-center animate-fade-in">
-              <Input
-                placeholder="Search network..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-64"
-                autoFocus
-              />
-              <Button variant="ghost" onClick={() => setIsSearchExpanded(false)}>
-                Cancel
-              </Button>
-            </div>
-          ) : (
-            <>
-              <Button 
-                variant="outline" 
-                onClick={() => setIsSearchExpanded(true)}
-              >
-                <Search className="h-4 w-4 mr-2" />
-                Search
-              </Button>
-              <Button variant="default">
-                <UserRound className="h-4 w-4 mr-2" />
-                Add Connection
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
+      <NetworkHeader 
+        isSearchExpanded={isSearchExpanded}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearchToggle={() => setIsSearchExpanded(!isSearchExpanded)}
+      />
       
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="hover-card glass-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Network</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{mockStats.totalConnections}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              +23 new connections this month
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover-card glass-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Mentorship Connections</CardTitle>
-            <UserRound className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{mockStats.mentors}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              3 active mentorship sessions
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover-card glass-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Requests</CardTitle>
-            <Bell className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{mockStats.pendingRequests}</div>
-            <div className="flex mt-1">
-              <Button variant="link" className="h-auto p-0 text-xs">View all requests</Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
+      <NetworkStatsCards stats={mockStats} />
+      
       <NetworkMetrics stats={mockStats} />
       
       <Tabs defaultValue="connections" value={activeTab} onValueChange={setActiveTab}>
@@ -298,124 +220,19 @@ export default function NetworkDashboard() {
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="connections" className="m-0">
-          <div className="bg-card/50 backdrop-blur-sm border rounded-lg p-4 shadow-sm">
-            <NetworkFilters activeFilter={filterType} onFilterChange={setFilterType} />
-            <div className="mt-4">
-              <NetworkGrid 
-                filterType={filterType} 
-                onChatOpen={handleChatOpen} 
-              />
-            </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="visualization" className="m-0">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2 bg-card/50 backdrop-blur-sm border rounded-lg shadow-sm">
-              <div className="p-4">
-                <h3 className="text-lg font-semibold mb-3">Interactive Network Map</h3>
-                <div className="h-[500px]">
-                  <NetworkGraph 
-                    connections={connections} 
-                    highlightedConnectionId={selectedConnectionId}
-                    onConnectionSelect={handleConnectionSelect}
-                  />
-                </div>
-              </div>
-            </div>
-            <div>
-              <SkillMatchMatrix 
-                connections={connections} 
-                userSkills={mockUserSkills}
-                onSelectConnection={handleConnectionSelect}
-              />
-            </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="recommendations" className="m-0">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2">
-              <NetworkRecommendations 
-                recommendations={recommendations}
-                isLoading={isLoadingRecommendations}
-                onRefresh={handleRefreshRecommendations}
-                onSelectConnection={handleConnectionSelect}
-                connections={connections}
-                insights={insights}
-              />
-            </div>
-            <div>
-              <Card className="hover-card glass-card">
-                <CardHeader>
-                  <CardTitle>Your Skills</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {mockUserSkills.map(skill => (
-                      <Badge key={skill} variant="secondary">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="mt-4">
-                    <p className="text-sm text-muted-foreground">
-                      These skills are used to generate personalized recommendations
-                      and find the most compatible connections in your network.
-                    </p>
-                  </div>
-                  <Button className="w-full mt-4">
-                    Update Your Skills
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="analytics" className="m-0">
-          <div className="bg-card/50 backdrop-blur-sm border rounded-lg p-4 shadow-sm">
-            <h3 className="text-lg font-semibold mb-3">Network Growth & Engagement</h3>
-            <p className="text-muted-foreground mb-4">
-              Analyze your network's growth, engagement levels, and skill distribution over time.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Network Growth</CardTitle>
-                </CardHeader>
-                <CardContent className="h-48 flex items-center justify-center">
-                  <p className="text-muted-foreground">Growth chart visualization</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Skill Distribution</CardTitle>
-                </CardHeader>
-                <CardContent className="h-48 flex items-center justify-center">
-                  <p className="text-muted-foreground">Skill distribution chart</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Connection Strength</CardTitle>
-                </CardHeader>
-                <CardContent className="h-48 flex items-center justify-center">
-                  <p className="text-muted-foreground">Connection strength metrics</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Industry Breakdown</CardTitle>
-                </CardHeader>
-                <CardContent className="h-48 flex items-center justify-center">
-                  <p className="text-muted-foreground">Industry breakdown chart</p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </TabsContent>
+        <NetworkTabsContent 
+          activeTab={activeTab}
+          filterType={filterType}
+          onChatOpen={handleChatOpen}
+          connections={connections}
+          selectedConnectionId={selectedConnectionId}
+          onConnectionSelect={handleConnectionSelect}
+          recommendations={recommendations}
+          isLoadingRecommendations={isLoadingRecommendations}
+          onRefreshRecommendations={handleRefreshRecommendations}
+          insights={insights}
+          userSkills={mockUserSkills}
+        />
       </Tabs>
       
       <Dialog open={activeChatId !== null} onOpenChange={(open) => !open && handleChatClose()}>
