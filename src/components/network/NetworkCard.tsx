@@ -6,6 +6,7 @@ import { MentorshipRequestForm } from "./mentorship/form/MentorshipRequestForm";
 import { NetworkCardStatus } from "./cards/NetworkCardStatus";
 import { NetworkCardHeader } from "./cards/NetworkCardHeader";
 import { NetworkCardContent } from "./cards/NetworkCardContent";
+import { toast } from "@/components/ui/sonner";
 
 interface NetworkCardProps {
   connection: NetworkConnection;
