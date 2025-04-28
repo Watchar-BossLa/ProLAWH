@@ -1,11 +1,14 @@
 
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
-import { MentorshipRequest, NetworkConnection } from "@/types/network";
-import { MentorshipMessageField } from "./MentorshipMessageField";
-import { MentorshipIndustryField } from "./MentorshipIndustryField";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { NetworkConnection, MentorshipRequest } from "@/types/network";
 import { useMentorshipForm } from "@/hooks/useMentorshipForm";
 import { MentorshipRequestHeader } from "./MentorshipRequestHeader";
+import { MentorshipMessageField } from "./MentorshipMessageField";
+import { MentorshipIndustryField } from "./MentorshipIndustryField";
+import { MentorshipFocusAreasField } from "./fields/MentorshipFocusAreasField";
+import { MentorshipDurationField } from "./fields/MentorshipDurationField";
+import { MentorshipGoalsField } from "./fields/MentorshipGoalsField";
 import { MentorshipRequestFooter } from "./MentorshipRequestFooter";
 
 interface MentorshipRequestFormProps {
@@ -34,7 +37,10 @@ export function MentorshipRequestForm({
         <Form {...form}>
           <form onSubmit={handleSubmit} className="space-y-4">
             <MentorshipMessageField form={form} />
+            <MentorshipFocusAreasField form={form} />
             <MentorshipIndustryField form={form} />
+            <MentorshipDurationField form={form} />
+            <MentorshipGoalsField form={form} />
             <MentorshipRequestFooter 
               isSubmitting={isSubmitting}
               onCancel={onClose}
