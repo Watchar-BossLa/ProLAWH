@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -8,6 +7,8 @@ import { GreenSkillStats } from '@/components/skills/GreenSkillStats';
 import { GreenSkillsOverview } from '@/components/skills/GreenSkillsOverview';
 import { GreenSkillCategories } from '@/components/skills/GreenSkillCategories';
 import { TopGreenSkills } from '@/components/skills/TopGreenSkills';
+import { PersonalImpactMetrics } from '@/components/skills/PersonalImpactMetrics';
+import { GreenSkillsLearningPath } from '@/components/skills/GreenSkillsLearningPath';
 import { Separator } from "@/components/ui/separator";
 
 interface GreenSkill {
@@ -29,6 +30,30 @@ const fetchGreenSkills = async () => {
   if (error) throw error;
   return data as GreenSkill[];
 };
+
+const mockLearningPaths = [
+  {
+    id: "1",
+    title: "Sustainable Supply Chain Management",
+    description: "Master green logistics and sustainable procurement",
+    duration: "8 weeks",
+    level: "Intermediate"
+  },
+  {
+    id: "2",
+    title: "Renewable Energy Technologies",
+    description: "Deep dive into solar, wind, and energy storage",
+    duration: "12 weeks",
+    level: "Advanced"
+  },
+  {
+    id: "3",
+    title: "ESG Analysis Fundamentals",
+    description: "Learn to evaluate environmental and social impact",
+    duration: "6 weeks",
+    level: "Beginner"
+  }
+];
 
 export default function GreenSkillsPage() {
   const { 
@@ -64,6 +89,16 @@ export default function GreenSkillsPage() {
         </div>
       ) : (
         <>
+          <div className="grid gap-6 md:grid-cols-2">
+            <PersonalImpactMetrics
+              carbonReduction={75}
+              skillsAcquired={6}
+              marketGrowth={85}
+            />
+            <GreenSkillsLearningPath recommendations={mockLearningPaths} />
+          </div>
+          
+          <Separator className="my-8" />
           <GreenSkillsOverview />
           <Separator className="my-8" />
           <TopGreenSkills skills={greenSkills} />
