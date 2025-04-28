@@ -4,6 +4,7 @@ import { useSkillBadges, useUserBadges } from "@/hooks/useSkillBadges";
 import { BadgeCard } from "@/components/skills/BadgeCard";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Trophy, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 
