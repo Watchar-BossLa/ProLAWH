@@ -55,3 +55,4 @@ export function TopGreenSkills({ skills }: TopGreenSkillProps) {
       </CardContent>
     </Card>
   );
+}
