@@ -2,3 +2,5 @@
 @import './base.css';
 @import './theme-variables.css';
 @import './utilities.css';
+@import './animations.css';
+@import './transitions.css';
