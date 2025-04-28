@@ -1,18 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChatInterface } from "@/components/network/ChatInterface";
-import { MentorshipDetails } from "@/components/network/MentorshipDetails";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ProfileSidebar } from "@/components/network/profile/ProfileSidebar";
+import { ProfileTabs } from "@/components/network/profile/ProfileTabs";
 import { MentorshipRequestForm } from "@/components/network/MentorshipRequestForm";
 import { NetworkConnection, MentorshipRequest } from "@/types/network";
 import { toast } from "@/hooks/use-toast";
-import { User, Book, MessageCircle } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ProfileSidebar } from "@/components/network/profile/ProfileSidebar";
-import { ExperienceTimeline } from "@/components/network/profile/ExperienceTimeline";
-import { RecentActivity } from "@/components/network/profile/RecentActivity";
 
 const mockConnection: NetworkConnection = {
   id: "1",
@@ -108,7 +102,6 @@ export default function NetworkConnectionProfile() {
   
   const isMentor = connection.connectionType === 'mentor';
   const isPendingMentor = connection.mentorship?.status === 'pending';
-  const hasActiveMentorship = connection.mentorship?.status === 'active';
   
   const handleMentorshipRequest = (request: MentorshipRequest) => {
     console.log("Mentorship request:", request);
@@ -118,36 +111,6 @@ export default function NetworkConnectionProfile() {
     });
     setShowMentorshipForm(false);
   };
-
-  const experiences = [
-    {
-      role: connection.role,
-      company: connection.company,
-      period: "2022 - Present",
-      isActive: true
-    },
-    {
-      role: "Lead Developer",
-      company: "Previous Company",
-      period: "2018 - 2022"
-    },
-    {
-      role: "Senior Developer",
-      company: "First Tech Company",
-      period: "2015 - 2018"
-    }
-  ];
-
-  const recentActivities = [
-    {
-      content: "Shared a resource on React Server Components",
-      timestamp: "2 days ago"
-    },
-    {
-      content: "Earned a new badge in System Architecture",
-      timestamp: "1 week ago"
-    }
-  ];
 
   return (
     <div className="space-y-6">
@@ -170,100 +133,15 @@ export default function NetworkConnectionProfile() {
         </div>
         
         <div className="flex-1">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-3">
-              <TabsTrigger value="profile">
-                <User className="h-4 w-4 mr-2" />
-                Profile
-              </TabsTrigger>
-              <TabsTrigger value="mentorship">
-                <Book className="h-4 w-4 mr-2" />
-                Mentorship
-              </TabsTrigger>
-              <TabsTrigger value="chat">
-                <MessageCircle className="h-4 w-4 mr-2" />
-                Chat
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="profile" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Professional Profile</CardTitle>
-                  <CardDescription>
-                    {connection.name}'s career information and expertise
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">Career Path</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {connection.careerPath || "Software Engineering"}
-                      </p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">Experience</h3>
-                      <ExperienceTimeline experiences={experiences} />
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">Education</h3>
-                      <div className="space-y-2">
-                        <div>
-                          <h4 className="font-medium">Master's in Computer Science</h4>
-                          <p className="text-sm">University of Technology</p>
-                          <p className="text-xs text-muted-foreground">2013 - 2015</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">Recent Activity</h3>
-                      <RecentActivity activities={recentActivities} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="mentorship" className="mt-6">
-              {hasActiveMentorship ? (
-                <MentorshipDetails 
-                  mentorship={connection.mentorship!} 
-                  isOwnProfile={false} 
-                  isMentor={isMentor}
-                />
-              ) : (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>No Active Mentorship</CardTitle>
-                    <CardDescription>
-                      {isPendingMentor 
-                        ? "Your mentorship request is pending approval."
-                        : "You don't have an active mentorship with this connection."}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {!isMentor && !isPendingMentor && (
-                      <Button onClick={() => setShowMentorshipForm(true)}>
-                        <Book className="h-4 w-4 mr-2" />
-                        Request Mentorship
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="chat" className="mt-6">
-              <ChatInterface 
-                connection={connection} 
-                onClose={() => setActiveTab("profile")} 
-              />
-            </TabsContent>
-          </Tabs>
+          <ProfileTabs
+            connection={connection}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            showMentorshipForm={showMentorshipForm}
+            setShowMentorshipForm={setShowMentorshipForm}
+            isMentor={isMentor}
+            isPendingMentor={isPendingMentor}
+          />
         </div>
       </div>
       
