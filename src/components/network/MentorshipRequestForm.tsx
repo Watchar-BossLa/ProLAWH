@@ -1,18 +1,12 @@
 
-import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { MentorshipRequest, NetworkConnection } from "@/types/network";
 import { MentorshipMessageField } from "./mentorship/MentorshipMessageField";
 import { MentorshipIndustryField } from "./mentorship/MentorshipIndustryField";
 import { useMentorshipForm } from "@/hooks/useMentorshipForm";
+import { MentorshipRequestHeader } from "./mentorship/MentorshipRequestHeader";
+import { MentorshipRequestFooter } from "./mentorship/MentorshipRequestFooter";
 
 interface MentorshipRequestFormProps {
   connection: NetworkConnection;
@@ -36,26 +30,15 @@ export function MentorshipRequestForm({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Request Mentorship</DialogTitle>
-          <DialogDescription>
-            Send a mentorship request to {connection.name}. Be specific about what you'd like to learn.
-          </DialogDescription>
-        </DialogHeader>
-
+        <MentorshipRequestHeader connection={connection} />
         <Form {...form}>
           <form onSubmit={handleSubmit} className="space-y-4">
             <MentorshipMessageField form={form} />
             <MentorshipIndustryField form={form} />
-
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Sending..." : "Send Request"}
-              </Button>
-            </DialogFooter>
+            <MentorshipRequestFooter 
+              isSubmitting={isSubmitting}
+              onCancel={onClose}
+            />
           </form>
         </Form>
       </DialogContent>
