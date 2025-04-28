@@ -11,16 +11,18 @@ import {
 export function DashboardLayout() {
   return (
     <SidebarProvider>
-      <div className="flex h-screen bg-background text-foreground">
+      <div className="flex h-screen bg-background text-foreground transition-colors duration-300">
         <Sidebar>
           <DashboardSidebar />
         </Sidebar>
         
-        <div className="flex-1 p-4">
-          <div className="flex justify-end mb-4">
+        <div className="flex-1 overflow-auto">
+          <div className="flex justify-end p-4 border-b">
             <ThemeSwitcher />
           </div>
-          <Outlet />
+          <div className="p-4">
+            <Outlet />
+          </div>
         </div>
       </div>
     </SidebarProvider>

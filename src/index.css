@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -24,6 +25,9 @@
     --input: 220 13% 91%;
     --ring: 262.1 83.3% 57.8%;
     --radius: 0.75rem;
+    
+    /* Transition helper variable */
+    --theme-transition: 0.3s ease-out;
   }
  
   .dark {
@@ -48,6 +52,7 @@
     --ring: 263.4 70% 50.4%;
   }
 
+  /* Base Dynamic Theme - Light version */
   .dynamic {
     --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     --gradient-secondary: linear-gradient(135deg, #3b82f6 0%, #2dd4bf 100%);
@@ -77,6 +82,7 @@
     --ring: 262.1 83.3% 57.8%;
   }
 
+  /* Dynamic Theme - Dark version */
   .dynamic.dark {
     --gradient-primary: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
     --gradient-secondary: linear-gradient(135deg, #2dd4bf 0%, #3b82f6 100%);
@@ -113,30 +119,49 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
+  /* Theme readiness - prevents flash of unstyled content */
+  .theme-ready {
+    transition: background-color var(--theme-transition),
+                color var(--theme-transition),
+                border-color var(--theme-transition);
+  }
+
+  /* Dynamic theme gradient utilities */
   .dynamic {
+    /* Gradient Card Component */
     .gradient-card {
-      @apply relative overflow-hidden rounded-lg;
+      @apply relative overflow-hidden rounded-lg shadow-md;
       background: var(--gradient-surface);
       backdrop-filter: blur(10px);
       border: 1px solid transparent;
       border-image: var(--gradient-border);
       border-image-slice: 1;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      }
     }
 
+    /* Gradient Border */
     .gradient-border {
       @apply relative before:absolute before:inset-0 before:-z-10 before:p-[1px] before:rounded-lg before:content-[''];
       &::before {
         background: var(--gradient-primary);
         mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
         mask-composite: exclude;
+        -webkit-mask-composite: xor;
       }
     }
 
+    /* Gradient Text */
     .gradient-text {
       @apply bg-clip-text text-transparent transition-colors;
       background-image: var(--gradient-primary);
     }
 
+    /* Gradient Hover Effect */
     .gradient-hover {
       @apply transition-all duration-300;
       &:hover {
@@ -145,9 +170,26 @@
       }
     }
 
+    /* Active Gradient Element */
     .gradient-active {
       background-image: var(--gradient-primary);
       @apply text-primary-foreground;
+    }
+    
+    /* Gradient Button */
+    .gradient-button {
+      @apply relative overflow-hidden shadow-md;
+      background-image: var(--gradient-primary);
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      &:active {
+        transform: translateY(1px);
+      }
     }
   }
 }
@@ -168,8 +210,18 @@
   .shimmer {
     @apply relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-shimmer before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent;
   }
+  
+  /* Additional utility for dynamic theme compatibility */
+  .gradient-text-hover {
+    @apply transition-all duration-300;
+    &:hover {
+      @apply bg-clip-text text-transparent;
+      background-image: var(--gradient-primary);
+    }
+  }
 }
 
+/* Keep existing code for #root and the rest of the styles */
 #root {
   max-width: 1280px;
   margin: 0 auto;
