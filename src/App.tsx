@@ -23,6 +23,8 @@ import { AuthProvider } from "./hooks/useAuth";
 import LearningDashboard from "./pages/dashboard/LearningDashboard";
 import CourseDetailsPage from "./pages/dashboard/CourseDetailsPage";
 import SkillsAndBadgesPage from "./pages/dashboard/SkillsAndBadgesPage";
+import { AdminLayout } from "@/components/admin/AdminLayout";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +57,9 @@ const App = () => (
             </Route>
             
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+            </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
