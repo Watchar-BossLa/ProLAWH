@@ -22,6 +22,7 @@ import NetworkConnectionProfile from "./pages/dashboard/NetworkConnectionProfile
 import { AuthProvider } from "./hooks/useAuth";
 import LearningDashboard from "./pages/dashboard/LearningDashboard";
 import CourseDetailsPage from "./pages/dashboard/CourseDetailsPage";
+import SkillsAndBadgesPage from "./pages/dashboard/SkillsAndBadgesPage";
 
 const queryClient = new QueryClient();
 
@@ -40,7 +41,7 @@ const App = () => (
               <Route index element={<DashboardHome />} />
               <Route path="learning" element={<LearningDashboard />} />
               <Route path="learning/course/:courseId" element={<CourseDetailsPage />} />
-              <Route path="skills" element={<DashboardPlaceholder title="Skills & Badges" />} />
+              <Route path="skills" element={<SkillsAndBadgesPage />} />
               <Route path="mentorship" element={<DashboardPlaceholder title="Mentorship" />} />
               <Route path="opportunities" element={<OpportunityMarketplace />} />
               <Route path="arcade" element={<ArcadePage />} />
