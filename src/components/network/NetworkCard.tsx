@@ -9,6 +9,7 @@ import { NetworkCardStatus } from "./cards/NetworkCardStatus";
 import { NetworkConnectionStrength } from "./cards/NetworkConnectionStrength";
 import { NetworkCardActions } from "./cards/NetworkCardActions";
 import { NetworkCardMentorship } from "./cards/NetworkCardMentorship";
+import { VoiceControl } from "@/components/voice/VoiceControl";
 
 interface NetworkCardProps {
   connection: NetworkConnection;
@@ -44,6 +45,9 @@ export function NetworkCard({ connection, onChatOpen }: NetworkCardProps) {
           connection={connection}
           showMentorshipBadge={showMentorshipBadge}
         />
+        <div className="ml-auto">
+          <VoiceControl text={`Hi, I'm ${connection.name}, a ${connection.role} at ${connection.company}.`} />
+        </div>
       </CardHeader>
       
       <CardContent className="grid gap-2">
