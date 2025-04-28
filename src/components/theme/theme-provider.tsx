@@ -16,6 +16,8 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
         system: "system",
         dynamic: "dynamic"
       }}
+      enableSystem
+      disableTransitionOnChange
       {...props}
     >
       {children}

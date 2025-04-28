@@ -14,7 +14,6 @@ export function ThemeSwitcher() {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
-  // Prevent hydration mismatch
   useEffect(() => {
     setMounted(true)
   }, [])
@@ -24,7 +23,11 @@ export function ThemeSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 px-0">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className={`h-8 w-8 px-0 ${theme === 'dynamic' ? 'gradient-border' : ''}`}
+        >
           <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
           <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
           <span className="sr-only">Toggle theme</span>
@@ -45,13 +48,16 @@ export function ThemeSwitcher() {
         </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={() => setTheme("dynamic")} 
-          className="gap-2 relative overflow-hidden"
+          className={`gap-2 relative overflow-hidden transition-all duration-300 ${
+            theme === 'dynamic' ? 'gradient-hover gradient-border' : ''
+          }`}
         >
           <Palette className="h-4 w-4" />
-          <span>Dynamic</span>
+          <span className={theme === 'dynamic' ? 'gradient-text' : ''}>Dynamic</span>
           {theme === "dynamic" && (
-            <div className="absolute inset-0 opacity-10 pointer-events-none" 
-                 style={{ backgroundImage: 'var(--gradient-primary)' }} 
+            <div 
+              className="absolute inset-0 -z-10 opacity-10 pointer-events-none" 
+              style={{ backgroundImage: 'var(--gradient-primary)' }}
             />
           )}
         </DropdownMenuItem>

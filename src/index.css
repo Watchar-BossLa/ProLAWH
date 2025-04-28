@@ -51,7 +51,10 @@
   .dynamic {
     --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     --gradient-secondary: linear-gradient(135deg, #3b82f6 0%, #2dd4bf 100%);
+    --gradient-accent: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
     --gradient-background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%);
+    --gradient-surface: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.8));
+    --gradient-border: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
     
     --background: 280 100% 98%;
     --foreground: 224 71.4% 4.1%;
@@ -77,7 +80,10 @@
   .dynamic.dark {
     --gradient-primary: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
     --gradient-secondary: linear-gradient(135deg, #2dd4bf 0%, #3b82f6 100%);
+    --gradient-accent: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
     --gradient-background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+    --gradient-surface: linear-gradient(135deg, rgba(17, 17, 17, 0.9), rgba(17, 17, 17, 0.8));
+    --gradient-border: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3));
     
     --background: 224 71.4% 4.1%;
     --foreground: 210 20% 98%;
@@ -95,6 +101,7 @@
     --accent-foreground: 210 20% 98%;
     --border: 215 27.9% 16.9%;
     --input: 215 27.9% 16.9%;
+    --ring: 263.4 70% 50.4%;
   }
 
   * {
@@ -106,20 +113,42 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  .dynamic .gradient-card {
-    @apply relative overflow-hidden;
-    background: var(--gradient-background);
-    backdrop-filter: blur(10px);
-  }
+  .dynamic {
+    .gradient-card {
+      @apply relative overflow-hidden rounded-lg;
+      background: var(--gradient-surface);
+      backdrop-filter: blur(10px);
+      border: 1px solid transparent;
+      border-image: var(--gradient-border);
+      border-image-slice: 1;
+    }
 
-  .dynamic .gradient-border {
-    @apply relative before:absolute before:inset-0 before:-z-10 before:p-[1px] before:rounded-lg before:content-[''];
-    background: var(--gradient-primary);
-  }
+    .gradient-border {
+      @apply relative before:absolute before:inset-0 before:-z-10 before:p-[1px] before:rounded-lg before:content-[''];
+      &::before {
+        background: var(--gradient-primary);
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        mask-composite: exclude;
+      }
+    }
 
-  .dynamic .gradient-text {
-    @apply bg-clip-text text-transparent;
-    background-image: var(--gradient-primary);
+    .gradient-text {
+      @apply bg-clip-text text-transparent transition-colors;
+      background-image: var(--gradient-primary);
+    }
+
+    .gradient-hover {
+      @apply transition-all duration-300;
+      &:hover {
+        background-image: var(--gradient-background);
+        transform: translateY(-1px);
+      }
+    }
+
+    .gradient-active {
+      background-image: var(--gradient-primary);
+      @apply text-primary-foreground;
+    }
   }
 }
 
@@ -129,7 +158,7 @@
   }
 
   .gradient-border {
-    @apply relative before:absolute before:inset-0 before:-z-10 before:p-[1px] before:bg-gradient-to-r before:from-primary/50 before:to-secondary/50 before:rounded-lg before:content-[''];
+    @apply relative before:absolute before:inset-0 before:-z-10 before:p-[1px] before:rounded-lg before:content-[''];
   }
 
   .hover-card {
