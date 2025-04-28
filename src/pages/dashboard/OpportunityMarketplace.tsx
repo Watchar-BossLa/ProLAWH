@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,21 +13,70 @@ import type { Opportunity, FilterState } from "@/types/marketplace";
 const mockOpportunities: Opportunity[] = [
   {
     id: "1",
-    title: "Senior React Developer",
-    description: "Looking for an experienced React developer to join our team...",
-    company: "TechCorp",
-    rate_range: "$80-120/hr",
-    skills_required: ["React", "TypeScript", "Node.js"],
+    title: "Sustainable Supply Chain Analyst",
+    description: "Join our team to optimize supply chain sustainability and reduce carbon footprint. You'll work on implementing green logistics solutions and environmental compliance tracking.",
+    company: "EcoLogistics Global",
+    rate_range: "$75-95/hr",
+    skills_required: ["Supply Chain", "Data Analysis", "Environmental Compliance", "Green Logistics"],
     is_remote: true,
     has_insurance: true,
-    green_score: 85,
+    green_score: 92,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "2",
+    title: "Renewable Energy Project Manager",
+    description: "Lead solar and wind farm development projects from inception to completion. Focus on stakeholder management and environmental impact assessments.",
+    company: "SunWind Energy",
+    rate_range: "$90-120/hr",
+    skills_required: ["Project Management", "Renewable Energy", "Environmental Impact Assessment"],
+    is_remote: false,
+    has_insurance: true,
+    green_score: 95,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "3",
+    title: "ESG Data Scientist",
+    description: "Develop and implement machine learning models to analyze environmental, social, and governance data for investment decisions.",
+    company: "GreenVest Finance",
+    rate_range: "$85-105/hr",
+    skills_required: ["Machine Learning", "ESG Analysis", "Python", "Data Visualization"],
+    is_remote: true,
+    has_insurance: true,
+    green_score: 88,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "4",
+    title: "Circular Economy Consultant",
+    description: "Help businesses transition to circular economy models. Focus on waste reduction, resource optimization, and sustainable business practices.",
+    company: "CircularTech Solutions",
+    rate_range: "$70-90/hr",
+    skills_required: ["Circular Economy", "Sustainability Consulting", "Waste Management"],
+    is_remote: true,
+    has_insurance: false,
+    green_score: 90,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "5",
+    title: "Green Building Architect",
+    description: "Design sustainable buildings with focus on LEED certification, energy efficiency, and eco-friendly materials.",
+    company: "EcoArchitects",
+    rate_range: "$95-125/hr",
+    skills_required: ["LEED Certification", "Sustainable Architecture", "Energy Modeling"],
+    is_remote: false,
+    has_insurance: true,
+    green_score: 94,
     created_at: new Date().toISOString()
   }
 ];
 
 const commonSkills = [
-  "Python", "React", "Machine Learning", "Data Analysis", 
-  "UI/UX", "Project Management", "Content Creation"
+  "Data Analysis", "Renewable Energy", "ESG", "Sustainability",
+  "Project Management", "Machine Learning", "Environmental Compliance",
+  "Green Architecture", "Circular Economy"
 ];
 
 export default function OpportunityMarketplace() {
@@ -63,9 +111,9 @@ export default function OpportunityMarketplace() {
         <Briefcase className="h-8 w-8 text-primary" />
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-            Opportunity Marketplace
+            Green Career Opportunities
           </h1>
-          <p className="text-muted-foreground">Find and apply for personalized opportunities</p>
+          <p className="text-muted-foreground">Discover sustainable and impactful projects aligned with your green skills</p>
         </div>
       </div>
 

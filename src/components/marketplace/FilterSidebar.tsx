@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,7 +19,7 @@ export function FilterSidebar({ filter, onFilterChange, commonSkills }: FilterSi
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Filter className="h-5 w-5" />
-          Filters
+          Sustainability Filters
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -39,7 +38,7 @@ export function FilterSidebar({ filter, onFilterChange, commonSkills }: FilterSi
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="remote">Remote Only</Label>
+            <Label htmlFor="remote" className="text-sm text-muted-foreground">Remote Opportunities</Label>
             <Switch 
               id="remote" 
               checked={filter.remote}
@@ -66,13 +65,13 @@ export function FilterSidebar({ filter, onFilterChange, commonSkills }: FilterSi
           <div className="flex items-center justify-between">
             <Label className="flex items-center gap-1">
               <Leaf className="h-4 w-4 text-green-500" />
-              Green Score (Min {filter.minGreenScore})
+              Minimum Green Score ({filter.minGreenScore}%)
             </Label>
           </div>
           <Slider 
             defaultValue={[0]} 
             max={100} 
-            step={10}
+            step={5}
             value={[filter.minGreenScore]}
             onValueChange={(value) => onFilterChange('minGreenScore', value[0])}
             className="my-2"
@@ -80,7 +79,7 @@ export function FilterSidebar({ filter, onFilterChange, commonSkills }: FilterSi
         </div>
 
         <div className="space-y-2">
-          <Label>Skills</Label>
+          <Label>Sustainability Skills</Label>
           <div className="flex flex-wrap gap-2">
             {commonSkills.map(skill => (
               <Badge 
