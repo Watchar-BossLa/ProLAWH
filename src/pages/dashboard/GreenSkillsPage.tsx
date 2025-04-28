@@ -1,6 +1,7 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GreenSkillsList } from '@/components/skills/GreenSkillsList';
 import { GreenSkillStats } from '@/components/skills/GreenSkillStats';
 import { GreenSkillsOverview } from '@/components/skills/GreenSkillsOverview';
@@ -12,33 +13,25 @@ import { GreenSkillsHeader } from '@/components/skills/GreenSkillsHeader';
 import { GreenSkillsLoading } from '@/components/skills/GreenSkillsLoading';
 import { GreenSkillsError } from '@/components/skills/GreenSkillsError';
 import { useGreenSkills } from '@/hooks/useGreenSkills';
-
-const mockLearningPaths = [
-  {
-    id: "1",
-    title: "Sustainable Supply Chain Management",
-    description: "Master green logistics and sustainable procurement",
-    duration: "8 weeks",
-    level: "Intermediate"
-  },
-  {
-    id: "2",
-    title: "Renewable Energy Technologies",
-    description: "Deep dive into solar, wind, and energy storage",
-    duration: "12 weeks",
-    level: "Advanced"
-  },
-  {
-    id: "3",
-    title: "ESG Analysis Fundamentals",
-    description: "Learn to evaluate environmental and social impact",
-    duration: "6 weeks",
-    level: "Beginner"
-  }
-];
+import { useGreenSkillsData } from '@/hooks/useGreenSkillsData';
+import { ImpactVisualization } from '@/components/skills/ImpactVisualization';
+import { GreenCareerPathway } from '@/components/skills/GreenCareerPathway';
+import { SkillVerification } from '@/components/skills/SkillVerification';
+import { GreenProjectsMarketplace } from '@/components/skills/GreenProjectsMarketplace';
+import { GreenSkillsFilter } from '@/components/skills/GreenSkillsFilter';
 
 export default function GreenSkillsPage() {
   const { data: greenSkills = [], isLoading, error } = useGreenSkills();
+  const analytics = useGreenSkillsData();
+  const [activeTab, setActiveTab] = useState("overview");
+
+  // Extract unique categories for filtering
+  const categories = Array.from(new Set(greenSkills.map(s => s.category)));
+
+  const handleFilterChange = (filter: { search: string; category: string; impactLevel: string }) => {
+    // This would be implemented to filter the displayed skills
+    console.log("Filter applied:", filter);
+  };
 
   if (error) {
     return <GreenSkillsError message={(error as Error).message} />;
@@ -47,32 +40,70 @@ export default function GreenSkillsPage() {
   return (
     <div className="container mx-auto p-6 space-y-6 animate-in fade-in">
       <GreenSkillsHeader />
-      
-      {isLoading ? (
-        <GreenSkillsLoading />
-      ) : (
-        <>
-          <div className="grid gap-6 md:grid-cols-2">
-            <PersonalImpactMetrics
-              carbonReduction={75}
-              skillsAcquired={6}
-              marketGrowth={85}
-            />
-            <GreenSkillsLearningPath recommendations={mockLearningPaths} />
-          </div>
-          
-          <Separator className="my-8" />
-          <GreenSkillsOverview />
-          <Separator className="my-8" />
-          <TopGreenSkills skills={greenSkills} />
-          <Separator className="my-8" />
-          <GreenSkillStats skills={greenSkills} />
-          <Separator className="my-8" />
-          <GreenSkillCategories skills={greenSkills} />
-          <Separator className="my-8" />
-          <GreenSkillsList skills={greenSkills} />
-        </>
-      )}
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid grid-cols-4 md:w-[600px]">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="skills">Skills</TabsTrigger>
+          <TabsTrigger value="careers">Careers</TabsTrigger>
+          <TabsTrigger value="projects">Projects</TabsTrigger>
+        </TabsList>
+        
+        {isLoading ? (
+          <GreenSkillsLoading />
+        ) : (
+          <>
+            <TabsContent value="overview" className="space-y-6 mt-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                <PersonalImpactMetrics
+                  carbonReduction={analytics.personalMetrics.carbonReduction}
+                  skillsAcquired={analytics.personalMetrics.skillsAcquired}
+                  marketGrowth={analytics.personalMetrics.marketGrowth}
+                />
+                <ImpactVisualization 
+                  environmentalImpact={analytics.environmentalImpact}
+                  totalReduction={analytics.environmentalImpact.reduce((sum, item) => sum + item.value, 0)}
+                />
+              </div>
+              
+              <Separator className="my-6" />
+              <GreenSkillsOverview />
+              <Separator className="my-6" />
+              <TopGreenSkills skills={greenSkills} />
+            </TabsContent>
+
+            <TabsContent value="skills" className="space-y-6 mt-6">
+              <div className="grid gap-6 md:grid-cols-3">
+                <div className="md:col-span-1">
+                  <GreenSkillsFilter 
+                    categories={categories} 
+                    onFilterChange={handleFilterChange}
+                  />
+                  <div className="mt-6">
+                    <SkillVerification />
+                  </div>
+                </div>
+                <div className="md:col-span-2">
+                  <GreenSkillStats skills={greenSkills} />
+                  <GreenSkillCategories skills={greenSkills} />
+                  <GreenSkillsList skills={greenSkills} />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="careers" className="space-y-6 mt-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                <GreenCareerPathway careerOptions={analytics.careerOptions} />
+                <GreenSkillsLearningPath recommendations={analytics.learningPaths} />
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="projects" className="space-y-6 mt-6">
+              <GreenProjectsMarketplace projects={analytics.projects} />
+            </TabsContent>
+          </>
+        )}
+      </Tabs>
     </div>
   );
 }
