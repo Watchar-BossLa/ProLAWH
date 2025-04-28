@@ -7,6 +7,7 @@ import { GreenSkillsList } from '@/components/skills/GreenSkillsList';
 import { GreenSkillStats } from '@/components/skills/GreenSkillStats';
 import { GreenSkillsOverview } from '@/components/skills/GreenSkillsOverview';
 import { GreenSkillCategories } from '@/components/skills/GreenSkillCategories';
+import { TopGreenSkills } from '@/components/skills/TopGreenSkills';
 import { Separator } from "@/components/ui/separator";
 
 interface GreenSkill {
@@ -64,6 +65,8 @@ export default function GreenSkillsPage() {
       ) : (
         <>
           <GreenSkillsOverview />
+          <Separator className="my-8" />
+          <TopGreenSkills skills={greenSkills} />
           <Separator className="my-8" />
           <GreenSkillStats skills={greenSkills} />
           <Separator className="my-8" />
