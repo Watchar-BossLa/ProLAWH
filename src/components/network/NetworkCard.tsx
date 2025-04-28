@@ -1,15 +1,11 @@
+
 import { useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { NetworkConnection, MentorshipRequest } from "@/types/network";
 import { MentorshipRequestForm } from "./mentorship/form/MentorshipRequestForm";
-import { toast } from "@/hooks/use-toast";
-import { NetworkConnectionInfo } from "./cards/NetworkConnectionInfo";
 import { NetworkCardStatus } from "./cards/NetworkCardStatus";
-import { NetworkConnectionStrength } from "./cards/NetworkConnectionStrength";
-import { NetworkCardActions } from "./cards/NetworkCardActions";
-import { NetworkCardMentorship } from "./cards/NetworkCardMentorship";
-import { VoiceControl } from "@/components/voice/VoiceControl";
+import { NetworkCardHeader } from "./cards/NetworkCardHeader";
+import { NetworkCardContent } from "./cards/NetworkCardContent";
 
 interface NetworkCardProps {
   connection: NetworkConnection;
@@ -39,51 +35,16 @@ export function NetworkCard({ connection, onChatOpen }: NetworkCardProps) {
       onMouseLeave={() => setIsHovered(false)}
     >
       <NetworkCardStatus connection={connection} />
-      
-      <CardHeader className="flex flex-row items-center gap-4">
-        <NetworkConnectionInfo 
-          connection={connection}
-          showMentorshipBadge={showMentorshipBadge}
-        />
-        <div className="ml-auto">
-          <VoiceControl text={`Hi, I'm ${connection.name}, a ${connection.role} at ${connection.company}.`} />
-        </div>
-      </CardHeader>
-      
-      <CardContent className="grid gap-2">
-        <div className="text-sm">
-          <span className="font-medium">Connection:</span>{" "}
-          <Badge variant="outline" className="capitalize">
-            {connection.connectionType}
-          </Badge>
-        </div>
-        
-        {connection.skills && connection.skills.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1">
-            {connection.skills.slice(0, 2).map(skill => (
-              <Badge key={skill} variant="secondary" className="text-xs">
-                {skill}
-              </Badge>
-            ))}
-            {connection.skills.length > 2 && (
-              <Badge variant="outline" className="text-xs">
-                +{connection.skills.length - 2}
-              </Badge>
-            )}
-          </div>
-        )}
-        
-        <NetworkConnectionStrength connection={connection} />
-        
-        <NetworkCardActions
-          connection={connection}
-          isHovered={isHovered}
-          onChatOpen={onChatOpen}
-          onMentorshipRequest={() => setShowMentorshipForm(true)}
-        />
-        
-        <NetworkCardMentorship connection={connection} />
-      </CardContent>
+      <NetworkCardHeader 
+        connection={connection}
+        showMentorshipBadge={showMentorshipBadge}
+      />
+      <NetworkCardContent 
+        connection={connection}
+        isHovered={isHovered}
+        onChatOpen={onChatOpen}
+        onMentorshipRequest={() => setShowMentorshipForm(true)}
+      />
       
       <MentorshipRequestForm
         connection={connection}
