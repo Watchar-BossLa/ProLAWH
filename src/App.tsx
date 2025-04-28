@@ -25,6 +25,10 @@ import CourseDetailsPage from "./pages/dashboard/CourseDetailsPage";
 import SkillsAndBadgesPage from "./pages/dashboard/SkillsAndBadgesPage";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
+import UsersPage from "./pages/admin/UsersPage";
+import AnalyticsPage from "./pages/admin/AnalyticsPage";
+import PaymentsPage from "./pages/admin/PaymentsPage";
+import SettingsPage from "./pages/admin/SettingsPage";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +63,10 @@ const App = () => (
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
+              <Route path="users" element={<UsersPage />} />
+              <Route path="analytics" element={<AnalyticsPage />} />
+              <Route path="payments" element={<PaymentsPage />} />
+              <Route path="settings" element={<SettingsPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
