@@ -1,6 +1,5 @@
-
 import { TeamFormationSimulator } from '../TeamFormationSimulator';
-import { GreenProjectsMarketplace } from '../GreenProjectsMarketplace';
+import { GreenProjectsMarketplace } from './GreenProjectsMarketplace';
 
 interface ProjectsTabContentProps {
   selectedProject: {
