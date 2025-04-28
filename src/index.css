@@ -49,6 +49,10 @@
   }
 
   .dynamic {
+    --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    --gradient-secondary: linear-gradient(135deg, #3b82f6 0%, #2dd4bf 100%);
+    --gradient-background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%);
+    
     --background: 280 100% 98%;
     --foreground: 224 71.4% 4.1%;
     --card: 0 0% 100%;
@@ -70,6 +74,29 @@
     --ring: 262.1 83.3% 57.8%;
   }
 
+  .dynamic.dark {
+    --gradient-primary: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    --gradient-secondary: linear-gradient(135deg, #2dd4bf 0%, #3b82f6 100%);
+    --gradient-background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+    
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 20% 98%;
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 210 20% 98%;
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 263.4 70% 50.4%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 215 27.9% 16.9%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 215 27.9% 16.9%;
+    --muted-foreground: 217.9 10.6% 64.9%;
+    --accent: 215 27.9% 16.9%;
+    --accent-foreground: 210 20% 98%;
+    --border: 215 27.9% 16.9%;
+    --input: 215 27.9% 16.9%;
+  }
+
   * {
     @apply border-border;
   }
@@ -77,6 +104,22 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  .dynamic .gradient-card {
+    @apply relative overflow-hidden;
+    background: var(--gradient-background);
+    backdrop-filter: blur(10px);
+  }
+
+  .dynamic .gradient-border {
+    @apply relative before:absolute before:inset-0 before:-z-10 before:p-[1px] before:rounded-lg before:content-[''];
+    background: var(--gradient-primary);
+  }
+
+  .dynamic .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-primary);
   }
 }
 
