@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ProfileSidebar } from "@/components/network/profile/ProfileSidebar";
 import { ProfileTabs } from "@/components/network/profile/ProfileTabs";
-import { MentorshipRequestForm } from "@/components/network/MentorshipRequestForm";
+import { MentorshipRequestForm } from "@/components/network/mentorship/form/MentorshipRequestForm";
 import { NetworkConnection, MentorshipRequest } from "@/types/network";
 import { toast } from "@/hooks/use-toast";
 

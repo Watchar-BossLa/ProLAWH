@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NetworkConnection, MentorshipRequest } from "@/types/network";
-import { MentorshipRequestForm } from "./MentorshipRequestForm";
+import { MentorshipRequestForm } from "./mentorship/form/MentorshipRequestForm";
 import { toast } from "@/hooks/use-toast";
 import { NetworkConnectionInfo } from "./cards/NetworkConnectionInfo";
 import { NetworkCardStatus } from "./cards/NetworkCardStatus";

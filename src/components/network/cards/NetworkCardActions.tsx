@@ -1,8 +1,8 @@
 
-import { Button } from "@/components/ui/button";
 import { NetworkConnection } from "@/types/network";
-import { Book, MessageCircle, Users } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { ChatAction } from "./actions/ChatAction";
+import { MentorRequestAction } from "./actions/MentorRequestAction";
+import { ProfileAction } from "./actions/ProfileAction";
 
 interface NetworkCardActionsProps {
   connection: NetworkConnection;
@@ -17,42 +17,26 @@ export function NetworkCardActions({
   onChatOpen, 
   onMentorshipRequest 
 }: NetworkCardActionsProps) {
-  const navigate = useNavigate();
-  
   return (
     <div className={`flex gap-2 mt-3 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-70'}`}>
-      <Button 
-        size="sm" 
-        variant="default" 
-        className="flex-1"
-        onClick={() => onChatOpen && onChatOpen(connection.id)}
-      >
-        <MessageCircle size={16} />
-        <span className="ml-1">Chat</span>
-      </Button>
+      <ChatAction 
+        connectionId={connection.id}
+        onChatOpen={onChatOpen}
+        isHovered={isHovered}
+      />
       
-      {connection.connectionType === 'peer' && (
-        <Button 
-          size="sm" 
-          variant="outline" 
-          className="flex-1"
-          onClick={onMentorshipRequest}
-        >
-          <Book size={16} />
-          <span className="ml-1">Request Mentor</span>
-        </Button>
+      {connection.connectionType === 'peer' && onMentorshipRequest && (
+        <MentorRequestAction 
+          onMentorshipRequest={onMentorshipRequest}
+          isHovered={isHovered}
+        />
       )}
       
       {connection.connectionType !== 'peer' && (
-        <Button 
-          size="sm" 
-          variant="outline" 
-          className="flex-1"
-          onClick={() => navigate(`/dashboard/network/${connection.id}`)}
-        >
-          <Users size={16} />
-          <span className="ml-1">Profile</span>
-        </Button>
+        <ProfileAction 
+          connectionId={connection.id}
+          isHovered={isHovered}
+        />
       )}
     </div>
   );
