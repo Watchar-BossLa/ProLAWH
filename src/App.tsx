@@ -31,6 +31,8 @@ import UsersPage from "./pages/admin/UsersPage";
 import AnalyticsPage from "./pages/admin/AnalyticsPage";
 import PaymentsPage from "./pages/admin/PaymentsPage";
 import SettingsPage from "./pages/admin/SettingsPage";
+import MentorshipDashboard from "./pages/dashboard/MentorshipDashboard";
+import MentorshipDetailPage from "./pages/dashboard/MentorshipDetailPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,7 +60,8 @@ const App = () => (
                 <Route path="learning" element={<LearningDashboard />} />
                 <Route path="learning/course/:courseId" element={<CourseDetailsPage />} />
                 <Route path="skills" element={<SkillsAndBadgesPage />} />
-                <Route path="mentorship" element={<DashboardPlaceholder title="Mentorship" />} />
+                <Route path="mentorship" element={<MentorshipDashboard />} />
+                <Route path="mentorship/:mentorshipId" element={<MentorshipDetailPage />} />
                 <Route path="opportunities" element={<OpportunityMarketplace />} />
                 <Route path="arcade" element={<ArcadePage />} />
                 <Route path="arcade/challenge/:challengeId" element={<ChallengePage />} />
