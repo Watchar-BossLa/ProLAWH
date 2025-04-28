@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,8 +24,6 @@ export function MentorshipDetails({ mentorship, isOwnProfile = false, isMentor =
   const [selectedResource, setSelectedResource] = useState<MentorshipResource | null>(null);
   const [showAddResource, setShowAddResource] = useState(false);
   const [newNote, setNewNote] = useState("");
-  
-  const navigate = useNavigate();
   
   const calculateProgress = () => {
     if (!mentorship.progress || mentorship.progress.length === 0) return 0;

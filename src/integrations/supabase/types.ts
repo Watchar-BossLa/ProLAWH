@@ -947,6 +947,41 @@ export type Database = {
         }
         Relationships: []
       }
+      mentorship_progress: {
+        Row: {
+          completed: boolean | null
+          date: string
+          id: string
+          mentorship_id: string
+          milestone: string
+          notes: string | null
+        }
+        Insert: {
+          completed?: boolean | null
+          date?: string
+          id?: string
+          mentorship_id: string
+          milestone: string
+          notes?: string | null
+        }
+        Update: {
+          completed?: boolean | null
+          date?: string
+          id?: string
+          mentorship_id?: string
+          milestone?: string
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentorship_progress_mentorship_id_fkey"
+            columns: ["mentorship_id"]
+            isOneToOne: false
+            referencedRelation: "mentorship_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mentorship_relationships: {
         Row: {
           created_at: string
@@ -988,6 +1023,89 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      mentorship_requests: {
+        Row: {
+          created_at: string
+          expected_duration: string | null
+          focus_areas: string[] | null
+          goals: string[] | null
+          id: string
+          industry: string
+          mentor_id: string
+          message: string
+          requester_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          expected_duration?: string | null
+          focus_areas?: string[] | null
+          goals?: string[] | null
+          id?: string
+          industry: string
+          mentor_id: string
+          message: string
+          requester_id: string
+          status: string
+        }
+        Update: {
+          created_at?: string
+          expected_duration?: string | null
+          focus_areas?: string[] | null
+          goals?: string[] | null
+          id?: string
+          industry?: string
+          mentor_id?: string
+          message?: string
+          requester_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      mentorship_resources: {
+        Row: {
+          added_at: string
+          added_by: string
+          completed: boolean | null
+          description: string | null
+          id: string
+          mentorship_id: string
+          title: string
+          type: string
+          url: string | null
+        }
+        Insert: {
+          added_at?: string
+          added_by: string
+          completed?: boolean | null
+          description?: string | null
+          id?: string
+          mentorship_id: string
+          title: string
+          type: string
+          url?: string | null
+        }
+        Update: {
+          added_at?: string
+          added_by?: string
+          completed?: boolean | null
+          description?: string | null
+          id?: string
+          mentorship_id?: string
+          title?: string
+          type?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentorship_resources_mentorship_id_fkey"
+            columns: ["mentorship_id"]
+            isOneToOne: false
+            referencedRelation: "mentorship_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mentorship_sessions: {
         Row: {

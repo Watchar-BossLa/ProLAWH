@@ -1,4 +1,3 @@
-
 export interface NetworkConnection {
   id: string;
   userId: string;
