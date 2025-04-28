@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
+import { useAdmin } from "@/hooks/useAdmin";
 import { 
   Book, 
   GraduationCap, 
@@ -12,7 +14,8 @@ import {
   LucideIcon, 
   Home, 
   Settings,
-  Leaf
+  Leaf,
+  ShieldCheck
 } from 'lucide-react';
 
 interface NavItemProps {
@@ -42,6 +45,7 @@ const NavItem = ({ icon: Icon, label, href, isActive }: NavItemProps) => {
 export function DashboardSidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
+  const { isAdmin } = useAdmin();
 
   const navItems = [
     { icon: Home, label: "Dashboard", href: "/dashboard" },
@@ -74,6 +78,15 @@ export function DashboardSidebar() {
             isActive={currentPath === item.href}
           />
         ))}
+        
+        {isAdmin && (
+          <NavItem
+            icon={ShieldCheck}
+            label="Admin Dashboard"
+            href="/admin"
+            isActive={currentPath.startsWith("/admin")}
+          />
+        )}
       </div>
       
       <div className="p-4 border-t mt-auto">
