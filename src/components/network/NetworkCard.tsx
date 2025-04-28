@@ -6,6 +6,8 @@ import { MentorshipRequestForm } from "./mentorship/form/MentorshipRequestForm";
 import { NetworkCardStatus } from "./cards/NetworkCardStatus";
 import { NetworkCardHeader } from "./cards/NetworkCardHeader";
 import { NetworkCardContent } from "./cards/NetworkCardContent";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { SmartChatInterface } from "./SmartChatInterface";
 import { toast } from "sonner";
 
 interface NetworkCardProps {
@@ -16,6 +18,7 @@ interface NetworkCardProps {
 export function NetworkCard({ connection, onChatOpen }: NetworkCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [showMentorshipForm, setShowMentorshipForm] = useState(false);
+  const [showSmartChat, setShowSmartChat] = useState(false);
   
   const showMentorshipBadge = connection.connectionType === 'mentor' && 
     connection.mentorship && 
@@ -27,6 +30,15 @@ export function NetworkCard({ connection, onChatOpen }: NetworkCardProps) {
     toast("Mentorship Request Sent", {
       description: `Your mentorship request has been sent to ${connection.name}.`
     });
+    setShowMentorshipForm(false);
+  };
+  
+  const handleChatClick = () => {
+    if (onChatOpen) {
+      onChatOpen(connection.id);
+    } else {
+      setShowSmartChat(true);
+    }
   };
 
   return (
@@ -43,7 +55,7 @@ export function NetworkCard({ connection, onChatOpen }: NetworkCardProps) {
       <NetworkCardContent 
         connection={connection}
         isHovered={isHovered}
-        onChatOpen={onChatOpen}
+        onChatOpen={handleChatClick}
         onMentorshipRequest={() => setShowMentorshipForm(true)}
       />
       
@@ -53,6 +65,15 @@ export function NetworkCard({ connection, onChatOpen }: NetworkCardProps) {
         onClose={() => setShowMentorshipForm(false)}
         onSubmit={handleMentorshipRequest}
       />
+      
+      <Dialog open={showSmartChat} onOpenChange={setShowSmartChat}>
+        <DialogContent className="sm:max-w-[500px] p-0 h-[600px]">
+          <SmartChatInterface 
+            connection={connection} 
+            onClose={() => setShowSmartChat(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

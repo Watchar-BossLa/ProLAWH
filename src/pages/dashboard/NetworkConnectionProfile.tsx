@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { ProfileSidebar } from "@/components/network/profile/ProfileSidebar";
 import { ProfileTabs } from "@/components/network/profile/ProfileTabs";
 import { MentorshipRequestForm } from "@/components/network/mentorship/form/MentorshipRequestForm";
 import { NetworkConnection, MentorshipRequest } from "@/types/network";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 const mockConnection: NetworkConnection = {
   id: "1",
