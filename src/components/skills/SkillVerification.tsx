@@ -2,12 +2,14 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Shield, CheckCircle, Upload } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { VerificationMethodCard } from "./verification/VerificationMethodCard";
+import { VerificationForm } from "./verification/VerificationForm";
+import type { VerificationMethod } from "@/hooks/useSkillVerification";
 
-interface VerificationMethod {
-  id: string;
+interface VerificationMethodInfo {
+  id: VerificationMethod;
   name: string;
   description: string;
   requiredEvidence: string;
@@ -15,10 +17,10 @@ interface VerificationMethod {
 }
 
 export function SkillVerification() {
-  const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState<VerificationMethod | null>(null);
+  const [showForm, setShowForm] = useState(false);
 
-  const verificationMethods: VerificationMethod[] = [
+  const verificationMethods: VerificationMethodInfo[] = [
     {
       id: "challenge",
       name: "Complete Challenge",
@@ -42,21 +44,25 @@ export function SkillVerification() {
     },
   ];
 
-  const handleMethodSelect = (methodId: string) => {
+  const handleMethodSelect = (methodId: VerificationMethod) => {
     setSelectedMethod(methodId);
   };
 
+  const handleCancel = () => {
+    setShowForm(false);
+  };
+
   const handleVerify = () => {
-    setUploading(true);
-    // Simulate verification process
-    setTimeout(() => {
-      setUploading(false);
+    if (!selectedMethod) {
       toast({
-        title: "Verification initiated",
-        description: "We'll process your verification request and notify you soon",
+        title: "Please select a method",
+        description: "You need to select a verification method first",
+        variant: "destructive",
       });
-      setSelectedMethod(null);
-    }, 1500);
+      return;
+    }
+    
+    setShowForm(true);
   };
 
   return (
@@ -68,50 +74,40 @@ export function SkillVerification() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground">
-          Verified skills increase your credibility and visibility to employers.
-          Choose a verification method:
-        </p>
+        {!showForm ? (
+          <>
+            <p className="text-sm text-muted-foreground">
+              Verified skills increase your credibility and visibility to employers.
+              Choose a verification method:
+            </p>
 
-        <div className="space-y-3">
-          {verificationMethods.map((method) => (
-            <div
-              key={method.id}
-              className={`border rounded-lg p-3 cursor-pointer transition-colors ${
-                selectedMethod === method.id
-                  ? "border-primary bg-primary/5"
-                  : "hover:border-primary/50"
-              }`}
-              onClick={() => handleMethodSelect(method.id)}
-            >
-              <div className="flex items-start gap-3">
-                <div className="mt-1">{method.icon}</div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium">{method.name}</h4>
-                    {selectedMethod === method.id && (
-                      <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                        Selected
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {method.description}
-                  </p>
-                </div>
-              </div>
+            <div className="space-y-3">
+              {verificationMethods.map((method) => (
+                <VerificationMethodCard
+                  key={method.id}
+                  id={method.id}
+                  name={method.name}
+                  description={method.description}
+                  requiredEvidence={method.requiredEvidence}
+                  icon={method.icon}
+                  isSelected={selectedMethod === method.id}
+                  onSelect={() => handleMethodSelect(method.id)}
+                />
+              ))}
             </div>
-          ))}
-        </div>
 
-        <div className="flex justify-end">
-          <Button
-            onClick={handleVerify}
-            disabled={!selectedMethod || uploading}
-          >
-            {uploading ? "Processing..." : "Start Verification"}
-          </Button>
-        </div>
+            <div className="flex justify-end">
+              <Button onClick={handleVerify} disabled={!selectedMethod}>
+                Start Verification
+              </Button>
+            </div>
+          </>
+        ) : (
+          <VerificationForm 
+            selectedMethod={selectedMethod!} 
+            onCancel={handleCancel} 
+          />
+        )}
       </CardContent>
     </Card>
   );

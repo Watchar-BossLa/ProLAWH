@@ -1,5 +1,7 @@
+
 import { TeamFormationSimulator } from '../TeamFormationSimulator';
 import { GreenProjectsMarketplace } from './GreenProjectsMarketplace';
+import { useProjectsData } from './useProjectsData';
 
 interface ProjectsTabContentProps {
   selectedProject: {
@@ -11,6 +13,8 @@ interface ProjectsTabContentProps {
 }
 
 export function ProjectsTabContent({ selectedProject, projects }: ProjectsTabContentProps) {
+  const { projectCounts } = useProjectsData(projects);
+  
   return (
     <div className="space-y-6 mt-6">
       <div className="grid gap-6 md:grid-cols-3">

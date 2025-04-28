@@ -5,6 +5,7 @@ import { SkillGapAnalysis } from './SkillGapAnalysis';
 import { GreenSkillStats } from './GreenSkillStats';
 import { GreenSkillCategories } from './GreenSkillCategories';
 import { GreenSkillsList } from './GreenSkillsList';
+import { VerifiedSkillBadges } from './verification/VerifiedSkillBadges';
 
 interface SkillsTabContentProps {
   skills: any[];
@@ -22,19 +23,16 @@ export function SkillsTabContent({
   return (
     <div className="space-y-6 mt-6">
       <div className="grid gap-6 md:grid-cols-3">
-        <div className="md:col-span-1">
+        <div className="md:col-span-1 space-y-6">
           <GreenSkillsFilter 
             categories={categories} 
             onFilterChange={onFilterChange}
           />
-          <div className="mt-6">
-            <SkillVerification />
-          </div>
-          <div className="mt-6">
-            <SkillGapAnalysis skillGapData={skillGapData} />
-          </div>
+          <SkillVerification />
+          <SkillGapAnalysis skillGapData={skillGapData} />
         </div>
-        <div className="md:col-span-2">
+        <div className="md:col-span-2 space-y-6">
+          <VerifiedSkillBadges />
           <GreenSkillStats skills={skills} />
           <GreenSkillCategories skills={skills} />
           <GreenSkillsList skills={skills} />

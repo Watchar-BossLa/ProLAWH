@@ -3,7 +3,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Globe } from "lucide-react";
 import { Tabs } from "@/components/ui/tabs";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ProjectCard } from "./ProjectCard";
 import { ProjectsHeader } from "./ProjectsHeader";
 import { ProjectsTabs } from "./ProjectsTabs";
@@ -17,18 +17,34 @@ export function GreenProjectsMarketplace({ projects }: GreenProjectsMarketplaceP
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   
-  const filteredProjects = projects.filter(project => {
-    if (searchQuery && !project.title.toLowerCase().includes(searchQuery.toLowerCase()) && 
-        !project.description.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false;
-    }
-    
-    if (activeTab === "climate" && project.impactArea !== "Climate") return false;
-    if (activeTab === "conservation" && project.impactArea !== "Conservation") return false;
-    if (activeTab === "community" && project.impactArea !== "Community") return false;
-    
-    return true;
-  });
+  const filteredProjects = useMemo(() => {
+    return projects.filter(project => {
+      // Text search filter
+      if (searchQuery && !project.title.toLowerCase().includes(searchQuery.toLowerCase()) && 
+          !project.description.toLowerCase().includes(searchQuery.toLowerCase())) {
+        return false;
+      }
+      
+      // Category filters
+      if (activeTab === "climate" && project.impactArea !== "Climate") return false;
+      if (activeTab === "conservation" && project.impactArea !== "Conservation") return false;
+      if (activeTab === "community" && project.impactArea !== "Community") return false;
+      if (activeTab === "insured" && !project.hasInsurance) return false;
+      
+      return true;
+    });
+  }, [projects, searchQuery, activeTab]);
+  
+  // Calculate counts for each tab
+  const projectCounts = useMemo(() => {
+    return {
+      all: projects.length,
+      climate: projects.filter(p => p.impactArea === "Climate").length,
+      conservation: projects.filter(p => p.impactArea === "Conservation").length,
+      community: projects.filter(p => p.impactArea === "Community").length,
+      insured: projects.filter(p => p.hasInsurance).length,
+    };
+  }, [projects]);
   
   return (
     <Card>
@@ -44,7 +60,11 @@ export function GreenProjectsMarketplace({ projects }: GreenProjectsMarketplaceP
           value={activeTab}
           onValueChange={setActiveTab}
         >
-          <ProjectsTabs activeTab={activeTab} onTabChange={setActiveTab} />
+          <ProjectsTabs 
+            activeTab={activeTab} 
+            onTabChange={setActiveTab}
+            projectCounts={projectCounts}
+          />
         </Tabs>
       </CardHeader>
       
