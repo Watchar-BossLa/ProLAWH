@@ -45,7 +45,7 @@ const NavItem = ({ icon: Icon, label, href, isActive }: NavItemProps) => {
 export function DashboardSidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
-  const { isAdmin } = useAdmin();
+  const { isAdmin, isLoading } = useAdmin();
 
   const navItems = [
     { icon: Home, label: "Dashboard", href: "/dashboard" },
@@ -79,7 +79,7 @@ export function DashboardSidebar() {
           />
         ))}
         
-        {isAdmin && (
+        {!isLoading && isAdmin && (
           <NavItem
             icon={ShieldCheck}
             label="Admin Dashboard"
