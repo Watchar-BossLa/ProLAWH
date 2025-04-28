@@ -88,9 +88,11 @@ export function VerifiedSkillBadges() {
                       <div className="text-xs px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 rounded-full">
                         {credential.credential_type}
                       </div>
-                      <div className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 rounded-full">
-                        {credential.metadata?.verification_method || "Verified"}
-                      </div>
+                      {credential.metadata && typeof credential.metadata === 'object' && 'verification_method' in credential.metadata && (
+                        <div className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 rounded-full">
+                          {String(credential.metadata.verification_method)}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
