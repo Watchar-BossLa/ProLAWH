@@ -2,31 +2,21 @@
 import React, { useState } from 'react';
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { GreenSkillsList } from '@/components/skills/GreenSkillsList';
-import { GreenSkillStats } from '@/components/skills/GreenSkillStats';
-import { GreenSkillsOverview } from '@/components/skills/GreenSkillsOverview';
-import { GreenSkillCategories } from '@/components/skills/GreenSkillCategories';
-import { TopGreenSkills } from '@/components/skills/TopGreenSkills';
-import { PersonalImpactMetrics } from '@/components/skills/PersonalImpactMetrics';
-import { GreenSkillsLearningPath } from '@/components/skills/GreenSkillsLearningPath';
 import { GreenSkillsHeader } from '@/components/skills/GreenSkillsHeader';
 import { GreenSkillsLoading } from '@/components/skills/GreenSkillsLoading';
 import { GreenSkillsError } from '@/components/skills/GreenSkillsError';
 import { useGreenSkills } from '@/hooks/useGreenSkills';
 import { useGreenSkillsData } from '@/hooks/useGreenSkillsData';
-import { ImpactVisualization } from '@/components/skills/ImpactVisualization';
-import { GreenCareerPathway } from '@/components/skills/GreenCareerPathway';
-import { SkillVerification } from '@/components/skills/SkillVerification';
-import { GreenProjectsMarketplace } from '@/components/skills/GreenProjectsMarketplace';
-import { GreenSkillsFilter } from '@/components/skills/GreenSkillsFilter';
-import { CarbonFootprintCalculator } from '@/components/skills/CarbonFootprintCalculator';
-import { SDGAlignmentChart } from '@/components/skills/SDGAlignmentChart';
 import { useSDGData } from '@/hooks/useSDGData';
-import { Lightbulb } from 'lucide-react';
-import { CareerTwinSimulator } from '@/components/skills/AI/CareerTwinSimulator';
-import { SkillGapAnalysis } from '@/components/skills/SkillGapAnalysis';
 import { useSkillGapData } from '@/hooks/useSkillGapData';
-import { TeamFormationSimulator } from '@/components/skills/TeamFormationSimulator';
+import { GreenSkillsOverview } from '@/components/skills/GreenSkillsOverview';
+import { TopGreenSkills } from '@/components/skills/TopGreenSkills';
+import { PersonalImpactMetrics } from '@/components/skills/PersonalImpactMetrics';
+import { ImpactVisualization } from '@/components/skills/ImpactVisualization';
+import { ImpactTabContent } from '@/components/skills/impact/ImpactTabContent';
+import { SkillsTabContent } from '@/components/skills/SkillsTabContent';
+import { CareersTabContent } from '@/components/skills/careers/CareersTabContent';
+import { ProjectsTabContent } from '@/components/skills/projects/ProjectsTabContent';
 
 export default function GreenSkillsPage() {
   const { data: greenSkills = [], isLoading, error } = useGreenSkills();
@@ -55,7 +45,6 @@ export default function GreenSkillsPage() {
   const categories = Array.from(new Set(greenSkills.map(s => s.category)));
 
   const handleFilterChange = (filter: { search: string; category: string; impactLevel: string }) => {
-    // This would be implemented to filter the displayed skills
     console.log("Filter applied:", filter);
   };
 
@@ -92,101 +81,41 @@ export default function GreenSkillsPage() {
                   totalReduction={analytics.environmentalImpact.reduce((sum, item) => sum + item.value, 0)}
                 />
               </div>
-              
               <Separator className="my-6" />
               <GreenSkillsOverview />
               <Separator className="my-6" />
               <TopGreenSkills skills={greenSkills} />
             </TabsContent>
 
-            <TabsContent value="skills" className="space-y-6 mt-6">
-              <div className="grid gap-6 md:grid-cols-3">
-                <div className="md:col-span-1">
-                  <GreenSkillsFilter 
-                    categories={categories} 
-                    onFilterChange={handleFilterChange}
-                  />
-                  <div className="mt-6">
-                    <SkillVerification />
-                  </div>
-                  <div className="mt-6">
-                    <SkillGapAnalysis skillGapData={skillGapData} />
-                  </div>
-                </div>
-                <div className="md:col-span-2">
-                  <GreenSkillStats skills={greenSkills} />
-                  <GreenSkillCategories skills={greenSkills} />
-                  <GreenSkillsList skills={greenSkills} />
-                </div>
-              </div>
+            <TabsContent value="skills">
+              <SkillsTabContent 
+                skills={greenSkills}
+                categories={categories}
+                skillGapData={skillGapData}
+                onFilterChange={handleFilterChange}
+              />
             </TabsContent>
 
-            <TabsContent value="impact" className="space-y-6 mt-6">
-              <div className="grid gap-6 md:grid-cols-2">
-                <CarbonFootprintCalculator />
-                <SDGAlignmentChart sdgData={sdgData} />
-              </div>
-              <div className="grid gap-6 md:grid-cols-2">
-                <ImpactVisualization 
-                  environmentalImpact={analytics.environmentalImpact}
-                  totalReduction={analytics.environmentalImpact.reduce((sum, item) => sum + item.value, 0)}
-                />
-                <Card className="h-full">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Award className="h-5 w-5 text-primary" />
-                      Environmental Impact Badges
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Earn badges by completing sustainability challenges and making real-world impact.
-                    </p>
-                    <div className="grid grid-cols-3 gap-4">
-                      {/* Placeholder badges */}
-                      <div className="flex flex-col items-center">
-                        <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-2">
-                          <Leaf className="h-8 w-8 text-green-600" />
-                        </div>
-                        <span className="text-xs text-center">Carbon Reducer</span>
-                      </div>
-                      <div className="flex flex-col items-center">
-                        <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-2">
-                          <Briefcase className="h-8 w-8 text-blue-600" />
-                        </div>
-                        <span className="text-xs text-center">Water Saver</span>
-                      </div>
-                      <div className="flex flex-col items-center opacity-40">
-                        <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mb-2">
-                          <Sun className="h-8 w-8 text-amber-600" />
-                        </div>
-                        <span className="text-xs text-center">Solar Champion</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+            <TabsContent value="impact">
+              <ImpactTabContent 
+                environmentalImpact={analytics.environmentalImpact}
+                sdgData={sdgData}
+              />
             </TabsContent>
 
-            <TabsContent value="careers" className="space-y-6 mt-6">
-              <div className="grid gap-6 md:grid-cols-2">
-                <CareerTwinSimulator userSkills={userSkills} />
-                <GreenCareerPathway careerOptions={analytics.careerOptions} />
-              </div>
-              <div className="mt-6">
-                <GreenSkillsLearningPath recommendations={analytics.learningPaths} />
-              </div>
+            <TabsContent value="careers">
+              <CareersTabContent 
+                userSkills={userSkills}
+                careerOptions={analytics.careerOptions}
+                learningPaths={analytics.learningPaths}
+              />
             </TabsContent>
             
-            <TabsContent value="projects" className="space-y-6 mt-6">
-              <div className="grid gap-6 md:grid-cols-3">
-                <div className="md:col-span-1">
-                  <TeamFormationSimulator selectedProject={sampleProject} />
-                </div>
-                <div className="md:col-span-2">
-                  <GreenProjectsMarketplace projects={analytics.projects} />
-                </div>
-              </div>
+            <TabsContent value="projects">
+              <ProjectsTabContent 
+                selectedProject={sampleProject}
+                projects={analytics.projects}
+              />
             </TabsContent>
           </>
         )}
@@ -194,8 +123,3 @@ export default function GreenSkillsPage() {
     </div>
   );
 }
-
-// Additional imports needed
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Award, Leaf, Briefcase, Sun } from "lucide-react";
-
