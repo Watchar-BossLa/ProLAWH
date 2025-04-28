@@ -2,10 +2,11 @@
 import { useEffect, useState } from "react";
 import { useArcadeChallenges } from "@/hooks/useArcadeChallenges";
 import { ChallengeCard } from "@/components/arcade/ChallengeCard";
+import { ArcadeIntro } from "@/components/arcade/ArcadeIntro";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { Gamepad2, Loader2 } from "lucide-react";
+import { Gamepad2 } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { pageTransitions } from "@/lib/transitions";
 
@@ -53,6 +54,8 @@ export default function ArcadePage() {
           <p className="text-muted-foreground">Complete quick challenges to earn verifiable credentials</p>
         </div>
       </div>
+
+      <ArcadeIntro />
 
       {isLoading ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

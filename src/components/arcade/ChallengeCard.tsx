@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { ChallengeDifficultyBadge } from "./ChallengeDifficultyBadge";
 import { Clock, Trophy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { ArcadeChallenge } from "@/hooks/useArcadeChallenges";
@@ -13,12 +13,6 @@ interface ChallengeCardProps {
 export function ChallengeCard({ challenge }: ChallengeCardProps) {
   const navigate = useNavigate();
   
-  const difficultyColor = {
-    beginner: "bg-green-500",
-    intermediate: "bg-yellow-500",
-    advanced: "bg-red-500",
-  }[challenge.difficulty_level];
-
   const handleStartChallenge = () => {
     navigate(`/dashboard/arcade/challenge/${challenge.id}`);
   };
@@ -28,9 +22,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl">{challenge.title}</CardTitle>
-          <Badge className={difficultyColor}>
-            {challenge.difficulty_level}
-          </Badge>
+          <ChallengeDifficultyBadge level={challenge.difficulty_level} />
         </div>
         <CardDescription>{challenge.description}</CardDescription>
       </CardHeader>
