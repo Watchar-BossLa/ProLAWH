@@ -1,7 +1,8 @@
 
 import { Book, MessageCircle, User } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { NetworkConnection } from "@/types/network";
 import { ProfileContent } from "./ProfileContent";
 import { MentorshipDetails } from "../mentorship/MentorshipDetails";

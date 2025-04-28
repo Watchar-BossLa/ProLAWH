@@ -5,13 +5,11 @@ import { toast } from '@/hooks/use-toast';
 import { useMentorshipSessions } from './useMentorshipSessions';
 import { useMentorshipProgress } from './useMentorshipProgress';
 import { useMentorshipResources } from './useMentorshipResources';
+import type { MentorProfile, MentorshipRequest, MentorshipRelationship } from './types/mentorship';
 
 export type { 
   MentorProfile,
   MentorshipRelationship,
-  MentorshipSession,
-  MentorshipProgress,
-  MentorshipResource,
   MentorshipRequest
 } from './types/mentorship';
 
@@ -60,7 +58,7 @@ export function useMentorship() {
         requester_id: user.id,
         status: 'pending',
         ...request
-      };
+      } as MentorshipRequest;
 
       const { data, error } = await supabase
         .from('mentorship_requests')
