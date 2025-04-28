@@ -1,6 +1,6 @@
 
 import { useEffect } from "react";
-import { useCareerRecommendations } from "@/hooks/useCareerRecommendations";
+import { useCareerRecommendations, CareerRecommendation } from "@/hooks/useCareerRecommendations";
 import { CareerTwinCard } from "@/components/career/CareerTwinCard";
 import { Brain, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ export default function CareerTwinPage() {
     }
   };
 
-  const handleStatusUpdate = async (id: string, status: string) => {
+  const handleStatusUpdate = async (id: string, status: CareerRecommendation["status"]) => {
     try {
       await updateRecommendation.mutateAsync({ id, status });
       toast({

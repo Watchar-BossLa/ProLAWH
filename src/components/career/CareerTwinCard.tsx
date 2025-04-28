@@ -1,26 +1,18 @@
-
 import React from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CheckCheck, Clock, XCircle } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
-
-interface CareerRecommendation {
-  id: string
-  type: string
-  recommendation: string
-  relevance_score: number
-  status: string
-}
+import { CareerRecommendation } from "@/hooks/useCareerRecommendations"
 
 interface CareerTwinCardProps {
   recommendation: CareerRecommendation
-  onStatusUpdate: (id: string, status: string) => void
+  onStatusUpdate: (id: string, status: CareerRecommendation["status"]) => void
 }
 
 export const CareerTwinCard = ({ recommendation, onStatusUpdate }: CareerTwinCardProps) => {
-  const handleStatusUpdate = async (status: string) => {
+  const handleStatusUpdate = async (status: CareerRecommendation["status"]) => {
     try {
       const { error } = await supabase
         .from('career_recommendations')
