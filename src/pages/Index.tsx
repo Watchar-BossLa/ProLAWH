@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { BookOpen, Brain, Briefcase, GraduationCap, Trophy, Users } from "lucide-react";
@@ -45,11 +44,11 @@ const Index = () => {
       <div className="relative bg-gradient-to-b from-blue-50 to-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
-            <span className="block">ProLawh Platform</span>
+            <span className="block">ProLawh</span>
             <span className="block text-blue-600">Learning And Workforce Hub</span>
           </h1>
           <p className="mt-6 max-w-2xl mx-auto text-xl text-gray-500">
-            Your AI-native ecosystem for personalized education, verifiable skills, and dynamic work opportunities.
+            Empowering your journey through personalized education, verifiable skills, and dynamic work opportunities.
           </p>
           <div className="mt-10 flex justify-center gap-4">
             <Button 
