@@ -2,7 +2,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useLearningData } from "@/hooks/useLearningData";
 import { CourseCard } from "@/components/learning/CourseCard";
-import { LearningPathCard } from "@/components/learning/LearningPathCard";
+import { LearningPathDetails } from "@/components/learning/LearningPathDetails";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -28,27 +28,27 @@ export default function LearningDashboard() {
         <LucideSchool className="h-8 w-8 text-primary" />
         <div>
           <h1 className="text-3xl font-bold">Learning Dashboard</h1>
-          <p className="text-muted-foreground">Explore our learning paths and courses</p>
+          <p className="text-muted-foreground">Explore our curated learning paths and specialized courses</p>
         </div>
       </div>
       
-      <Tabs defaultValue="paths" className="w-full">
-        <TabsList className="mb-8">
+      <Tabs defaultValue="paths" className="w-full space-y-6">
+        <TabsList>
           <TabsTrigger value="paths">Learning Paths</TabsTrigger>
           <TabsTrigger value="courses">Individual Courses</TabsTrigger>
         </TabsList>
 
         <TabsContent value="paths">
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-[300px] rounded-lg" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {[1, 2].map((i) => (
+                <Skeleton key={i} className="h-[400px] rounded-lg" />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {learningPaths?.map((path) => (
-                <LearningPathCard key={path.id} path={path} />
+                <LearningPathDetails key={path.id} path={path} />
               ))}
               {learningPaths?.length === 0 && (
                 <Alert>
