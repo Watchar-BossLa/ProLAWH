@@ -2,11 +2,11 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { MentorshipRequest, NetworkConnection } from "@/types/network";
-import { MentorshipMessageField } from "./mentorship/MentorshipMessageField";
-import { MentorshipIndustryField } from "./mentorship/MentorshipIndustryField";
+import { MentorshipMessageField } from "./MentorshipMessageField";
+import { MentorshipIndustryField } from "./MentorshipIndustryField";
 import { useMentorshipForm } from "@/hooks/useMentorshipForm";
-import { MentorshipRequestHeader } from "./mentorship/MentorshipRequestHeader";
-import { MentorshipRequestFooter } from "./mentorship/MentorshipRequestFooter";
+import { MentorshipRequestHeader } from "./MentorshipRequestHeader";
+import { MentorshipRequestFooter } from "./MentorshipRequestFooter";
 
 interface MentorshipRequestFormProps {
   connection: NetworkConnection;
