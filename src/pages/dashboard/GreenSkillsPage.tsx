@@ -22,7 +22,7 @@ import { GreenSkillsFilter } from '@/components/skills/GreenSkillsFilter';
 import { CarbonFootprintCalculator } from '@/components/skills/CarbonFootprintCalculator';
 import { SDGAlignmentChart } from '@/components/skills/SDGAlignmentChart';
 import { useSDGData } from '@/hooks/useSDGData';
-import { AI } from 'lucide-react';
+import { Lightbulb } from 'lucide-react';
 import { CareerTwinSimulator } from '@/components/skills/AI/CareerTwinSimulator';
 import { SkillGapAnalysis } from '@/components/skills/SkillGapAnalysis';
 import { useSkillGapData } from '@/hooks/useSkillGapData';
@@ -152,7 +152,7 @@ export default function GreenSkillsPage() {
                       </div>
                       <div className="flex flex-col items-center">
                         <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-2">
-                          <Drop className="h-8 w-8 text-blue-600" />
+                          <Briefcase className="h-8 w-8 text-blue-600" />
                         </div>
                         <span className="text-xs text-center">Water Saver</span>
                       </div>
@@ -197,4 +197,5 @@ export default function GreenSkillsPage() {
 
 // Additional imports needed
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Award, Leaf, Drop, Sun } from "lucide-react";
+import { Award, Leaf, Briefcase, Sun } from "lucide-react";
+
