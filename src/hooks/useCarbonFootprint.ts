@@ -15,6 +15,13 @@ export interface CarbonActivity {
   maxValue: number;
 }
 
+// Define a type for the database saved activity to ensure proper typing
+type SavedActivity = {
+  name: string;
+  value: number;
+  [key: string]: any; // Allow for other properties in the saved activity
+}
+
 export function useCarbonFootprint() {
   const { user } = useAuth();
   const [activities, setActivities] = useState<CarbonActivity[]>([
@@ -122,9 +129,11 @@ export function useCarbonFootprint() {
         setSavedData(data);
         setActivities(prev => {
           const updatedActivities = [...prev];
-          // Fix: Type guard for activities as array before using forEach
+          // Fix: Proper type checking and casting for database activities
           if (data.activities && Array.isArray(data.activities)) {
-            data.activities.forEach((savedActivity: CarbonActivity) => {
+            // Cast the JSON array to our expected type structure
+            const savedActivities = data.activities as SavedActivity[];
+            savedActivities.forEach((savedActivity) => {
               const index = updatedActivities.findIndex(a => a.name === savedActivity.name);
               if (index !== -1) {
                 updatedActivities[index].value = savedActivity.value;
@@ -187,14 +196,24 @@ export function useCarbonFootprint() {
       const totalImpact = calculateTotalImpact();
       const categoryBreakdown = calculateCategoryBreakdown();
       
-      // Fix: Type casting for database compatibility
+      // Fix: Create properly structured data for database insertion
+      // We need to make a single object, not an array of objects
       const { error } = await supabase
         .from('carbon_footprint_data')
         .insert({
           user_id: user.id,
           total_impact: totalImpact,
-          activities: activities as unknown as Record<string, unknown>,
-          category_breakdown: categoryBreakdown as unknown as Record<string, unknown>
+          // Transform our activities to a simpler structure that can be properly stored as JSONB
+          activities: activities.map(a => ({
+            name: a.name,
+            category: a.category,
+            icon: a.icon,
+            value: a.value,
+            impactPerUnit: a.impactPerUnit,
+            unit: a.unit,
+            frequency: a.frequency
+          })),
+          category_breakdown: categoryBreakdown
         });
       
       if (error) {
