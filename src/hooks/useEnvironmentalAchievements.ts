@@ -13,6 +13,13 @@ export interface Achievement {
   earned_at?: string;
 }
 
+// Define the requirement value interface to ensure type safety
+interface RequirementValue {
+  minimum?: number;
+  category?: string;
+  count?: number;
+}
+
 export function useEnvironmentalAchievements() {
   const { user } = useAuth();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
@@ -98,8 +105,12 @@ export function useEnvironmentalAchievements() {
             
           if (carbonError && carbonError.code !== 'PGRST116') throw carbonError;
           
+          // Fix: Parse the value explicitly with a type guard
+          const requirementValue = achievement.requirement_value as unknown as RequirementValue;
+          const minimumReduction = requirementValue?.minimum || 0;
+          
           // If user has carbon data and meets the minimum reduction
-          return data && data.total_impact <= -achievement.requirement_value.minimum;
+          return data && data.total_impact <= -minimumReduction;
         }
         
         // Add other requirement checks as needed

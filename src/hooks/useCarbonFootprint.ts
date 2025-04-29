@@ -122,12 +122,15 @@ export function useCarbonFootprint() {
         setSavedData(data);
         setActivities(prev => {
           const updatedActivities = [...prev];
-          data.activities.forEach((savedActivity: CarbonActivity) => {
-            const index = updatedActivities.findIndex(a => a.name === savedActivity.name);
-            if (index !== -1) {
-              updatedActivities[index].value = savedActivity.value;
-            }
-          });
+          // Fix: Type guard for activities as array before using forEach
+          if (data.activities && Array.isArray(data.activities)) {
+            data.activities.forEach((savedActivity: CarbonActivity) => {
+              const index = updatedActivities.findIndex(a => a.name === savedActivity.name);
+              if (index !== -1) {
+                updatedActivities[index].value = savedActivity.value;
+              }
+            });
+          }
           return updatedActivities;
         });
       }
@@ -184,13 +187,14 @@ export function useCarbonFootprint() {
       const totalImpact = calculateTotalImpact();
       const categoryBreakdown = calculateCategoryBreakdown();
       
+      // Fix: Type casting for database compatibility
       const { error } = await supabase
         .from('carbon_footprint_data')
         .insert({
           user_id: user.id,
           total_impact: totalImpact,
-          activities: activities,
-          category_breakdown: categoryBreakdown
+          activities: activities as unknown as Record<string, unknown>,
+          category_breakdown: categoryBreakdown as unknown as Record<string, unknown>
         });
       
       if (error) {

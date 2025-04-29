@@ -99,7 +99,8 @@ export function VerifiedSkillBadges() {
                       {credential.metadata && typeof credential.metadata === 'object' && 'co2_reduction' in credential.metadata && (
                         <Badge variant="outline" className="text-xs flex items-center gap-1 bg-green-50 border-green-200">
                           <Leaf className="h-3 w-3 text-green-600" />
-                          {credential.metadata.co2_reduction}kg CO2
+                          {/* Fix: Ensure co2_reduction is rendered as a string */}
+                          {String(credential.metadata.co2_reduction)}kg CO2
                         </Badge>
                       )}
                     </div>
