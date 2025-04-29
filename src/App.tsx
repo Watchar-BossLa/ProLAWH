@@ -1,12 +1,13 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/toaster"
+import { ThemeProvider } from "./components/theme/theme-provider";
+import { Toaster } from "./components/ui/toaster";
 
 import Index from './pages/Index';
-import AuthPage from './pages/AuthPage';
+import AuthPage from './pages/auth/AuthPage';
 import DashboardLayout from './layouts/DashboardLayout';
 import DashboardHome from './pages/dashboard/DashboardHome';
 import LearningDashboard from './pages/dashboard/LearningDashboard';
@@ -29,7 +30,7 @@ import UsersPage from './pages/admin/UsersPage';
 import AnalyticsPage from './pages/admin/AnalyticsPage';
 import PaymentsPage from './pages/admin/PaymentsPage';
 import SettingsPage from './pages/admin/SettingsPage';
-import ProfilePage from './pages/ProfilePage';
+import ProfilePage from './pages/profile/ProfilePage';
 import NotFound from './pages/NotFound';
 import { AuthProvider } from './hooks/useAuth';
 import ProjectsMarketplacePage from './pages/dashboard/ProjectsMarketplacePage';
