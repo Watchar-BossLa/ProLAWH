@@ -281,6 +281,36 @@ export type Database = {
         }
         Relationships: []
       }
+      carbon_footprint_data: {
+        Row: {
+          activities: Json
+          category_breakdown: Json
+          created_at: string
+          id: string
+          total_impact: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activities: Json
+          category_breakdown: Json
+          created_at?: string
+          id?: string
+          total_impact: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activities?: Json
+          category_breakdown?: Json
+          created_at?: string
+          id?: string
+          total_impact?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       career_recommendations: {
         Row: {
           created_at: string | null
@@ -701,6 +731,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      environmental_achievements: {
+        Row: {
+          badge_image_url: string | null
+          created_at: string
+          description: string
+          icon_name: string
+          id: string
+          name: string
+          requirement_type: string
+          requirement_value: Json
+        }
+        Insert: {
+          badge_image_url?: string | null
+          created_at?: string
+          description: string
+          icon_name: string
+          id?: string
+          name: string
+          requirement_type: string
+          requirement_value: Json
+        }
+        Update: {
+          badge_image_url?: string | null
+          created_at?: string
+          description?: string
+          icon_name?: string
+          id?: string
+          name?: string
+          requirement_type?: string
+          requirement_value?: Json
+        }
+        Relationships: []
       }
       green_skills: {
         Row: {
@@ -1780,6 +1843,36 @@ export type Database = {
           },
         ]
       }
+      sdg_impact_data: {
+        Row: {
+          contribution_details: Json | null
+          created_at: string
+          id: string
+          impact_score: number
+          sdg_number: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contribution_details?: Json | null
+          created_at?: string
+          id?: string
+          impact_score: number
+          sdg_number: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contribution_details?: Json | null
+          created_at?: string
+          id?: string
+          impact_score?: number
+          sdg_number?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       skill_badges: {
         Row: {
           category: string
@@ -2057,6 +2150,35 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "environmental_achievements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_activity_logs: {
         Row: {

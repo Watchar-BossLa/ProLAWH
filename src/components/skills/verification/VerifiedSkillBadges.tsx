@@ -1,11 +1,12 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, ExternalLink } from "lucide-react";
+import { Shield, ExternalLink, Leaf } from "lucide-react";
 import { useBlockchainCredentials } from "@/hooks/useBlockchainCredentials";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 
 export function VerifiedSkillBadges() {
   const { user } = useAuth();
@@ -84,14 +85,22 @@ export function VerifiedSkillBadges() {
                       )}
                     </div>
                     
-                    <div className="mt-2 flex items-center gap-2">
+                    <div className="mt-2 flex items-center gap-2 flex-wrap">
                       <div className="text-xs px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 rounded-full">
                         {credential.credential_type}
                       </div>
+                      
                       {credential.metadata && typeof credential.metadata === 'object' && 'verification_method' in credential.metadata && (
                         <div className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 rounded-full">
                           {String(credential.metadata.verification_method)}
                         </div>
+                      )}
+                      
+                      {credential.metadata && typeof credential.metadata === 'object' && 'co2_reduction' in credential.metadata && (
+                        <Badge variant="outline" className="text-xs flex items-center gap-1 bg-green-50 border-green-200">
+                          <Leaf className="h-3 w-3 text-green-600" />
+                          {credential.metadata.co2_reduction}kg CO2
+                        </Badge>
                       )}
                     </div>
                   </div>
