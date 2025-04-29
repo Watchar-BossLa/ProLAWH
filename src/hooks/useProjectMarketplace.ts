@@ -32,14 +32,14 @@ export function useProjectMarketplace() {
       teamSize: project.team_size || 3,
       duration: project.duration || '3 months',
       category: project.category || 'General',
-      impactArea: project.impact_area || 'Community',
-      location: project.location,
+      impactArea: project.category || 'Community', // Using category as impactArea if not available
+      location: project.location || '',
       deadline: project.deadline,
-      carbonReduction: project.carbon_reduction,
-      sdgAlignment: project.sdg_alignment,
+      carbonReduction: project.carbon_reduction || 0,
+      sdgAlignment: project.sdg_alignment || [],
       compensation: project.compensation,
       hasInsurance: project.has_insurance || false,
-      insuranceDetails: project.insurance_details
+      insuranceDetails: project.insurance_details || {}
     })) || [];
   };
   
@@ -64,6 +64,17 @@ export function useProjectMarketplace() {
     return true;
   });
   
+  // Stub functions for project applications
+  const hasUserApplied = (projectId: string) => false;
+  const applyForProject = async (projectId: string, message: string) => {
+    // Implementation would go here
+    console.log(`Applied for project ${projectId} with message: ${message}`);
+  };
+  const createProject = async (projectData: Partial<GreenProject>) => {
+    // Implementation would go here
+    console.log('Creating project:', projectData);
+  };
+  
   return {
     projects: filteredProjects,
     isLoading,
@@ -73,6 +84,11 @@ export function useProjectMarketplace() {
     setSearchQuery,
     filterCategory,
     setFilterCategory,
-    refetch
+    refetch,
+    // Add these functions to the return value
+    hasUserApplied,
+    applyForProject,
+    createProject,
+    isSubmitting: false // Stub for now
   };
 }

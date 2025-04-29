@@ -1,26 +1,20 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
-import { CarbonActivity, SavedCarbonData, CategoryBreakdown } from '@/types/carbon';
-import { calculateTotalImpact, calculateCategoryBreakdown } from '@/utils/carbonCalculations';
+import { CarbonActivity, SavedCarbonData } from '@/types/carbon';
 
 export function useCarbonStorage(activities: CarbonActivity[]) {
-  const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [savedData, setSavedData] = useState<SavedCarbonData | null>(null);
+  const { user } = useAuth();
 
   const fetchUserCarbonData = async () => {
-    if (!user) {
-      setIsLoading(false);
-      return null;
-    }
+    if (!user) return null;
     
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      
       const { data, error } = await supabase
         .from('carbon_footprint_data')
         .select('*')
@@ -29,85 +23,91 @@ export function useCarbonStorage(activities: CarbonActivity[]) {
         .limit(1)
         .single();
       
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching carbon data:', error);
+      if (error) {
+        if (error.code !== 'PGRST116') { // No rows returned
+          console.error('Error fetching carbon data:', error);
+        }
+        return null;
       }
       
-      setIsLoading(false);
+      // Convert the data to the expected type
+      const convertedData: SavedCarbonData = {
+        total_impact: data.total_impact,
+        activities: Array.isArray(data.activities) ? data.activities as CarbonActivity[] : [],
+        category_breakdown: (data.category_breakdown as any) || {},
+        created_at: data.created_at
+      };
       
-      if (data) {
-        return data as SavedCarbonData;
-      }
-      
-      return null;
+      setSavedData(convertedData);
+      return convertedData;
     } catch (error) {
-      console.error('Error:', error);
-      setIsLoading(false);
+      console.error('Error in fetchUserCarbonData:', error);
       return null;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const saveResults = async () => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to save your carbon footprint data.",
-        variant: "destructive"
-      });
-      return;
-    }
-
+    if (!user) return null;
+    
+    setIsSaving(true);
     try {
-      setIsSaving(true);
-      const totalImpact = calculateTotalImpact(activities);
-      const categoryBreakdown = calculateCategoryBreakdown(activities);
+      const totalImpact = activities.reduce((sum, activity) => {
+        const monthlyMultiplier = activity.frequency === 'weekly' ? 4.3 : 1;
+        return sum + (activity.impactPerUnit * activity.value * monthlyMultiplier);
+      }, 0);
       
-      const { error } = await supabase
+      const categoryBreakdown: { [key: string]: number } = {};
+      activities.forEach(activity => {
+        const monthlyMultiplier = activity.frequency === 'weekly' ? 4.3 : 1;
+        const impact = activity.impactPerUnit * activity.value * monthlyMultiplier;
+        
+        if (categoryBreakdown[activity.category]) {
+          categoryBreakdown[activity.category] += impact;
+        } else {
+          categoryBreakdown[activity.category] = impact;
+        }
+      });
+
+      const { data, error } = await supabase
         .from('carbon_footprint_data')
-        .insert({
+        .insert([{
           user_id: user.id,
           total_impact: totalImpact,
-          activities: activities.map(a => ({
-            name: a.name,
-            category: a.category,
-            icon: a.icon,
-            value: a.value,
-            impactPerUnit: a.impactPerUnit,
-            unit: a.unit,
-            frequency: a.frequency
-          })),
+          activities: activities,
           category_breakdown: categoryBreakdown
-        });
+        }])
+        .select();
       
       if (error) {
-        throw error;
+        console.error('Error saving carbon data:', error);
+        return null;
       }
       
-      const newSavedData: SavedCarbonData = {
-        total_impact: totalImpact,
-        activities: activities,
-        category_breakdown: categoryBreakdown,
-        created_at: new Date().toISOString()
+      // Convert the data to the expected type
+      const convertedData: SavedCarbonData = {
+        total_impact: data[0].total_impact,
+        activities: Array.isArray(data[0].activities) ? data[0].activities as CarbonActivity[] : [],
+        category_breakdown: (data[0].category_breakdown as any) || {},
+        created_at: data[0].created_at
       };
       
-      setSavedData(newSavedData);
-      
-      toast({
-        title: "Carbon Footprint Saved",
-        description: "Your carbon footprint has been calculated and saved to your profile."
-      });
-      
-    } catch (error: any) {
-      console.error('Error saving carbon data:', error);
-      toast({
-        title: "Error Saving Data",
-        description: error.message || "Failed to save carbon footprint data",
-        variant: "destructive"
-      });
+      setSavedData(convertedData);
+      return convertedData;
+    } catch (error) {
+      console.error('Error in saveResults:', error);
+      return null;
     } finally {
       setIsSaving(false);
     }
   };
+
+  useEffect(() => {
+    if (user) {
+      fetchUserCarbonData();
+    }
+  }, [user]);
 
   return {
     isLoading,
