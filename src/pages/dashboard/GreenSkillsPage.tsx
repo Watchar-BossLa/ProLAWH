@@ -15,7 +15,6 @@ import { ImpactTabContent } from '@/components/skills/impact/ImpactTabContent';
 import { SkillsTabContent } from '@/components/skills/SkillsTabContent';
 import { CareersTabContent } from '@/components/skills/careers/CareersTabContent';
 import { ProjectsTabContent } from '@/components/skills/projects/ProjectsTabContent';
-// Fix: Import ImpactVisualization component
 import { ImpactVisualization } from '@/components/skills/ImpactVisualization';
 
 export default function GreenSkillsPage() {
