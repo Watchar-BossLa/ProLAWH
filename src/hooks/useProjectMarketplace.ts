@@ -48,6 +48,18 @@ interface ApplicationRecord {
   } | null;
 }
 
+// Type guard to check if a value is an ApplicationRecord
+function isApplicationRecord(value: unknown): value is ApplicationRecord {
+  if (!value || typeof value !== 'object') return false;
+  const record = value as Record<string, unknown>;
+  return (
+    typeof record.id === 'string' &&
+    typeof record.user_id === 'string' &&
+    typeof record.project_id === 'string' &&
+    typeof record.status === 'string'
+  );
+}
+
 export function useProjectMarketplace() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
