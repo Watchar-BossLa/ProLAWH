@@ -6,12 +6,13 @@ import { GreenProject, ProjectApplication, ProjectFilters } from '@/types/projec
 import { withDefaults } from '@/utils/typeUtils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { Json } from '@/integrations/supabase/types';
 
 // Define a type for the raw database project response
 interface ProjectRecord {
   id: string;
   title: string;
-  description: string;
+  description?: string | null;
   category: string;
   skills_needed?: string[] | null;
   team_size?: number | null;
@@ -37,7 +38,8 @@ interface ApplicationRecord {
   project_id: string;
   status: string;
   message?: string | null;
-  applied_at: string;
+  // Make applied_at optional since it might not be in the database response
+  applied_at?: string | null;
   created_at: string;
   updated_at: string;
   profiles?: {
@@ -141,7 +143,7 @@ export function useProjectMarketplace() {
       throw new Error(`Error fetching applications: ${error.message}`);
     }
 
-    return (data || []).map((app: ApplicationRecord) => ({
+    return (data || []).map((app: Record<string, any>) => ({
       id: app.id,
       userId: app.user_id,
       projectId: app.project_id,
@@ -446,12 +448,12 @@ export function useProjectMarketplace() {
         throw new Error(`Error fetching project applications: ${error.message}`);
       }
 
-      return (data || []).map((app: ApplicationRecord) => ({
+      return (data || []).map((app: Record<string, any>) => ({
         id: app.id,
         userId: app.user_id,
         projectId: app.project_id,
         status: app.status as 'pending' | 'accepted' | 'rejected',
-        appliedAt: app.applied_at || app.created_at, // Fallback to created_at if applied_at is not available
+        appliedAt: app.applied_at || app.created_at, // Safely handle missing applied_at field
         message: app.message,
         profile: app.profiles
       }));
