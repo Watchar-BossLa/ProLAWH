@@ -48,6 +48,23 @@ interface ApplicationRecord {
   } | null;
 }
 
+// Type for the application response from database
+interface ApplicationResponseRecord {
+  id: string;
+  user_id: string;
+  project_id: string;
+  status: string;
+  message?: string | null;
+  created_at: string;
+  updated_at: string;
+  // Make applied_at optional for database responses
+  applied_at?: string | null;
+  profiles?: {
+    full_name?: string | null;
+    avatar_url?: string | null;
+  } | null;
+}
+
 // Type guard to check if a value is an ApplicationRecord
 function isApplicationRecord(value: unknown): value is ApplicationRecord {
   if (!value || typeof value !== 'object') return false;
@@ -155,7 +172,7 @@ export function useProjectMarketplace() {
       throw new Error(`Error fetching applications: ${error.message}`);
     }
 
-    return (data || []).map((app: Record<string, any>) => ({
+    return (data || []).map((app: ApplicationResponseRecord) => ({
       id: app.id,
       userId: app.user_id,
       projectId: app.project_id,
