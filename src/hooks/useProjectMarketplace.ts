@@ -7,6 +7,45 @@ import { withDefaults } from '@/utils/typeUtils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
+// Define a type for the raw database project response
+interface ProjectRecord {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  skills_needed?: string[] | null;
+  team_size?: number | null;
+  duration?: string | null;
+  impact_area?: string | null;
+  location?: string | null;
+  deadline?: string | null;
+  carbon_reduction?: number | null;
+  sdg_alignment?: string[] | null;
+  compensation?: string | null;
+  has_insurance?: boolean | null;
+  insurance_details?: Record<string, string> | null;
+  created_by?: string | null;
+  status?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Define a type for the raw database application response
+interface ApplicationRecord {
+  id: string;
+  user_id: string;
+  project_id: string;
+  status: string;
+  message?: string | null;
+  applied_at: string;
+  created_at: string;
+  updated_at: string;
+  profiles?: {
+    full_name?: string | null;
+    avatar_url?: string | null;
+  } | null;
+}
+
 export function useProjectMarketplace() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
@@ -36,11 +75,11 @@ export function useProjectMarketplace() {
       throw new Error(`Error fetching projects: ${error.message}`);
     }
     
-    return (data || []).map(project => {
+    return (data || []).map((project: ProjectRecord) => {
       // Set default values for fields that might be missing in the database
       const defaults = {
-        teamSize: 3,
-        duration: '3 months',
+        teamSize: project.team_size || 3,
+        duration: project.duration || '3 months',
         impactArea: project.impact_area || project.category || 'Community',
         location: project.location || '',
         carbonReduction: project.carbon_reduction || 0,
@@ -54,7 +93,7 @@ export function useProjectMarketplace() {
       return withDefaults<GreenProject, keyof typeof defaults>({
         id: project.id,
         title: project.title,
-        description: project.description,
+        description: project.description || '',
         skillsNeeded: Array.isArray(project.skills_needed) ? project.skills_needed : [],
         category: project.category || 'General',
         deadline: project.deadline,
@@ -102,12 +141,12 @@ export function useProjectMarketplace() {
       throw new Error(`Error fetching applications: ${error.message}`);
     }
 
-    return (data || []).map(app => ({
+    return (data || []).map((app: ApplicationRecord) => ({
       id: app.id,
       userId: app.user_id,
       projectId: app.project_id,
       status: app.status as 'pending' | 'accepted' | 'rejected',
-      appliedAt: app.applied_at,
+      appliedAt: app.applied_at || app.created_at, // Fallback to created_at if applied_at doesn't exist
       message: app.message
     }));
   };
@@ -161,7 +200,7 @@ export function useProjectMarketplace() {
         description: "Your application has been submitted successfully",
       });
       
-      queryClient.invalidateQueries(['userApplications', user.id]);
+      queryClient.invalidateQueries({ queryKey: ['userApplications', user.id] });
     } catch (error) {
       toast({
         title: "Application Failed",
@@ -221,7 +260,7 @@ export function useProjectMarketplace() {
         description: "Your project has been created successfully",
       });
       
-      queryClient.invalidateQueries(['projects']);
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
     } catch (error) {
       toast({
         title: "Project Creation Failed",
@@ -282,7 +321,7 @@ export function useProjectMarketplace() {
         description: "Your project has been updated successfully",
       });
       
-      queryClient.invalidateQueries(['projects']);
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
     } catch (error) {
       toast({
         title: "Project Update Failed",
@@ -327,7 +366,7 @@ export function useProjectMarketplace() {
         description: "Your project has been deleted successfully",
       });
       
-      queryClient.invalidateQueries(['projects']);
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
     } catch (error) {
       toast({
         title: "Project Deletion Failed",
@@ -371,8 +410,8 @@ export function useProjectMarketplace() {
         description: `The application has been ${status}`,
       });
       
-      queryClient.invalidateQueries(['userApplications']);
-      queryClient.invalidateQueries(['projectApplications']);
+      queryClient.invalidateQueries({ queryKey: ['userApplications'] });
+      queryClient.invalidateQueries({ queryKey: ['projectApplications'] });
     } catch (error) {
       toast({
         title: "Status Update Failed",
@@ -389,37 +428,38 @@ export function useProjectMarketplace() {
   const fetchProjectApplications = async (projectId: string): Promise<ProjectApplication[]> => {
     if (!user) return [];
 
-    const { data, error } = await supabase
-      .from('project_applications')
-      .select(`
-        id,
-        user_id,
-        project_id,
-        status,
-        applied_at,
-        message,
-        profiles:user_id (full_name, avatar_url)
-      `)
-      .eq('project_id', projectId);
+    try {
+      const { data, error } = await supabase
+        .from('project_applications')
+        .select(`
+          *,
+          profiles:user_id (full_name, avatar_url)
+        `)
+        .eq('project_id', projectId);
 
-    if (error) {
-      toast({
-        title: "Error fetching applications",
-        description: error.message,
-        variant: "destructive"
-      });
-      throw new Error(`Error fetching project applications: ${error.message}`);
+      if (error) {
+        toast({
+          title: "Error fetching applications",
+          description: error.message,
+          variant: "destructive"
+        });
+        throw new Error(`Error fetching project applications: ${error.message}`);
+      }
+
+      return (data || []).map((app: ApplicationRecord) => ({
+        id: app.id,
+        userId: app.user_id,
+        projectId: app.project_id,
+        status: app.status as 'pending' | 'accepted' | 'rejected',
+        appliedAt: app.applied_at || app.created_at, // Fallback to created_at if applied_at is not available
+        message: app.message,
+        profile: app.profiles
+      }));
+    } catch (error) {
+      // If there's an error with the SQL query, return an empty array
+      console.error("Error fetching project applications:", error);
+      return [];
     }
-
-    return (data || []).map(app => ({
-      id: app.id,
-      userId: app.user_id,
-      projectId: app.project_id,
-      status: app.status as 'pending' | 'accepted' | 'rejected',
-      appliedAt: app.applied_at,
-      message: app.message,
-      profile: app.profiles
-    }));
   };
   
   return {
