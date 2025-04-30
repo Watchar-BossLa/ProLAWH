@@ -1,4 +1,3 @@
-
 export interface GreenProject {
   id: string;
   title: string;
@@ -8,18 +7,13 @@ export interface GreenProject {
   duration: string;
   category: string;
   impactArea: string;
-  location?: string;
+  location: string;
   deadline?: string;
-  carbonReduction?: number;
-  sdgAlignment?: number[];
+  carbonReduction: number;
+  sdgAlignment: string[];
   compensation?: string;
-  hasInsurance?: boolean;
-  insuranceDetails?: {
-    provider?: string;
-    coverage?: string;
-    premium?: string;
-    expiry?: string;
-  };
+  hasInsurance: boolean;
+  insuranceDetails: Record<string, string>;
 }
 
 export interface ProjectApplication {

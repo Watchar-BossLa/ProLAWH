@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { CarbonActivity, SavedCarbonData } from '@/types/carbon';
+import { safeJsonParse, safeJsonStringify } from '@/utils/typeUtils';
 
 export function useCarbonStorage(activities: CarbonActivity[]) {
   const [isLoading, setIsLoading] = useState(false);
@@ -30,11 +31,11 @@ export function useCarbonStorage(activities: CarbonActivity[]) {
         return null;
       }
       
-      // Convert the data to the expected type
+      // Convert the data to the expected type with proper type checking
       const convertedData: SavedCarbonData = {
         total_impact: data.total_impact,
-        activities: Array.isArray(data.activities) ? data.activities as CarbonActivity[] : [],
-        category_breakdown: (data.category_breakdown as any) || {},
+        activities: safeJsonParse<CarbonActivity[]>(data.activities, []),
+        category_breakdown: safeJsonParse<Record<string, number>>(data.category_breakdown, {}),
         created_at: data.created_at
       };
       
@@ -58,7 +59,7 @@ export function useCarbonStorage(activities: CarbonActivity[]) {
         return sum + (activity.impactPerUnit * activity.value * monthlyMultiplier);
       }, 0);
       
-      const categoryBreakdown: { [key: string]: number } = {};
+      const categoryBreakdown: Record<string, number> = {};
       activities.forEach(activity => {
         const monthlyMultiplier = activity.frequency === 'weekly' ? 4.3 : 1;
         const impact = activity.impactPerUnit * activity.value * monthlyMultiplier;
@@ -72,12 +73,12 @@ export function useCarbonStorage(activities: CarbonActivity[]) {
 
       const { data, error } = await supabase
         .from('carbon_footprint_data')
-        .insert([{
+        .insert({
           user_id: user.id,
           total_impact: totalImpact,
-          activities: activities,
-          category_breakdown: categoryBreakdown
-        }])
+          activities: safeJsonStringify(activities),
+          category_breakdown: safeJsonStringify(categoryBreakdown)
+        })
         .select();
       
       if (error) {
@@ -85,11 +86,15 @@ export function useCarbonStorage(activities: CarbonActivity[]) {
         return null;
       }
       
-      // Convert the data to the expected type
+      if (!data || data.length === 0) {
+        return null;
+      }
+      
+      // Convert the data to the expected type with proper type checking
       const convertedData: SavedCarbonData = {
         total_impact: data[0].total_impact,
-        activities: Array.isArray(data[0].activities) ? data[0].activities as CarbonActivity[] : [],
-        category_breakdown: (data[0].category_breakdown as any) || {},
+        activities: safeJsonParse<CarbonActivity[]>(data[0].activities, []),
+        category_breakdown: safeJsonParse<Record<string, number>>(data[0].category_breakdown, {}),
         created_at: data[0].created_at
       };
       

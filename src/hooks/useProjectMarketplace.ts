@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { GreenProject } from '@/types/projects';
+import { withDefaults } from '@/utils/typeUtils';
 
 export function useProjectMarketplace() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,23 +25,29 @@ export function useProjectMarketplace() {
       throw new Error(`Error fetching projects: ${error.message}`);
     }
     
-    return data?.map(project => ({
-      id: project.id,
-      title: project.title,
-      description: project.description,
-      skillsNeeded: project.skills_needed || [],
-      teamSize: project.team_size || 3,
-      duration: project.duration || '3 months',
-      category: project.category || 'General',
-      impactArea: project.category || 'Community', // Using category as impactArea if not available
-      location: project.location || '',
-      deadline: project.deadline,
-      carbonReduction: project.carbon_reduction || 0,
-      sdgAlignment: project.sdg_alignment || [],
-      compensation: project.compensation,
-      hasInsurance: project.has_insurance || false,
-      insuranceDetails: project.insurance_details || {}
-    })) || [];
+    return (data || []).map(project => {
+      // Set default values for fields that might be missing in the database
+      const defaults = {
+        teamSize: 3,
+        duration: '3 months',
+        impactArea: project.category || 'Community',
+        location: '',
+        carbonReduction: 0,
+        sdgAlignment: [] as string[],
+        hasInsurance: false,
+        insuranceDetails: {} as Record<string, string>
+      };
+
+      return withDefaults<GreenProject, keyof typeof defaults>({
+        id: project.id,
+        title: project.title,
+        description: project.description,
+        skillsNeeded: Array.isArray(project.skills_needed) ? project.skills_needed : [],
+        category: project.category || 'General',
+        deadline: project.deadline,
+        compensation: project.compensation
+      }, defaults);
+    });
   };
   
   const {
@@ -58,19 +65,21 @@ export function useProjectMarketplace() {
     if (searchQuery) {
       return (
         project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.description.toLowerCase().includes(searchQuery.toLowerCase())
+        (project.description && project.description.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
     return true;
   });
   
   // Stub functions for project applications
-  const hasUserApplied = (projectId: string) => false;
-  const applyForProject = async (projectId: string, message: string) => {
+  const hasUserApplied = (projectId: string): boolean => false;
+  
+  const applyForProject = async (projectId: string, message: string): Promise<void> => {
     // Implementation would go here
     console.log(`Applied for project ${projectId} with message: ${message}`);
   };
-  const createProject = async (projectData: Partial<GreenProject>) => {
+  
+  const createProject = async (projectData: Partial<GreenProject>): Promise<void> => {
     // Implementation would go here
     console.log('Creating project:', projectData);
   };
