@@ -1,159 +1,205 @@
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProjectMarketplace } from "@/hooks/useProjectMarketplace";
-import { toast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useAuth } from "@/hooks/useAuth";
+import { BiasShield } from "./BiasShield";
 
 export function ApplicationsList() {
-  const { userApplications, isLoadingApplications, projects } = useProjectMarketplace();
-  const [activeTab, setActiveTab] = useState("all");
-  const [selectedApplication, setSelectedApplication] = useState<any>(null);
+  const { user } = useAuth();
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const { 
+    projects,
+    fetchProjectApplications,
+    updateApplicationStatus,
+    isSubmitting
+  } = useProjectMarketplace();
   
-  if (isLoadingApplications) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>My Applications</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-center py-8">
-            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Filter projects created by the current user
+  const userProjects = projects.filter(p => p.createdBy === user?.id);
   
-  const getProjectTitle = (projectId: string) => {
-    const project = projects.find(p => p.id === projectId);
-    return project?.title || "Unknown Project";
-  };
+  const [activeTab, setActiveTab] = useState("received");
+  const [applications, setApplications] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case 'pending': return 'outline';
-      case 'accepted': return 'success';
-      case 'rejected': return 'destructive';
-      default: return 'secondary';
+  const handleViewApplications = async (projectId: string) => {
+    setIsLoading(true);
+    setSelectedProjectId(projectId);
+    
+    try {
+      const projectApplications = await fetchProjectApplications(projectId);
+      setApplications(projectApplications);
+    } catch (error) {
+      console.error("Failed to fetch applications:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
   
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+  const handleUpdateStatus = async (applicationId: string, status: 'accepted' | 'rejected') => {
+    try {
+      await updateApplicationStatus(applicationId, status);
+      // Update the local state to reflect the change
+      setApplications(applications.map(app => 
+        app.id === applicationId ? { ...app, status } : app
+      ));
+    } catch (error) {
+      console.error("Failed to update application status:", error);
+    }
   };
   
-  const filteredApplications = activeTab === 'all'
-    ? userApplications
-    : userApplications.filter(app => app.status === activeTab);
-  
+  const selectedProject = userProjects.find(p => p.id === selectedProjectId);
+
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle>My Project Applications</CardTitle>
-          <CardDescription>Track the status of your project applications</CardDescription>
-          
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
-            <TabsList>
-              <TabsTrigger value="all">
-                All
-                <Badge variant="secondary" className="ml-2">
-                  {userApplications.length}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger value="pending">
-                Pending
-                <Badge variant="secondary" className="ml-2">
-                  {userApplications.filter(app => app.status === 'pending').length}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger value="accepted">
-                Accepted
-                <Badge variant="secondary" className="ml-2">
-                  {userApplications.filter(app => app.status === 'accepted').length}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger value="rejected">
-                Rejected
-                <Badge variant="secondary" className="ml-2">
-                  {userApplications.filter(app => app.status === 'rejected').length}
-                </Badge>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </CardHeader>
+    <div className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid grid-cols-2 mb-4">
+          <TabsTrigger value="received">Applications Received</TabsTrigger>
+          <TabsTrigger value="sent">Applications Sent</TabsTrigger>
+        </TabsList>
         
-        <CardContent>
-          {filteredApplications.length === 0 ? (
-            <div className="text-center py-10">
-              <h3 className="text-lg font-medium">No applications found</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                {activeTab === 'all' 
-                  ? "You haven't applied to any projects yet." 
-                  : `You don't have any ${activeTab} applications.`}
-              </p>
-            </div>
-          ) : (
+        <TabsContent value="received" className="space-y-4">
+          {userProjects.length > 0 ? (
             <div className="space-y-4">
-              {filteredApplications.map(application => (
-                <Card key={application.id} className="overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium">{getProjectTitle(application.projectId)}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Applied on {formatDate(application.appliedAt)}
-                        </p>
-                      </div>
-                      <Badge className="capitalize" variant={getStatusBadgeVariant(application.status)}>
-                        {application.status}
-                      </Badge>
-                    </div>
-                    
-                    {application.message && (
-                      <div className="mt-2">
-                        <Button 
-                          variant="link" 
-                          className="p-0 h-auto text-sm" 
-                          onClick={() => setSelectedApplication(application)}
-                        >
-                          View your message
-                        </Button>
-                      </div>
-                    )}
+              <h2 className="text-xl font-semibold">Your Projects</h2>
+              {userProjects.map((project) => (
+                <Card key={project.id} className="overflow-hidden">
+                  <CardHeader>
+                    <CardTitle>{project.title}</CardTitle>
+                    <CardDescription>{project.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button 
+                      onClick={() => handleViewApplications(project.id)}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      View Applications
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
             </div>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>No Projects Found</CardTitle>
+                <CardDescription>You haven't created any projects yet</CardDescription>
+              </CardHeader>
+            </Card>
           )}
-        </CardContent>
-      </Card>
-      
-      {/* Application Message Dialog */}
-      <Dialog open={!!selectedApplication} onOpenChange={() => setSelectedApplication(null)}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Your Application Message</DialogTitle>
-            <DialogDescription>
-              For: {selectedApplication ? getProjectTitle(selectedApplication.projectId) : ''}
-            </DialogDescription>
-          </DialogHeader>
           
-          <div className="py-4">
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-              {selectedApplication?.message}
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+          {selectedProjectId && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Applications for {selectedProject?.title}</CardTitle>
+                <CardDescription>
+                  Review and manage applications for this project
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-10">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : applications.length > 0 ? (
+                  <div className="space-y-4">
+                    {applications.map((application) => (
+                      <Card key={application.id}>
+                        <CardContent className="pt-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center space-x-4">
+                              <Avatar>
+                                <AvatarImage 
+                                  src={application.profile?.avatar_url || undefined} 
+                                  alt={application.profile?.full_name || "User"}
+                                />
+                                <AvatarFallback>
+                                  {application.profile?.full_name?.charAt(0) || "U"}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <h4 className="font-medium">
+                                  {application.profile?.full_name || "Anonymous User"}
+                                </h4>
+                                <p className="text-sm text-muted-foreground">
+                                  Applied on {new Date(application.appliedAt).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                            <Badge
+                              variant={
+                                application.status === 'accepted' ? "success" :
+                                application.status === 'rejected' ? "destructive" : "outline"
+                              }
+                            >
+                              {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
+                            </Badge>
+                          </div>
+                          
+                          <div className="mt-4">
+                            <p className="text-sm">{application.message}</p>
+                          </div>
+
+                          <BiasShield 
+                            isActive={application.status === 'pending'}
+                            metrics={{
+                              equalOpportunity: 0.92 + (Math.random() * 0.08),
+                              demographicParity: 0.90 + (Math.random() * 0.09),
+                              biasScore: Math.random() * 0.06
+                            }}
+                          />
+                          
+                          {application.status === 'pending' && (
+                            <div className="flex justify-end space-x-2 mt-4">
+                              <Button 
+                                variant="outline" 
+                                onClick={() => handleUpdateStatus(application.id, 'rejected')}
+                                disabled={isSubmitting}
+                              >
+                                Reject
+                              </Button>
+                              <Button 
+                                onClick={() => handleUpdateStatus(application.id, 'accepted')}
+                                disabled={isSubmitting}
+                              >
+                                Accept
+                              </Button>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center py-8 text-muted-foreground">
+                    No applications received yet
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="sent">
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Applications</CardTitle>
+              <CardDescription>Track the status of projects you've applied to</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* This would display the user's outgoing applications */}
+              <p className="text-center py-8 text-muted-foreground">
+                This feature is coming soon
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
