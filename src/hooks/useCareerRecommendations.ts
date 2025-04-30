@@ -51,10 +51,15 @@ export function useCareerRecommendations() {
     mutationFn: async () => {
       if (!user) throw new Error("User not authenticated");
       
-      const response = await fetch("/api/career-twin", {
+      // Get the full URL for the function call
+      const functionUrl = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/career-twin`;
+      
+      const { data: session } = await supabase.auth.getSession();
+      const response = await fetch(functionUrl, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.session?.access_token}`
         }
       });
       

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface StakeData {
@@ -22,10 +23,10 @@ export async function createStake(data: StakeData): Promise<void> {
     .from('skill_stakes')
     .insert({
       user_id: data.userId,
-      project_id: data.projectId,
-      credential_id: data.credentialId,
+      skill_id: data.credentialId, // Using skill_id as required by the database
       amount_usdc: data.amount,
       status: 'active'
+      // Note: project_id is not in the skill_stakes table schema
     });
 
   if (error) {
@@ -41,7 +42,7 @@ export async function fetchUserStakes(userId: string): Promise<any[]> {
     .from('skill_stakes')
     .select(`
       *,
-      projects:project_id (title, description)
+      skills:skill_id (name, description)
     `)
     .eq('user_id', userId)
     .eq('status', 'active');

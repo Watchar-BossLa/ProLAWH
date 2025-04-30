@@ -17,6 +17,7 @@ import UsersPage from './pages/admin/UsersPage'
 import SettingsPage from './pages/admin/SettingsPage'
 import ProjectsMarketplacePage from './pages/dashboard/ProjectsMarketplacePage'
 import { AuthProvider } from './hooks/useAuth'
+import CareerTwinPage from './pages/dashboard/CareerTwinPage'
 
 function App() {
   const [queryClient] = useState(() => new QueryClient({

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,7 +46,6 @@ export function SkillStaking({ projectId, hasApplied }: SkillStakingProps) {
       toast({
         title: "Stake Successful",
         description: `You've staked ${amount} USDC on this project`,
-        variant: "success",
       });
     } catch (error) {
       toast({
