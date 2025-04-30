@@ -1,9 +1,9 @@
+
 import React from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CheckCheck, Clock, XCircle } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
-import { supabase } from "@/integrations/supabase/client"
 import { CareerRecommendation } from "@/hooks/useCareerRecommendations"
 
 interface CareerTwinCardProps {
@@ -14,14 +14,7 @@ interface CareerTwinCardProps {
 export const CareerTwinCard = ({ recommendation, onStatusUpdate }: CareerTwinCardProps) => {
   const handleStatusUpdate = async (status: CareerRecommendation["status"]) => {
     try {
-      const { error } = await supabase
-        .from('career_recommendations')
-        .update({ status })
-        .eq('id', recommendation.id)
-
-      if (error) throw error
-
-      onStatusUpdate(recommendation.id, status)
+      await onStatusUpdate(recommendation.id, status)
       toast({
         title: "Status updated",
         description: `Recommendation marked as ${status}`,
@@ -42,7 +35,6 @@ export const CareerTwinCard = ({ recommendation, onStatusUpdate }: CareerTwinCar
           {recommendation.type === 'skill_gap' && 'Skill Gap Analysis'}
           {recommendation.type === 'job_match' && 'Job Match'}
           {recommendation.type === 'mentor_suggest' && 'Mentorship Suggestion'}
-          {recommendation.type === 'learning_path' && 'Learning Path'}
           {recommendation.status === 'pending' && <Clock className="h-4 w-4 text-yellow-500" />}
           {recommendation.status === 'accepted' && <CheckCheck className="h-4 w-4 text-green-500" />}
           {recommendation.status === 'rejected' && <XCircle className="h-4 w-4 text-red-500" />}

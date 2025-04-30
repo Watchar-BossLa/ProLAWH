@@ -12,9 +12,9 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Brain, ArrowRight, Loader2 } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { useCareerRecommendations, CareerRecommendation } from "@/hooks/useCareerRecommendations";
+import { useCareerRecommendations } from "@/hooks/useCareerRecommendations";
+import { useNavigate } from 'react-router-dom';
 
 interface CareerTwinSimulatorProps {
   userSkills: string[];
@@ -26,6 +26,7 @@ export function CareerTwinSimulator({ userSkills }: CareerTwinSimulatorProps) {
   const [simulationProgress, setSimulationProgress] = useState(0);
   const [currentStage, setCurrentStage] = useState('');
   const { generateNewRecommendation, recommendations } = useCareerRecommendations();
+  const navigate = useNavigate();
   
   const handleSimulate = async () => {
     setOpenDialog(true);
@@ -46,6 +47,11 @@ export function CareerTwinSimulator({ userSkills }: CareerTwinSimulatorProps) {
       console.error('Failed to generate career recommendation:', error);
       setIsSimulating(false);
     }
+  };
+
+  const goToCareerTwin = () => {
+    setOpenDialog(false);
+    navigate('/dashboard/career-twin');
   };
   
   const simulateProgress = async (progress: number, stage: string) => {
@@ -133,7 +139,7 @@ export function CareerTwinSimulator({ userSkills }: CareerTwinSimulatorProps) {
                     <Badge variant="outline">
                       {Math.round(recommendation.relevance_score * 100)}% Match
                     </Badge>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" onClick={goToCareerTwin}>
                       <ArrowRight className="h-4 w-4" />
                     </Button>
                   </div>
@@ -150,10 +156,10 @@ export function CareerTwinSimulator({ userSkills }: CareerTwinSimulatorProps) {
           
           <DialogFooter>
             <Button 
-              onClick={() => setOpenDialog(false)} 
+              onClick={goToCareerTwin}
               disabled={isSimulating}
             >
-              {isSimulating ? 'Please wait...' : 'Close'}
+              {isSimulating ? 'Please wait...' : 'View All Insights'}
             </Button>
           </DialogFooter>
         </DialogContent>

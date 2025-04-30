@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,7 +85,7 @@ export function SkillStaking({ projectId, hasApplied }: SkillStakingProps) {
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Insurance</span>
-            <Badge variant="success">Covered</Badge>
+            <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">Covered</Badge>
           </div>
           <div className="flex items-center space-x-2">
             <CreditCard className="h-4 w-4 text-muted-foreground" />

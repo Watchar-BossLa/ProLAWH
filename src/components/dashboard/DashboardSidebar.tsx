@@ -1,105 +1,49 @@
 
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { cn } from "@/lib/utils";
-import { useAdmin } from "@/hooks/useAdmin";
-import { 
-  Book, 
-  GraduationCap, 
-  Users,
-  Network, 
-  Trophy, 
-  Briefcase, 
-  BarChart, 
-  LucideIcon, 
-  Home, 
-  Settings,
-  Leaf,
-  ShieldCheck
-} from 'lucide-react';
+import { useAuth } from "@/hooks/useAuth";
+import { Brain, Briefcase, GraduationCap } from "lucide-react";
+import { NavLink } from "react-router-dom";
 
-interface NavItemProps {
-  icon: LucideIcon;
-  label: string;
-  href: string;
-  isActive?: boolean;
-}
-
-const NavItem = ({ icon: Icon, label, href, isActive }: NavItemProps) => {
-  return (
-    <Link 
-      to={href}
-      className={cn(
-        "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-        isActive 
-          ? "bg-primary text-primary-foreground" 
-          : "hover:bg-secondary"
-      )}
-    >
-      <Icon className="h-5 w-5" />
-      <span>{label}</span>
-    </Link>
-  );
-};
-
-export function DashboardSidebar() {
-  const location = useLocation();
-  const currentPath = location.pathname;
-  const { isAdmin, isLoading } = useAdmin();
+export default function DashboardSidebar() {
+  const { user } = useAuth();
 
   const navItems = [
-    { icon: Home, label: "Dashboard", href: "/dashboard" },
-    { icon: Network, label: "Network", href: "/dashboard/network" },
-    { icon: Book, label: "Learning Paths", href: "/dashboard/learning" },
-    { icon: GraduationCap, label: "Skills & Badges", href: "/dashboard/skills" },
-    { icon: Users, label: "Mentorship", href: "/dashboard/mentorship" },
-    { icon: Briefcase, label: "Opportunities", href: "/dashboard/opportunities" },
-    { icon: Trophy, label: "Nano-Arcade", href: "/dashboard/arcade" },
-    { icon: BarChart, label: "Career Twin", href: "/dashboard/career-twin" },
-    { icon: Leaf, label: "Green Skills", href: "/dashboard/green-skills" },
-    { icon: Book, label: "Study Bee", href: "/dashboard/study-bee" },
-    { icon: Settings, label: "Settings", href: "/profile" }
+    { to: "/dashboard", label: "Dashboard", icon: GraduationCap },
+    { to: "/dashboard/projects", label: "Projects", icon: Briefcase },
+    { to: "/dashboard/career-twin", label: "Career Twin", icon: Brain },
   ];
-  
+
   return (
-    <nav className="w-64 border-r h-full flex flex-col">
-      <div className="p-4 border-b">
-        <h2 className="font-semibold text-xl">ProLawh</h2>
-        <p className="text-sm text-muted-foreground">Learning & Workforce Hub</p>
-      </div>
-      
-      <div className="flex flex-col gap-1 p-2 flex-1">
-        {navItems.map((item) => (
-          <NavItem 
-            key={item.href}
-            icon={item.icon}
-            label={item.label}
-            href={item.href}
-            isActive={currentPath === item.href}
-          />
-        ))}
-        
-        {!isLoading && isAdmin && (
-          <NavItem
-            icon={ShieldCheck}
-            label="Admin Dashboard"
-            href="/admin"
-            isActive={currentPath.startsWith("/admin")}
-          />
-        )}
-      </div>
-      
-      <div className="p-4 border-t mt-auto">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-            <span className="text-sm font-medium">PL</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-medium">ProLawh User</span>
-            <span className="text-xs text-muted-foreground">user@example.com</span>
-          </div>
+    <div className="h-full border-r bg-muted/40 w-64 hidden md:block overflow-y-auto">
+      <div className="space-y-4 py-4">
+        <div className="px-4 py-2">
+          <h2 className="text-lg font-semibold tracking-tight">
+            {user ? `Welcome, ${user.email?.split("@")[0]}` : "Dashboard"}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Navigate your learning journey
+          </p>
         </div>
+
+        <nav className="space-y-1 px-2">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                `flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "hover:bg-muted"
+                }`
+              }
+              end={item.to === "/dashboard"}
+            >
+              <item.icon className="mr-2 h-4 w-4" />
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
       </div>
-    </nav>
+    </div>
   );
-};
+}

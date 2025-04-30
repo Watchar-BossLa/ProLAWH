@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { useCareerRecommendations, CareerRecommendation } from "@/hooks/useCareerRecommendations";
 import { CareerTwinCard } from "@/components/career/CareerTwinCard";
 import { Brain, Lightbulb } from "lucide-react";
@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 
 export default function CareerTwinPage() {
+  const { user } = useAuth();
   const { 
     recommendations, 
     isLoading, 
@@ -26,7 +27,7 @@ export default function CareerTwinPage() {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to generate recommendation",
         variant: "destructive",
       });
     }
@@ -35,16 +36,13 @@ export default function CareerTwinPage() {
   const handleStatusUpdate = async (id: string, status: CareerRecommendation["status"]) => {
     try {
       await updateRecommendation.mutateAsync({ id, status });
-      toast({
-        title: "Status updated",
-        description: `Recommendation marked as ${status}`,
-      });
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to update recommendation status",
         variant: "destructive",
       });
+      throw error;
     }
   };
 
@@ -58,7 +56,7 @@ export default function CareerTwinPage() {
         
         <Button 
           onClick={handleGenerate}
-          disabled={generateNewRecommendation.isPending}
+          disabled={generateNewRecommendation.isPending || !user}
         >
           Generate New Insight
         </Button>
@@ -71,7 +69,14 @@ export default function CareerTwinPage() {
         </p>
       </div>
 
-      {isLoading ? (
+      {!user ? (
+        <Alert>
+          <AlertTitle>Sign in required</AlertTitle>
+          <AlertDescription>
+            Please sign in to use the AI Career Twin feature.
+          </AlertDescription>
+        </Alert>
+      ) : isLoading ? (
         <div className="grid gap-4 md:grid-cols-2">
           {[1, 2, 3].map((i) => (
             <div key={i} className="p-6 rounded-lg border">
