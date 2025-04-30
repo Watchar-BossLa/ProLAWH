@@ -1,3 +1,4 @@
+
 export interface GreenProject {
   id: string;
   title: string;
@@ -14,6 +15,8 @@ export interface GreenProject {
   compensation?: string;
   hasInsurance: boolean;
   insuranceDetails: Record<string, string>;
+  createdBy?: string;
+  status?: string;
 }
 
 export interface ProjectApplication {
@@ -38,4 +41,11 @@ export interface ProjectTeam {
   members: TeamMember[];
   skillsCoverage: number;
   missingSkills: string[];
+}
+
+export interface ProjectFilters {
+  category: string;
+  impactArea?: string;
+  hasInsurance?: boolean;
+  searchQuery?: string;
 }

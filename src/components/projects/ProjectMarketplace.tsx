@@ -14,11 +14,13 @@ import {
 } from "@/components/ui/tabs";
 import { useProjectMarketplace } from "@/hooks/useProjectMarketplace";
 import { ProjectCard } from "./ProjectCard";
+import { useAuth } from "@/hooks/useAuth";
 
 export function ProjectMarketplace() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
-  const { projects, isLoading, hasUserApplied } = useProjectMarketplace();
+  const { projects, isLoading, hasUserApplied, userApplications } = useProjectMarketplace();
+  const { user } = useAuth();
   
   const filteredProjects = projects.filter(project => {
     // Filter by search query
@@ -127,6 +129,7 @@ export function ProjectMarketplace() {
                   key={project.id} 
                   project={project}
                   hasApplied={hasUserApplied(project.id)}
+                  isOwnProject={user?.id === project.createdBy}
                 />
               ))
             ) : (

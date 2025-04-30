@@ -1,303 +1,381 @@
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
+import { Trash } from "lucide-react";
 import { useProjectMarketplace } from "@/hooks/useProjectMarketplace";
-import { Badge } from "@/components/ui/badge";
-import { X, PlusCircle, Calendar } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { GreenProject } from "@/types/projects";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "@/hooks/use-toast";
+
+const projectFormSchema = z.object({
+  title: z.string().min(5, { message: "Title must be at least 5 characters" }),
+  description: z.string().min(20, { message: "Description must be at least 20 characters" }),
+  category: z.string().min(1, { message: "Please select a category" }),
+  skillsNeeded: z.array(z.string()).min(1, { message: "Add at least one required skill" }),
+  teamSize: z.number().min(1, { message: "Team size must be at least 1" }),
+  duration: z.string().min(1, { message: "Please specify a duration" }),
+  impactArea: z.string().min(1, { message: "Please select an impact area" }),
+  location: z.string().optional(),
+  deadline: z.string().optional(),
+  carbonReduction: z.number().min(0, { message: "Carbon reduction must be a positive number" }),
+  sdgAlignment: z.array(z.string()).optional(),
+  compensation: z.string().optional(),
+  hasInsurance: z.boolean().default(false),
+  insuranceDetails: z.record(z.string()).optional()
+});
+
+type ProjectFormValues = z.infer<typeof projectFormSchema>;
 
 export function CreateProjectForm() {
+  const [newSkill, setNewSkill] = useState("");
   const { createProject, isSubmitting } = useProjectMarketplace();
-  const { toast } = useToast();
   
-  const [project, setProject] = useState({
+  const defaultValues: ProjectFormValues = {
     title: "",
     description: "",
-    category: "",
-    impactArea: "",
-    teamSize: 1,
-    duration: "",
+    category: "General",
+    skillsNeeded: [],
+    teamSize: 3,
+    duration: "3 months",
+    impactArea: "Community",
     location: "",
     deadline: "",
-    carbonReduction: undefined as number | undefined,
+    carbonReduction: 0,
+    sdgAlignment: [],
     compensation: "",
     hasInsurance: false,
-    skillsNeeded: [] as string[],
+    insuranceDetails: {}
+  };
+
+  const form = useForm<ProjectFormValues>({
+    resolver: zodResolver(projectFormSchema),
+    defaultValues,
   });
   
-  const [newSkill, setNewSkill] = useState("");
+  const skillsNeeded = form.watch("skillsNeeded");
+  const hasInsurance = form.watch("hasInsurance");
   
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setProject(prev => ({ ...prev, [name]: value }));
-  };
-  
-  const handleSelectChange = (name: string, value: string) => {
-    setProject(prev => ({ ...prev, [name]: value }));
-  };
-  
-  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setProject(prev => ({ ...prev, [name]: Number(value) }));
-  };
-  
-  const handleSwitchChange = (name: string, checked: boolean) => {
-    setProject(prev => ({ ...prev, [name]: checked }));
-  };
-  
-  const addSkill = () => {
-    if (newSkill.trim() && !project.skillsNeeded.includes(newSkill.trim())) {
-      setProject(prev => ({
-        ...prev,
-        skillsNeeded: [...prev.skillsNeeded, newSkill.trim()]
-      }));
-      setNewSkill("");
-    }
-  };
-  
-  const removeSkill = (skillToRemove: string) => {
-    setProject(prev => ({
-      ...prev,
-      skillsNeeded: prev.skillsNeeded.filter(skill => skill !== skillToRemove)
-    }));
-  };
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validation
-    if (!project.title || !project.description || !project.category || 
-        !project.impactArea || !project.teamSize || !project.duration) {
+  const handleAddSkill = () => {
+    if (!newSkill || skillsNeeded.includes(newSkill)) {
       toast({
-        title: "Missing Fields",
-        description: "Please fill in all required fields",
-        variant: "destructive"
+        title: skillsNeeded.includes(newSkill) ? "Skill already added" : "Empty skill",
+        description: skillsNeeded.includes(newSkill) 
+          ? "This skill is already in the list" 
+          : "Please enter a skill name",
+        variant: "destructive",
       });
       return;
     }
     
-    await createProject(project);
+    form.setValue("skillsNeeded", [...skillsNeeded, newSkill]);
+    setNewSkill("");
   };
   
+  const handleRemoveSkill = (skill: string) => {
+    form.setValue(
+      "skillsNeeded",
+      skillsNeeded.filter((s) => s !== skill)
+    );
+  };
+
+  const onSubmit = async (data: ProjectFormValues) => {
+    try {
+      await createProject(data as GreenProject);
+      form.reset(defaultValues);
+      toast({
+        title: "Project Created",
+        description: "Your project has been created successfully",
+      });
+    } catch (error) {
+      console.error("Project creation failed:", error);
+    }
+  };
+
+  const categoryOptions = ["Climate Action", "Conservation", "Renewable Energy", "Sustainable Agriculture", "Waste Reduction", "Water Management", "General"];
+  const impactAreaOptions = ["Climate", "Conservation", "Community"];
+  const sdgOptions = [
+    { value: "SDG1", label: "No Poverty" },
+    { value: "SDG2", label: "Zero Hunger" },
+    { value: "SDG3", label: "Good Health and Well-being" },
+    { value: "SDG6", label: "Clean Water and Sanitation" },
+    { value: "SDG7", label: "Affordable and Clean Energy" },
+    { value: "SDG11", label: "Sustainable Cities and Communities" },
+    { value: "SDG12", label: "Responsible Consumption and Production" },
+    { value: "SDG13", label: "Climate Action" },
+    { value: "SDG14", label: "Life Below Water" },
+    { value: "SDG15", label: "Life On Land" },
+  ];
+  
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
-        <CardTitle>Create a New Green Project</CardTitle>
-        <CardDescription>
-          Create a new sustainability project and find team members with the right skills
-        </CardDescription>
+        <CardTitle>Create a New Project</CardTitle>
+        <CardDescription>Create a new green project to collaborate with others</CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Project Title*</Label>
-            <Input
-              id="title"
-              name="title"
-              value={project.title}
-              onChange={handleChange}
-              placeholder="Enter project title"
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="description">Description*</Label>
-            <Textarea
-              id="description"
-              name="description"
-              value={project.description}
-              onChange={handleChange}
-              placeholder="Describe your project and its environmental impact"
-              required
-              className="min-h-[100px]"
-            />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="category">Category*</Label>
-              <Select
-                value={project.category}
-                onValueChange={(value) => handleSelectChange("category", value)}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="renewable-energy">Renewable Energy</SelectItem>
-                  <SelectItem value="conservation">Conservation</SelectItem>
-                  <SelectItem value="waste-reduction">Waste Reduction</SelectItem>
-                  <SelectItem value="sustainable-agriculture">Sustainable Agriculture</SelectItem>
-                  <SelectItem value="clean-water">Clean Water</SelectItem>
-                  <SelectItem value="education">Environmental Education</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="impactArea">Impact Area*</Label>
-              <Select
-                value={project.impactArea}
-                onValueChange={(value) => handleSelectChange("impactArea", value)}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select impact area" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Climate">Climate</SelectItem>
-                  <SelectItem value="Conservation">Conservation</SelectItem>
-                  <SelectItem value="Community">Community</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="teamSize">Team Size*</Label>
-              <Input
-                id="teamSize"
-                name="teamSize"
-                type="number"
-                value={project.teamSize}
-                onChange={handleNumberChange}
-                min={1}
-                max={20}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="duration">Duration*</Label>
-              <Input
-                id="duration"
-                name="duration"
-                value={project.duration}
-                onChange={handleChange}
-                placeholder="e.g., 3 months, 6 weeks"
-                required
-              />
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                name="location"
-                value={project.location}
-                onChange={handleChange}
-                placeholder="Project location (optional)"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="deadline">Deadline</Label>
-              <div className="relative">
-                <Input
-                  id="deadline"
-                  name="deadline"
-                  type="date"
-                  value={project.deadline}
-                  onChange={handleChange}
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Project Title</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter a title for your project" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-                <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Project Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Describe the project, its goals, and impact"
+                          className="min-h-[120px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {categoryOptions.map((category) => (
+                              <SelectItem key={category} value={category}>
+                                {category}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="impactArea"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Impact Area</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select an impact area" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {impactAreaOptions.map((area) => (
+                              <SelectItem key={area} value={area}>
+                                {area}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="teamSize"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Team Size</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="1" 
+                            {...field} 
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 1)} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="duration"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Project Duration</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. 3 months" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Location</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Remote or specific location" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="deadline"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Application Deadline</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="compensation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Compensation (Optional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Volunteer, $20/hour, etc." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="carbonReduction"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Estimated CO₂ Reduction (tons)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          min="0" 
+                          {...field} 
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="hasInsurance"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Project Insurance</FormLabel>
+                        <FormDescription>
+                          Does this project have liability insurance?
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="carbonReduction">Carbon Reduction (tons)</Label>
-              <Input
-                id="carbonReduction"
-                name="carbonReduction"
-                type="number"
-                value={project.carbonReduction || ""}
-                onChange={handleNumberChange}
-                placeholder="Estimated CO₂ reduction"
-              />
-            </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="compensation">Compensation</Label>
-              <Input
-                id="compensation"
-                name="compensation"
-                value={project.compensation}
-                onChange={handleChange}
-                placeholder="e.g., Volunteer, Paid, Equity"
-              />
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="hasInsurance" className="cursor-pointer">Project Insurance</Label>
-              <Switch
-                id="hasInsurance"
-                checked={project.hasInsurance}
-                onCheckedChange={(checked) => handleSwitchChange("hasInsurance", checked)}
-              />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Enable project insurance to provide coverage for team members
-            </p>
-          </div>
-          
-          <div className="space-y-2">
-            <Label>Skills Needed</Label>
-            <div className="flex gap-2">
-              <Input
-                value={newSkill}
-                onChange={(e) => setNewSkill(e.target.value)}
-                placeholder="Add required skills"
-                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
-              />
-              <Button type="button" onClick={addSkill} variant="outline" size="icon">
-                <PlusCircle className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            {project.skillsNeeded.length > 0 && (
+            <div>
+              <FormLabel>Skills Needed</FormLabel>
+              <div className="flex gap-2 mt-1">
+                <Input
+                  placeholder="Add a required skill"
+                  value={newSkill}
+                  onChange={(e) => setNewSkill(e.target.value)}
+                />
+                <Button type="button" onClick={handleAddSkill} variant="secondary">
+                  Add
+                </Button>
+              </div>
+              {form.formState.errors.skillsNeeded && (
+                <p className="text-sm font-medium text-destructive mt-1">
+                  {form.formState.errors.skillsNeeded.message}
+                </p>
+              )}
+              
               <div className="flex flex-wrap gap-2 mt-2">
-                {project.skillsNeeded.map((skill, index) => (
-                  <Badge key={index} variant="secondary" className="gap-1 pl-2">
+                {skillsNeeded.map((skill, index) => (
+                  <div
+                    key={index}
+                    className="bg-secondary text-secondary-foreground px-3 py-1.5 rounded-md flex items-center gap-2 text-sm"
+                  >
                     {skill}
                     <Button
-                      type="button"
                       variant="ghost"
-                      size="sm"
-                      className="h-4 w-4 p-0 hover:bg-transparent"
-                      onClick={() => removeSkill(skill)}
+                      size="icon"
+                      className="h-4 w-4 p-0"
+                      onClick={() => handleRemoveSkill(skill)}
                     >
-                      <X className="h-3 w-3" />
+                      <Trash className="h-3 w-3" />
                     </Button>
-                  </Badge>
+                  </div>
                 ))}
               </div>
-            )}
-          </div>
-        </CardContent>
-        
-        <CardFooter className="flex justify-end space-x-2">
-          <Button variant="outline" type="button">Cancel</Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Creating..." : "Create Project"}
-          </Button>
-        </CardFooter>
-      </form>
+            </div>
+          </CardContent>
+          
+          <CardFooter>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Creating..." : "Create Project"}
+            </Button>
+          </CardFooter>
+        </form>
+      </Form>
     </Card>
   );
 }
