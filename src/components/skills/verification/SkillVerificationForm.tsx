@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, FileUp, BadgeCheck, UserCheck } from "lucide-react";
+import { FileText, Award, UserCheck, Upload } from "lucide-react";
 
 interface SkillVerificationFormProps {
   userSkillId: string;
@@ -64,7 +64,7 @@ export function SkillVerificationForm({ userSkillId, skillName }: SkillVerificat
             <TabsContent value="assessment">
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <FileUp className="h-4 w-4" />
+                  <FileText className="h-4 w-4" />
                   <p>Complete an assessment to verify your knowledge</p>
                 </div>
                 <div className="space-y-2">
@@ -93,7 +93,7 @@ export function SkillVerificationForm({ userSkillId, skillName }: SkillVerificat
             <TabsContent value="certificate">
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <BadgeCheck className="h-4 w-4" />
+                  <Award className="h-4 w-4" />
                   <p>Upload a certificate from a recognized institution</p>
                 </div>
                 <div className="space-y-2">

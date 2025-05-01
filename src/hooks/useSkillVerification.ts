@@ -13,14 +13,22 @@ import {
   SkillEndorsement
 } from '@/services/skillVerificationService';
 
-// Add this export type for VerificationMethod
+// Define the verification method types
 export type VerificationMethod = 'challenge' | 'credential' | 'endorsement';
+export type VerificationBackendType = 'assessment' | 'peer_review' | 'blockchain' | 'certificate';
+
+// Map frontend verification methods to backend types
+const methodToTypeMap: Record<VerificationMethod, VerificationBackendType> = {
+  'challenge': 'assessment',
+  'credential': 'certificate',
+  'endorsement': 'peer_review'
+};
 
 export function useSkillVerification(userSkillId?: string) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedVerificationType, setSelectedVerificationType] = useState<string>('assessment');
+  const [selectedVerificationType, setSelectedVerificationType] = useState<VerificationBackendType>('assessment');
 
   // Fetch verifications for a skill
   const {
@@ -120,6 +128,11 @@ export function useSkillVerification(userSkillId?: string) {
     await endorseMutation.mutateAsync({ skillId, userId, comment });
   };
 
+  // Convert frontend method to backend type
+  const convertMethodToType = (method: VerificationMethod): VerificationBackendType => {
+    return methodToTypeMap[method];
+  };
+
   return {
     verifications,
     isLoadingVerifications,
@@ -129,6 +142,7 @@ export function useSkillVerification(userSkillId?: string) {
     endorseSkill: endorseUserSkill,
     fetchEndorsements,
     selectedVerificationType,
-    setSelectedVerificationType
+    setSelectedVerificationType,
+    convertMethodToType
   };
 }
