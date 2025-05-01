@@ -18,7 +18,7 @@ export function SkillStaking({ projectId, hasApplied }: SkillStakingProps) {
   const [amount, setAmount] = useState("50");
   const [isStaking, setIsStaking] = useState(false);
 
-  const handleStake = async () => {
+  const handleStake = async (): Promise<void> => {
     if (!user) {
       toast({
         title: "Authentication Required",

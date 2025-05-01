@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { AsyncResult } from "@/types/utility";
 
 export interface StakeData {
   userId: string;
@@ -13,6 +14,21 @@ export interface InsuranceQuote {
   coverage: number;
   duration: string;
   provider: string;
+}
+
+export interface Skill {
+  name: string;
+  description: string | null;
+}
+
+export interface UserStake {
+  id: string;
+  user_id: string;
+  skill_id: string;
+  amount_usdc: number;
+  status: 'active' | 'completed' | 'cancelled';
+  created_at: string;
+  skills?: Skill;
 }
 
 /**
@@ -37,7 +53,7 @@ export async function createStake(data: StakeData): Promise<void> {
 /**
  * Fetch active stakes for a user
  */
-export async function fetchUserStakes(userId: string): Promise<any[]> {
+export async function fetchUserStakes(userId: string): Promise<UserStake[]> {
   const { data, error } = await supabase
     .from('skill_stakes')
     .select(`

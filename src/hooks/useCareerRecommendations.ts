@@ -12,13 +12,18 @@ export interface CareerRecommendation {
   created_at?: string;
 }
 
+interface GenerateRecommendationResponse {
+  success: boolean;
+  data: Omit<CareerRecommendation, 'id' | 'status'>;
+}
+
 export function useCareerRecommendations() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
   const { data: recommendations, isLoading } = useQuery({
     queryKey: ["career-recommendations", user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<CareerRecommendation[]> => {
       if (!user) return [];
       
       const { data, error } = await supabase
@@ -34,7 +39,7 @@ export function useCareerRecommendations() {
   });
 
   const updateRecommendation = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: CareerRecommendation["status"] }) => {
+    mutationFn: async ({ id, status }: { id: string; status: CareerRecommendation["status"] }): Promise<void> => {
       const { error } = await supabase
         .from("career_recommendations")
         .update({ status })
@@ -48,18 +53,22 @@ export function useCareerRecommendations() {
   });
 
   const generateNewRecommendation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (): Promise<GenerateRecommendationResponse> => {
       if (!user) throw new Error("User not authenticated");
       
       // Get the full URL for the function call
       const functionUrl = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/career-twin`;
       
       const { data: session } = await supabase.auth.getSession();
+      if (!session.session?.access_token) {
+        throw new Error("Invalid authentication session");
+      }
+      
       const response = await fetch(functionUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.session?.access_token}`
+          "Authorization": `Bearer ${session.session.access_token}`
         }
       });
       
@@ -67,7 +76,7 @@ export function useCareerRecommendations() {
         throw new Error("Failed to generate recommendation");
       }
       
-      return response.json();
+      return response.json() as Promise<GenerateRecommendationResponse>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["career-recommendations", user?.id] });
