@@ -1,6 +1,6 @@
 
 import { useAuth } from "@/hooks/useAuth";
-import { Brain, Briefcase, GraduationCap } from "lucide-react";
+import { Brain, Briefcase, GraduationCap, Leaf, Coins } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 export default function DashboardSidebar() {
@@ -10,6 +10,8 @@ export default function DashboardSidebar() {
     { to: "/dashboard", label: "Dashboard", icon: GraduationCap },
     { to: "/dashboard/projects", label: "Projects", icon: Briefcase },
     { to: "/dashboard/career-twin", label: "Career Twin", icon: Brain },
+    { to: "/dashboard/green-skills", label: "Green Skills", icon: Leaf },
+    { to: "/dashboard/skill-staking", label: "Skill Staking", icon: Coins },
   ];
 
   return (

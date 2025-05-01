@@ -18,6 +18,8 @@ import SettingsPage from './pages/admin/SettingsPage'
 import ProjectsMarketplacePage from './pages/dashboard/ProjectsMarketplacePage'
 import { AuthProvider } from './hooks/useAuth'
 import CareerTwinPage from './pages/dashboard/CareerTwinPage'
+import GreenSkillsPage from './pages/dashboard/GreenSkillsPage'
+import SkillStakingPage from './pages/dashboard/SkillStakingPage'
 
 function App() {
   const [queryClient] = useState(() => new QueryClient({
@@ -40,6 +42,8 @@ function App() {
                 <Route index element={<DashboardHome />} />
                 <Route path="projects" element={<ProjectsMarketplacePage />} />
                 <Route path="career-twin" element={<CareerTwinPage />} />
+                <Route path="green-skills" element={<GreenSkillsPage />} />
+                <Route path="skill-staking" element={<SkillStakingPage />} />
               </Route>
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<AdminDashboard />} />

@@ -26,7 +26,7 @@ export interface UserStake {
   user_id: string;
   skill_id: string;
   amount_usdc: number;
-  status: 'active' | 'completed' | 'cancelled';
+  status: 'active' | 'completed' | 'withdrawn' | 'cancelled';
   created_at: string;
   skills?: Skill;
 }
