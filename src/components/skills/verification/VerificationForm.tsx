@@ -26,7 +26,7 @@ interface VerificationFormProps {
 
 export function VerificationForm({ selectedMethod, onCancel }: VerificationFormProps) {
   const { data: skills = [] } = useGreenSkills();
-  const { verifySkill, isVerifying } = useSkillVerification();
+  const { submitVerification, isSubmittingVerification } = useSkillVerification();
   const [file, setFile] = useState<File | null>(null);
   
   const form = useForm<FormValues>({
@@ -44,7 +44,7 @@ export function VerificationForm({ selectedMethod, onCancel }: VerificationFormP
   };
 
   const onSubmit = (values: FormValues) => {
-    verifySkill.mutate({
+    submitVerification({
       skillId: values.skillId,
       method: values.method as any,
       evidence: file || values.evidence
@@ -120,9 +120,9 @@ export function VerificationForm({ selectedMethod, onCancel }: VerificationFormP
         </Button>
         <Button 
           onClick={form.handleSubmit(onSubmit)} 
-          disabled={isVerifying}
+          disabled={isSubmittingVerification}
         >
-          {isVerifying ? "Processing..." : "Submit for Verification"}
+          {isSubmittingVerification ? "Processing..." : "Submit for Verification"}
         </Button>
       </CardFooter>
     </Card>

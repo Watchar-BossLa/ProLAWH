@@ -13,6 +13,9 @@ import {
   SkillEndorsement
 } from '@/services/skillVerificationService';
 
+// Add this export type for VerificationMethod
+export type VerificationMethod = 'challenge' | 'credential' | 'endorsement';
+
 export function useSkillVerification(userSkillId?: string) {
   const { user } = useAuth();
   const { toast } = useToast();
