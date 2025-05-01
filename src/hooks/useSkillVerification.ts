@@ -95,15 +95,6 @@ export function useSkillVerification(userSkillId?: string) {
   });
 
   const submitSkillVerification = async (data: Omit<VerificationRequest, 'userSkillId'>): Promise<void> => {
-    if (!userSkillId) {
-      toast({
-        title: "Verification Error",
-        description: "No skill selected for verification",
-        variant: "destructive",
-      });
-      return;
-    }
-
     const verificationData: VerificationRequest = {
       ...data,
       userSkillId

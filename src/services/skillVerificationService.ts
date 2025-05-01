@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AsyncResult } from "@/types/utility";
 
 export interface VerificationRequest {
-  userSkillId: string;
+  userSkillId?: string;
   type: 'assessment' | 'peer_review' | 'blockchain' | 'certificate';
   source: string;
   evidence?: string;
@@ -51,13 +51,15 @@ export async function submitVerification(data: VerificationRequest): Promise<Asy
     }
 
     // Update the user_skill as verified
-    const { error: updateError } = await supabase
-      .from('user_skills')
-      .update({ is_verified: true, verification_date: new Date().toISOString() })
-      .eq('id', data.userSkillId);
+    if (data.userSkillId) {
+      const { error: updateError } = await supabase
+        .from('user_skills')
+        .update({ is_verified: true, verification_date: new Date().toISOString() })
+        .eq('id', data.userSkillId);
 
-    if (updateError) {
-      throw updateError;
+      if (updateError) {
+        throw updateError;
+      }
     }
 
     return { data: verification, error: null };
