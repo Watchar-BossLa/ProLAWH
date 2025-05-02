@@ -10,11 +10,22 @@ export interface CareerRecommendation {
   relevance_score: number;
   status: "pending" | "accepted" | "rejected" | "implemented";
   created_at?: string;
+  skills?: string[];
+  resources?: {
+    type: string;
+    url?: string;
+    title: string;
+  }[];
 }
 
 interface GenerateRecommendationResponse {
   success: boolean;
-  data: Omit<CareerRecommendation, 'id' | 'status'>;
+  data: {
+    type: 'skill_gap' | 'job_match' | 'mentor_suggest';
+    text: string;
+    score: number;
+    skills: string[];
+  };
 }
 
 export function useCareerRecommendations() {
@@ -33,7 +44,12 @@ export function useCareerRecommendations() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as CareerRecommendation[];
+      
+      // Ensure the type field is properly cast
+      return (data || []).map(item => ({
+        ...item,
+        type: item.type as 'skill_gap' | 'job_match' | 'mentor_suggest'
+      })) as CareerRecommendation[];
     },
     enabled: !!user
   });
@@ -57,7 +73,7 @@ export function useCareerRecommendations() {
       if (!user) throw new Error("User not authenticated");
       
       // Get the full URL for the function call
-      const functionUrl = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/career-twin`;
+      const functionUrl = `https://pynytoroxsqvfxybjeft.supabase.co/functions/v1/generate-career-twin`;
       
       const { data: session } = await supabase.auth.getSession();
       if (!session.session?.access_token) {

@@ -318,6 +318,8 @@ export type Database = {
           id: string
           recommendation: string
           relevance_score: number | null
+          resources: Json | null
+          skills: string[] | null
           status: string | null
           type: string | null
           updated_at: string | null
@@ -329,6 +331,8 @@ export type Database = {
           id?: string
           recommendation: string
           relevance_score?: number | null
+          resources?: Json | null
+          skills?: string[] | null
           status?: string | null
           type?: string | null
           updated_at?: string | null
@@ -340,6 +344,8 @@ export type Database = {
           id?: string
           recommendation?: string
           relevance_score?: number | null
+          resources?: Json | null
+          skills?: string[] | null
           status?: string | null
           type?: string | null
           updated_at?: string | null
@@ -2377,6 +2383,88 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_green_skills: {
+        Row: {
+          created_at: string
+          green_skill_id: string
+          id: string
+          proficiency_level: number
+          updated_at: string
+          user_id: string
+          verified: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          green_skill_id: string
+          id?: string
+          proficiency_level: number
+          updated_at?: string
+          user_id: string
+          verified?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          green_skill_id?: string
+          id?: string
+          proficiency_level?: number
+          updated_at?: string
+          user_id?: string
+          verified?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_green_skills_green_skill_id_fkey"
+            columns: ["green_skill_id"]
+            isOneToOne: false
+            referencedRelation: "green_skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_implementation_plans: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          recommendation_id: string | null
+          status: string
+          steps: Json | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          recommendation_id?: string | null
+          status: string
+          steps?: Json | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          recommendation_id?: string | null
+          status?: string
+          steps?: Json | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_implementation_plans_recommendation_id_fkey"
+            columns: ["recommendation_id"]
+            isOneToOne: false
+            referencedRelation: "career_recommendations"
             referencedColumns: ["id"]
           },
         ]

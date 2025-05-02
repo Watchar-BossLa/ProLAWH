@@ -22,6 +22,22 @@ export interface CareerRecommendation {
   }[];
 }
 
+export interface ImplementationPlan {
+  id: string;
+  user_id: string;
+  recommendation_id: string;
+  title: string;
+  description?: string;
+  status: 'not_started' | 'in_progress' | 'completed' | 'abandoned';
+  steps: Array<{
+    step: number;
+    title: string;
+    completed: boolean;
+  }>;
+  created_at: string;
+  updated_at: string;
+}
+
 export function useCareerTwin() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -45,18 +61,25 @@ export function useCareerTwin() {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (type) {
+      if (type && type !== 'all') {
         query = query.eq('type', type);
       }
 
-      if (status) {
+      if (status && status !== 'all') {
         query = query.eq('status', status);
       }
 
       const { data, error } = await query;
 
       if (error) throw error;
-      return data;
+      
+      // Ensure the type field is properly typed as expected by CareerRecommendation
+      const typedData: CareerRecommendation[] = data.map(item => ({
+        ...item,
+        type: item.type as 'skill_gap' | 'job_match' | 'mentor_suggest'
+      }));
+      
+      return typedData;
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Error fetching recommendations'));
       console.error('Error fetching career recommendations:', err);
@@ -128,7 +151,7 @@ export function useCareerTwin() {
 
       if (updateError) throw updateError;
 
-      // Then create an implementation plan in the user_implementation_plans table
+      // Then fetch the recommendation details
       const { data: recommendation, error: fetchError } = await supabase
         .from('career_recommendations')
         .select('*')
@@ -138,9 +161,14 @@ export function useCareerTwin() {
       if (fetchError) throw fetchError;
 
       // Create implementation plan based on recommendation type
+      const typedRecommendation = {
+        ...recommendation,
+        type: recommendation.type as 'skill_gap' | 'job_match' | 'mentor_suggest'
+      };
+      
       const planTitle = `Plan for ${
-        recommendation.type === 'skill_gap' ? 'Skill Development' : 
-        recommendation.type === 'job_match' ? 'Career Transition' : 
+        typedRecommendation.type === 'skill_gap' ? 'Skill Development' : 
+        typedRecommendation.type === 'job_match' ? 'Career Transition' : 
         'Finding Mentorship'
       }`;
 
@@ -151,7 +179,7 @@ export function useCareerTwin() {
           recommendation_id: recommendationId,
           title: planTitle,
           status: 'in_progress',
-          steps: generateImplementationSteps(recommendation),
+          steps: generateImplementationSteps(typedRecommendation),
         });
 
       if (planError) throw planError;
