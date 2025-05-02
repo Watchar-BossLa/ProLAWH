@@ -29,6 +29,19 @@
     @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
   }
 
+  /* Accessibility utilities */
+  .visually-hidden {
+    @apply sr-only;
+  }
+
+  .focus-visible {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  }
+
+  .accessibility-text {
+    @apply text-base leading-relaxed tracking-wide;
+  }
+
   /* Dynamic theme gradient utilities */
   .dynamic {
     /* Gradient Card Component */
@@ -129,6 +142,39 @@
     }
   }
 
+  /* High Contrast Mode Enhancements */
+  .high-contrast {
+    /* Improved text contrast */
+    .text-muted-foreground {
+      @apply text-foreground opacity-80;
+    }
+    
+    /* Stronger borders */
+    .card, .border, .input, .select, .button {
+      @apply border-2;
+    }
+    
+    /* Focus states */
+    :focus-visible {
+      @apply outline-2 outline-offset-2 outline-ring;
+    }
+    
+    /* Link underlines for better visibility */
+    a:not(.btn):not(.no-underline) {
+      @apply underline underline-offset-4;
+    }
+    
+    /* Button styling */
+    .button, button {
+      @apply font-semibold;
+    }
+    
+    /* Form elements */
+    label {
+      @apply font-medium mb-1;
+    }
+  }
+
   /* Additional utility for dynamic theme compatibility */
   .gradient-text-hover {
     @apply transition-all duration-300;
@@ -146,5 +192,14 @@
   /* Ensure text readability on gradient backgrounds */
   .gradient-bg-text {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Accessibility specific utilities */
+  .a11y-outline {
+    @apply focus:outline-2 focus:outline-offset-2 focus:outline-primary;
+  }
+  
+  .a11y-text-spacing {
+    @apply tracking-wide leading-relaxed;
   }
 }

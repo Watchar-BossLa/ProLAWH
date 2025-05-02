@@ -67,6 +67,40 @@ html.dynamic .dialog {
   border-color: var(--dynamic-border);
 }
 
+/* High contrast mode enhancements */
+html.high-contrast {
+  /* Text enhancements */
+  --text-scale: 1.05; /* Slightly larger text in high contrast mode */
+}
+
+html.high-contrast p,
+html.high-contrast span,
+html.high-contrast div,
+html.high-contrast label {
+  font-weight: 500;
+}
+
+html.high-contrast button,
+html.high-contrast a.btn,
+html.high-contrast .button {
+  font-weight: 600;
+}
+
+html.high-contrast h1,
+html.high-contrast h2,
+html.high-contrast h3,
+html.high-contrast h4,
+html.high-contrast h5,
+html.high-contrast h6 {
+  font-weight: 700;
+}
+
+html.high-contrast input,
+html.high-contrast select,
+html.high-contrast textarea {
+  border-width: 2px;
+}
+
 /* Ensure interactive elements have sufficient contrast */
 html.dynamic button:not([disabled]),
 html.dynamic a {
@@ -76,4 +110,16 @@ html.dynamic a {
   &:active {
     filter: brightness(0.95);
   }
+}
+
+/* High contrast mode borders and outlines */
+html.high-contrast .card,
+html.high-contrast .border {
+  border-width: 2px;
+}
+
+/* Reading improvements for high-contrast mode */
+html.high-contrast {
+  letter-spacing: 0.01em;
+  line-height: 1.6;
 }

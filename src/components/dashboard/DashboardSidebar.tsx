@@ -1,13 +1,16 @@
 
 import { useAuth } from "@/hooks/useAuth";
-import { Brain, Briefcase, GraduationCap, Leaf, Coins, Gamepad2 } from "lucide-react";
+import { Brain, Briefcase, GraduationCap, Leaf, Coins, Gamepad2, Contrast } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import { useAccessibility } from "@/components/theme/theme-provider";
+import { Button } from "@/components/ui/button";
 
 export default function DashboardSidebar() {
   const { user } = useAuth();
+  const { highContrast, toggleHighContrast } = useAccessibility();
 
   const navItems = [
-    { to: "/dashboard", label: "Dashboard", icon: GraduationCap },
+    { to: "/dashboard", label: "Dashboard", icon: GraduationCap, end: true },
     { to: "/dashboard/projects", label: "Projects", icon: Briefcase },
     { to: "/dashboard/career-twin", label: "Career Twin", icon: Brain },
     { to: "/dashboard/green-skills", label: "Green Skills", icon: Leaf },
@@ -16,7 +19,7 @@ export default function DashboardSidebar() {
   ];
 
   return (
-    <div className="h-full border-r bg-muted/40 w-64 hidden md:block overflow-y-auto">
+    <div className="h-full border-r bg-muted/40 w-64 hidden md:block overflow-y-auto" role="navigation">
       <div className="space-y-4 py-4">
         <div className="px-4 py-2">
           <h2 className="text-lg font-semibold tracking-tight">
@@ -27,7 +30,7 @@ export default function DashboardSidebar() {
           </p>
         </div>
 
-        <nav className="space-y-1 px-2">
+        <nav className="space-y-1 px-2" aria-label="Main navigation">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -40,12 +43,26 @@ export default function DashboardSidebar() {
                 }`
               }
               end={item.to === "/dashboard"}
+              aria-current={({ isActive }) => isActive ? "page" : undefined}
             >
-              <item.icon className="mr-2 h-4 w-4" />
+              <item.icon className="mr-2 h-4 w-4" aria-hidden="true" />
               <span>{item.label}</span>
             </NavLink>
           ))}
         </nav>
+        
+        <div className="px-4 py-2">
+          <Button 
+            onClick={toggleHighContrast} 
+            variant="outline" 
+            size="sm"
+            className="w-full justify-start"
+            aria-pressed={highContrast}
+          >
+            <Contrast className="mr-2 h-4 w-4" aria-hidden="true" />
+            {highContrast ? "Standard Contrast" : "High Contrast"}
+          </Button>
+        </div>
       </div>
     </div>
   );

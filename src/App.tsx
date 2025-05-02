@@ -22,6 +22,15 @@ import GreenSkillsPage from './pages/dashboard/GreenSkillsPage'
 import SkillStakingPage from './pages/dashboard/SkillStakingPage'
 import ArcadePage from './pages/dashboard/ArcadePage'
 
+// Add an accessibility component for keyboard navigation
+function SkipToContent() {
+  return (
+    <a href="#main-content" className="skip-link">
+      Skip to content
+    </a>
+  );
+}
+
 function App() {
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
@@ -37,6 +46,7 @@ function App() {
       <ThemeProvider defaultTheme="system" storageKey="theme">
         <AuthProvider>
           <BrowserRouter>
+            <SkipToContent />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/dashboard" element={<DashboardLayout />}>

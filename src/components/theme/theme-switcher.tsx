@@ -1,18 +1,21 @@
 
-import { Sun, Moon, Monitor, Palette } from "lucide-react"
+import { Sun, Moon, Monitor, Palette, Contrast } from "lucide-react"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useEffect, useState } from "react"
 import { toast } from "@/hooks/use-toast"
+import { useAccessibility } from "./theme-provider"
 
 export function ThemeSwitcher() {
   const { theme, setTheme, systemTheme } = useTheme()
+  const { highContrast, toggleHighContrast } = useAccessibility()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -45,6 +48,16 @@ export function ThemeSwitcher() {
       duration: 2000,
     })
   }
+
+  const handleHighContrastToggle = () => {
+    toggleHighContrast();
+    
+    toast({
+      title: highContrast ? 'Standard contrast mode' : 'High contrast mode',
+      description: highContrast ? 'Standard contrast mode enabled' : 'High contrast mode enabled for better readability',
+      duration: 2000,
+    });
+  };
 
   if (!mounted) return null
 
@@ -104,6 +117,14 @@ export function ThemeSwitcher() {
               style={{ backgroundImage: 'var(--gradient-primary)' }}
             />
           )}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem 
+          onClick={handleHighContrastToggle} 
+          className={`gap-2 cursor-pointer ${highContrast ? 'bg-accent text-accent-foreground' : ''}`}
+        >
+          <Contrast className="h-4 w-4" />
+          <span>High Contrast</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

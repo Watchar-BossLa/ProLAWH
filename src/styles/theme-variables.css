@@ -101,6 +101,39 @@
     --focus-ring: 0 0 0 2px hsl(263.4, 70%, 50.4%), 0 0 0 4px rgba(139, 92, 246, 0.4);
   }
 
+  /* High Contrast Mode Variables */
+  .high-contrast {
+    /* Text contrast improvements */
+    --foreground: 0 0% 0%;
+    --muted-foreground: 0 0% 20%; 
+    --primary: 263.4 85% 45%;
+    --primary-foreground: 0 0% 100%;
+    --accent-foreground: 263.4 85% 45%;
+    --border: 0 0% 40%;
+    --ring: 263.4 85% 45%;
+  }
+
+  .dark.high-contrast {
+    --foreground: 0 0% 100%;
+    --muted-foreground: 0 0% 80%;
+    --primary: 263.4 85% 65%;
+    --primary-foreground: 0 0% 0%;
+    --accent-foreground: 263.4 85% 65%;
+    --border: 0 0% 70%;
+    --ring: 263.4 85% 65%;
+  }
+
+  /* Combined classes for Dynamic + High Contrast */
+  .dynamic.high-contrast {
+    --gradient-primary: linear-gradient(135deg, #5850EC 0%, #7E3AF2 100%);
+    --focus-ring: 0 0 0 3px hsl(262.1, 83.3%, 57.8%), 0 0 0 5px rgba(99, 102, 241, 0.5);
+  }
+
+  .dynamic.dark.high-contrast {
+    --gradient-primary: linear-gradient(135deg, #9F7AEA 0%, #805AD5 100%);
+    --focus-ring: 0 0 0 3px hsl(263.4, 70%, 65%), 0 0 0 5px rgba(139, 92, 246, 0.6);
+  }
+
   /* CSS Variables for popover components with improved contrast */
   .dynamic .popover-content,
   .dynamic .dropdown-content,
@@ -122,5 +155,20 @@
     border-color: var(--dynamic-border);
     color: var(--dynamic-text);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  /* High contrast popovers and dropdowns */
+  .high-contrast .popover-content,
+  .high-contrast .dropdown-content,
+  .high-contrast .select-content,
+  .high-contrast .dialog-content,
+  .high-contrast .hover-card-content {
+    border-width: 2px;
+  }
+
+  /* Focus handling for high contrast mode */
+  .high-contrast :focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
   }
 }
