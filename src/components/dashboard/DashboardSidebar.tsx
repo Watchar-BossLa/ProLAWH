@@ -43,7 +43,6 @@ export default function DashboardSidebar() {
                 }`
               }
               end={item.to === "/dashboard"}
-              aria-current={({ isActive }) => isActive ? "page" : undefined}
             >
               <item.icon className="mr-2 h-4 w-4" aria-hidden="true" />
               <span>{item.label}</span>
