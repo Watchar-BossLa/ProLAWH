@@ -14,7 +14,7 @@ import {
   ClipboardList, 
   ArrowRight
 } from "lucide-react";
-import { CareerRecommendation } from "@/hooks/useCareeriTwin";
+import { CareerRecommendation } from "@/types/career";
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 

@@ -1,7 +1,7 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
-import { CareerRecommendation, useCareerTwin } from "@/hooks/useCareeriTwin";
+import { useCareerTwin, CareerRecommendation } from "@/hooks/useCareeriTwin";
 import { CareerTwinCard } from "@/components/career/CareerTwinCard";
 import { Brain, Lightbulb, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
