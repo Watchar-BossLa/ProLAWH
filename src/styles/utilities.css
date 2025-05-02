@@ -16,21 +16,33 @@
     @apply relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-shimmer before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent;
   }
 
+  /* Enhanced contrast utilities */
+  .high-contrast-text {
+    @apply text-foreground font-medium;
+  }
+
+  .high-contrast-border {
+    @apply border-2;
+  }
+
+  .high-contrast-focus {
+    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  }
+
   /* Dynamic theme gradient utilities */
   .dynamic {
     /* Gradient Card Component */
     .gradient-card {
-      @apply relative overflow-hidden rounded-lg shadow-md;
+      @apply relative overflow-hidden rounded-lg shadow-md transition-all;
       background: var(--gradient-surface);
       backdrop-filter: blur(10px);
-      border: 1px solid transparent;
+      border: 1px solid;
       border-image: var(--gradient-border);
       border-image-slice: 1;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
       
       &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
       }
     }
 
@@ -57,6 +69,7 @@
       &:hover {
         background-image: var(--gradient-background);
         transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       }
     }
 
@@ -81,6 +94,39 @@
         transform: translateY(1px);
       }
     }
+    
+    /* High Contrast Components for Dynamic Mode */
+    .card, 
+    .button,
+    .input,
+    .select {
+      border-color: var(--dynamic-border);
+    }
+    
+    .card {
+      background-color: var(--dynamic-card);
+      color: var(--dynamic-text);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      
+      &:hover {
+        background-color: var(--dynamic-card-hover);
+      }
+    }
+    
+    .button {
+      @apply font-medium;
+    }
+    
+    .dropdown-menu {
+      background-color: var(--dynamic-card);
+      border-color: var(--dynamic-border);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+    
+    /* Fix z-index for dropdowns */
+    .dropdown-content {
+      @apply z-50;
+    }
   }
 
   /* Additional utility for dynamic theme compatibility */
@@ -90,5 +136,15 @@
       @apply bg-clip-text text-transparent;
       background-image: var(--gradient-primary);
     }
+  }
+  
+  /* High contrast focus and interactive states */
+  .dynamic .focus-visible {
+    box-shadow: var(--focus-ring);
+  }
+  
+  /* Ensure text readability on gradient backgrounds */
+  .gradient-bg-text {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
 }

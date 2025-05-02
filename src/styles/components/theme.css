@@ -1,0 +1,79 @@
+
+/* Theme transition styles */
+html {
+  transition: background-color 0.3s ease;
+}
+
+html.theme-ready * {
+  transition: background-color 0.3s ease, 
+             border-color 0.3s ease, 
+             color 0.3s ease,
+             box-shadow 0.3s ease;
+}
+
+/* Prevent flash of wrong theme */
+html:not(.theme-ready) {
+  opacity: 0;
+}
+
+/* Enhanced Dynamic Theme Styles */
+html.dynamic button,
+html.dynamic select,
+html.dynamic input,
+html.dynamic textarea {
+  border-color: var(--dynamic-border);
+}
+
+/* Fix z-index for popover components */
+.dropdown-content,
+.popover-content,
+.dialog-content,
+.hover-card-content,
+.sheet-content {
+  z-index: 50;
+  background-color: var(--card);
+  border-color: var(--border);
+}
+
+html.dynamic .dropdown-content,
+html.dynamic .popover-content,
+html.dynamic .dialog-content,
+html.dynamic .hover-card-content,
+html.dynamic .sheet-content {
+  background-color: var(--dynamic-card);
+  border-color: var(--dynamic-border);
+}
+
+/* High contrast focus states */
+html.dynamic :focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Text contrast improvements */
+html.dynamic {
+  color: var(--dynamic-text);
+}
+
+html.dynamic .text-muted-foreground {
+  color: var(--dynamic-text-muted);
+}
+
+/* Card and surface enhancements */
+html.dynamic .card,
+html.dynamic .popover,
+html.dynamic .dialog {
+  background-color: var(--dynamic-card);
+  border-color: var(--dynamic-border);
+}
+
+/* Ensure interactive elements have sufficient contrast */
+html.dynamic button:not([disabled]),
+html.dynamic a {
+  &:hover {
+    filter: brightness(1.05);
+  }
+  &:active {
+    filter: brightness(0.95);
+  }
+}

@@ -51,25 +51,76 @@
 @layer base {
   /* Base Dynamic Theme - Light version */
   .dynamic {
+    /* Base gradients */
     --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     --gradient-secondary: linear-gradient(135deg, #3b82f6 0%, #2dd4bf 100%);
     --gradient-accent: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
-    --gradient-background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%);
-    --gradient-surface: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.8));
-    --gradient-border: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
     
-    /* ... keep existing code (light mode CSS variables) */
+    /* Light mode dynamic enhancements */
+    --gradient-background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%);
+    --gradient-surface: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+    --gradient-border: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3));
+    
+    /* Enhanced contrast variables for Light mode */
+    --dynamic-text: hsl(224, 71.4%, 4.1%);
+    --dynamic-text-muted: hsl(224, 20%, 30%);
+    --dynamic-bg: hsl(220, 100%, 98%);
+    --dynamic-bg-hover: hsl(220, 100%, 96%);
+    --dynamic-border: hsl(220, 15%, 85%);
+    --dynamic-card: hsl(0, 0%, 100%);
+    --dynamic-card-hover: hsl(220, 14%, 97%);
+    --dynamic-accent: hsl(262.1, 83.3%, 57.8%);
+    
+    /* High contrast focus states */
+    --focus-ring: 0 0 0 2px hsl(262.1, 83.3%, 57.8%), 0 0 0 4px rgba(99, 102, 241, 0.3);
   }
 
   /* Dynamic Theme - Dark version */
   .dynamic.dark {
+    /* Dark mode gradients */
     --gradient-primary: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
     --gradient-secondary: linear-gradient(135deg, #2dd4bf 0%, #3b82f6 100%);
     --gradient-accent: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
-    --gradient-background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
-    --gradient-surface: linear-gradient(135deg, rgba(17, 17, 17, 0.9), rgba(17, 17, 17, 0.8));
-    --gradient-border: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3));
     
-    /* ... keep existing code (dark mode CSS variables) */
+    /* Dark mode dynamic enhancements */
+    --gradient-background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(99, 102, 241, 0.12) 100%);
+    --gradient-surface: linear-gradient(135deg, rgba(30, 30, 45, 0.95), rgba(23, 23, 35, 0.9));
+    --gradient-border: linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(139, 92, 246, 0.4));
+    
+    /* Enhanced contrast variables for Dark mode */
+    --dynamic-text: hsl(210, 20%, 98%);
+    --dynamic-text-muted: hsl(217.9, 10.6%, 75%);
+    --dynamic-bg: hsl(224, 71.4%, 6%);
+    --dynamic-bg-hover: hsl(224, 71.4%, 8%);
+    --dynamic-border: hsl(215, 27.9%, 25%);
+    --dynamic-card: hsl(224, 71.4%, 7%);
+    --dynamic-card-hover: hsl(224, 71.4%, 9%);
+    --dynamic-accent: hsl(263.4, 70%, 60%);
+    
+    /* High contrast focus states */
+    --focus-ring: 0 0 0 2px hsl(263.4, 70%, 50.4%), 0 0 0 4px rgba(139, 92, 246, 0.4);
+  }
+
+  /* CSS Variables for popover components with improved contrast */
+  .dynamic .popover-content,
+  .dynamic .dropdown-content,
+  .dynamic .select-content,
+  .dynamic .dialog-content,
+  .dynamic .hover-card-content {
+    background-color: var(--dynamic-card);
+    border-color: var(--dynamic-border);
+    color: var(--dynamic-text);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  }
+  
+  .dynamic.dark .popover-content,
+  .dynamic.dark .dropdown-content,
+  .dynamic.dark .select-content,
+  .dynamic.dark .dialog-content,
+  .dynamic.dark .hover-card-content {
+    background-color: var(--dynamic-card);
+    border-color: var(--dynamic-border);
+    color: var(--dynamic-text);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
   }
 }
