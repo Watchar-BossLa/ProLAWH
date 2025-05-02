@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useSkillVerification } from "@/hooks/useSkillVerification";
+import { useSkillVerification, VerificationBackendType } from "@/hooks/useSkillVerification";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,7 +29,7 @@ export function SkillVerificationForm({ userSkillId, skillName }: SkillVerificat
     event.preventDefault();
     
     await submitVerification({
-      type: selectedVerificationType as 'assessment' | 'peer_review' | 'blockchain' | 'certificate',
+      type: selectedVerificationType,
       source,
       evidence
     });
@@ -37,6 +37,11 @@ export function SkillVerificationForm({ userSkillId, skillName }: SkillVerificat
     // Reset form
     setSource("");
     setEvidence("");
+  };
+
+  // Create a handler that will cast string values to VerificationBackendType
+  const handleTabChange = (value: string) => {
+    setSelectedVerificationType(value as VerificationBackendType);
   };
 
   return (
@@ -51,7 +56,7 @@ export function SkillVerificationForm({ userSkillId, skillName }: SkillVerificat
         <form onSubmit={handleSubmit}>
           <Tabs
             value={selectedVerificationType}
-            onValueChange={setSelectedVerificationType}
+            onValueChange={handleTabChange}
             className="w-full"
           >
             <TabsList className="grid grid-cols-4 mb-4">
