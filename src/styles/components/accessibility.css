@@ -7,6 +7,7 @@
   outline-offset: 2px;
 }
 
+/* High contrast specific focus styles */
 .high-contrast :focus-visible {
   outline: 3px solid var(--ring);
   outline-offset: 3px;
@@ -140,5 +141,31 @@
 /* ARIA attributes for better accessibility */
 [aria-disabled="true"] {
   opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Persistent high contrast styles that won't be affected by page refresh */
+.high-contrast-container {
+  border-width: 2px;
+}
+
+.high-contrast .high-contrast-container {
+  border-width: 3px;
+}
+
+/* Persistent accessibility indicators */
+.accessibility-enabled {
+  position: relative;
+}
+
+.high-contrast .accessibility-enabled::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 2px solid var(--primary);
+  border-radius: inherit;
   pointer-events: none;
 }

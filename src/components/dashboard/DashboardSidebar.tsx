@@ -4,6 +4,7 @@ import { Brain, Briefcase, GraduationCap, Leaf, Coins, Gamepad2, Contrast, Activ
 import { NavLink } from "react-router-dom";
 import { useAccessibility } from "@/components/theme/theme-provider";
 import { Button } from "@/components/ui/button";
+import { HighContrastContainer } from "@/components/ui/high-contrast";
 
 export default function DashboardSidebar() {
   const { user } = useAuth();
@@ -19,8 +20,8 @@ export default function DashboardSidebar() {
   ];
 
   return (
-    <div className="h-full border-r bg-muted/40 w-64 hidden md:block overflow-y-auto" role="navigation">
-      <div className="space-y-4 py-4">
+    <div className="h-full flex flex-col" role="navigation">
+      <div className="space-y-4 py-4 flex-grow">
         <div className="px-4 py-2">
           <h2 className="text-lg font-semibold tracking-tight">
             {user ? `Welcome, ${user.email?.split("@")[0]}` : "Dashboard"}
@@ -49,29 +50,34 @@ export default function DashboardSidebar() {
             </NavLink>
           ))}
         </nav>
-        
-        <div className="px-4 py-2 space-y-2">
-          <Button 
-            onClick={toggleHighContrast} 
-            variant="outline" 
-            size="sm"
-            className="w-full justify-start"
-            aria-pressed={highContrast}
-          >
-            <Contrast className="mr-2 h-4 w-4" aria-hidden="true" />
-            {highContrast ? "Standard Contrast" : "High Contrast"}
-          </Button>
-          
-          <Button 
-            onClick={toggleReducedMotion} 
-            variant="outline" 
-            size="sm"
-            className="w-full justify-start"
-            aria-pressed={reducedMotion}
-          >
-            <ActivitySquare className="mr-2 h-4 w-4" aria-hidden="true" />
-            {reducedMotion ? "Enable Animations" : "Reduce Motion"}
-          </Button>
+      </div>
+      
+      <div className="px-4 py-4 border-t">
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium" id="accessibility-heading">Accessibility</h3>
+          <div className="space-y-2" aria-labelledby="accessibility-heading">
+            <Button 
+              onClick={toggleHighContrast} 
+              variant="outline" 
+              size="sm"
+              className="w-full justify-start"
+              aria-pressed={highContrast}
+            >
+              <Contrast className="mr-2 h-4 w-4" aria-hidden="true" />
+              {highContrast ? "Standard Contrast" : "High Contrast"}
+            </Button>
+            
+            <Button 
+              onClick={toggleReducedMotion} 
+              variant="outline" 
+              size="sm"
+              className="w-full justify-start"
+              aria-pressed={reducedMotion}
+            >
+              <ActivitySquare className="mr-2 h-4 w-4" aria-hidden="true" />
+              {reducedMotion ? "Enable Animations" : "Reduce Motion"}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

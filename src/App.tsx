@@ -41,6 +41,29 @@ function App() {
     },
   }))
 
+  // Make sure accessibility settings are applied on initial load
+  React.useEffect(() => {
+    // Check stored preferences
+    const highContrast = localStorage.getItem('accessibility-highContrast') === 'true';
+    const reducedMotion = localStorage.getItem('accessibility-reducedMotion') === 'true' || 
+                        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    
+    // Apply classes right away to prevent flash of unstyled content
+    if (highContrast) {
+      document.documentElement.classList.add('high-contrast');
+    }
+    
+    if (reducedMotion) {
+      document.documentElement.classList.add('reduce-motion');
+    }
+    
+    // Apply theme preference
+    const theme = localStorage.getItem('theme') || 'system';
+    if (theme === 'dynamic') {
+      document.documentElement.classList.add('dynamic');
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system" storageKey="theme">

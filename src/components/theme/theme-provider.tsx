@@ -33,6 +33,7 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
     }
     return false;
   });
+  
   const [reducedMotion, setReducedMotion] = useState(() => {
     if (typeof window !== "undefined") {
       // Check localStorage first, then fall back to system preference
@@ -46,37 +47,36 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
     return false;
   });
 
-  // Add prefetching for theme to prevent flash of incorrect theme
+  // Apply accessibility settings immediately when component mounts
   useEffect(() => {
     setMounted(true);
-    document.documentElement.classList.add('theme-ready');
     
-    // Check for high contrast mode from localStorage
-    const storedHighContrast = localStorage.getItem('accessibility-highContrast');
-    if (storedHighContrast === 'true') {
+    // Apply settings from localStorage
+    const storedHighContrast = localStorage.getItem('accessibility-highContrast') === 'true';
+    const storedReducedMotion = localStorage.getItem('accessibility-reducedMotion') === 'true';
+    const systemReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    
+    // Apply high contrast setting
+    if (storedHighContrast) {
       document.documentElement.classList.add('high-contrast');
+    } else {
+      document.documentElement.classList.remove('high-contrast');
     }
-
-    // Check for reduced motion preference
-    const storedReducedMotion = localStorage.getItem('accessibility-reducedMotion');
-    if (storedReducedMotion === 'true' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    
+    // Apply reduced motion setting (from localStorage or system preference)
+    if (storedReducedMotion || (storedReducedMotion !== false && systemReducedMotion)) {
       document.documentElement.classList.add('reduce-motion');
+    } else {
+      document.documentElement.classList.remove('reduce-motion');
     }
+    
+    // Add theme-ready class after settings are applied
+    document.documentElement.classList.add('theme-ready');
   }, []);
   
   // Handle dynamic theme as an enhancement layer on top of base themes
   useEffect(() => {
-    const handleThemeChange = () => {
-      const currentTheme = document.documentElement.getAttribute('data-theme');
-      const isDynamic = localStorage.getItem('theme') === 'dynamic';
-      
-      // Apply dynamic class
-      if (isDynamic) {
-        document.documentElement.classList.add('dynamic');
-      } else {
-        document.documentElement.classList.remove('dynamic');
-      }
-
+    const applyAccessibilitySettings = () => {
       // Apply high-contrast class
       if (highContrast) {
         document.documentElement.classList.add('high-contrast');
@@ -90,13 +90,21 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
       } else {
         document.documentElement.classList.remove('reduce-motion');
       }
+      
+      // Apply dynamic class if theme is set to dynamic
+      const isDynamic = localStorage.getItem('theme') === 'dynamic';
+      if (isDynamic) {
+        document.documentElement.classList.add('dynamic');
+      } else {
+        document.documentElement.classList.remove('dynamic');
+      }
     };
     
     // Initial setup
-    handleThemeChange();
+    applyAccessibilitySettings();
     
     // Listen for theme changes
-    window.addEventListener('theme-change', handleThemeChange);
+    window.addEventListener('theme-change', applyAccessibilitySettings);
 
     // Listen for system preference changes
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -104,13 +112,18 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
       // Only update if user hasn't explicitly set a preference
       if (localStorage.getItem('accessibility-reducedMotion') === null) {
         setReducedMotion(e.matches);
+        if (e.matches) {
+          document.documentElement.classList.add('reduce-motion');
+        } else {
+          document.documentElement.classList.remove('reduce-motion');
+        }
       }
     };
     
     prefersReducedMotion.addEventListener('change', handleReducedMotionChange);
     
     return () => {
-      window.removeEventListener('theme-change', handleThemeChange);
+      window.removeEventListener('theme-change', applyAccessibilitySettings);
       prefersReducedMotion.removeEventListener('change', handleReducedMotionChange);
     };
   }, [highContrast, reducedMotion]);
@@ -119,7 +132,12 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
     const newValue = !highContrast;
     setHighContrast(newValue);
     localStorage.setItem('accessibility-highContrast', newValue.toString());
-    document.documentElement.classList.toggle('high-contrast', newValue);
+    
+    if (newValue) {
+      document.documentElement.classList.add('high-contrast');
+    } else {
+      document.documentElement.classList.remove('high-contrast');
+    }
     
     // Dispatch event for other components to react
     window.dispatchEvent(new CustomEvent('accessibility-change', { 
@@ -131,7 +149,12 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
     const newValue = !reducedMotion;
     setReducedMotion(newValue);
     localStorage.setItem('accessibility-reducedMotion', newValue.toString());
-    document.documentElement.classList.toggle('reduce-motion', newValue);
+    
+    if (newValue) {
+      document.documentElement.classList.add('reduce-motion');
+    } else {
+      document.documentElement.classList.remove('reduce-motion');
+    }
     
     // Dispatch event for other components to react
     window.dispatchEvent(new CustomEvent('accessibility-change', { 
