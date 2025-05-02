@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { useSkillVerification, VerificationMethod, VerificationBackendType } from "@/hooks/useSkillVerification";
+import { useSkillVerification } from "@/hooks/useSkillVerification";
 import { useGreenSkills } from "@/hooks/useGreenSkills";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,13 +20,13 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface VerificationFormProps {
-  selectedMethod: VerificationMethod;
+  selectedMethod: string;
   onCancel: () => void;
 }
 
 export function VerificationForm({ selectedMethod, onCancel }: VerificationFormProps) {
   const { data: skills = [] } = useGreenSkills();
-  const { submitVerification, isSubmittingVerification, convertMethodToType } = useSkillVerification();
+  const { verifySkill, isVerifying } = useSkillVerification();
   const [file, setFile] = useState<File | null>(null);
   
   const form = useForm<FormValues>({
@@ -44,12 +44,10 @@ export function VerificationForm({ selectedMethod, onCancel }: VerificationFormP
   };
 
   const onSubmit = (values: FormValues) => {
-    const backendType = convertMethodToType(values.method as VerificationMethod);
-    
-    submitVerification({
-      type: backendType,
-      source: values.skillId,
-      evidence: file ? URL.createObjectURL(file) : values.evidence?.toString()
+    verifySkill.mutate({
+      skillId: values.skillId,
+      method: values.method as any,
+      evidence: file || values.evidence
     });
   };
 
@@ -122,9 +120,9 @@ export function VerificationForm({ selectedMethod, onCancel }: VerificationFormP
         </Button>
         <Button 
           onClick={form.handleSubmit(onSubmit)} 
-          disabled={isSubmittingVerification}
+          disabled={isVerifying}
         >
-          {isSubmittingVerification ? "Processing..." : "Submit for Verification"}
+          {isVerifying ? "Processing..." : "Submit for Verification"}
         </Button>
       </CardFooter>
     </Card>

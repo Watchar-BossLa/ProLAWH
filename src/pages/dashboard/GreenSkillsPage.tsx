@@ -7,20 +7,22 @@ import { GreenSkillsLoading } from '@/components/skills/GreenSkillsLoading';
 import { GreenSkillsError } from '@/components/skills/GreenSkillsError';
 import { useGreenSkills } from '@/hooks/useGreenSkills';
 import { useGreenSkillsData } from '@/hooks/useGreenSkillsData';
+import { useSDGData } from '@/hooks/useSDGData';
 import { useSkillGapData } from '@/hooks/useSkillGapData';
 import { GreenSkillsOverview } from '@/components/skills/GreenSkillsOverview';
 import { TopGreenSkills } from '@/components/skills/TopGreenSkills';
 import { PersonalImpactMetrics } from '@/components/skills/PersonalImpactMetrics';
+import { ImpactVisualization } from '@/components/skills/ImpactVisualization';
 import { ImpactTabContent } from '@/components/skills/impact/ImpactTabContent';
 import { SkillsTabContent } from '@/components/skills/SkillsTabContent';
 import { CareersTabContent } from '@/components/skills/careers/CareersTabContent';
 import { ProjectsTabContent } from '@/components/skills/projects/ProjectsTabContent';
-import { ImpactVisualization } from '@/components/skills/ImpactVisualization';
 
 export default function GreenSkillsPage() {
   const { data: greenSkills = [], isLoading, error } = useGreenSkills();
   const analytics = useGreenSkillsData();
   const [activeTab, setActiveTab] = useState("overview");
+  const sdgData = useSDGData();
   const skillGapData = useSkillGapData();
 
   // Sample user skills for the Career Twin Simulator
@@ -74,7 +76,10 @@ export default function GreenSkillsPage() {
                   skillsAcquired={analytics.personalMetrics.skillsAcquired}
                   marketGrowth={analytics.personalMetrics.marketGrowth}
                 />
-                <ImpactVisualization />
+                <ImpactVisualization 
+                  environmentalImpact={analytics.environmentalImpact}
+                  totalReduction={analytics.environmentalImpact.reduce((sum, item) => sum + item.value, 0)}
+                />
               </div>
               <Separator className="my-6" />
               <GreenSkillsOverview />
@@ -92,7 +97,10 @@ export default function GreenSkillsPage() {
             </TabsContent>
 
             <TabsContent value="impact">
-              <ImpactTabContent />
+              <ImpactTabContent 
+                environmentalImpact={analytics.environmentalImpact}
+                sdgData={sdgData}
+              />
             </TabsContent>
 
             <TabsContent value="careers">

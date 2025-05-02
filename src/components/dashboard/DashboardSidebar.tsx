@@ -1,86 +1,105 @@
 
-import { useAuth } from "@/hooks/useAuth";
-import { Brain, Briefcase, GraduationCap, Leaf, Coins, Gamepad2, Contrast, ActivitySquare, BookOpen } from "lucide-react";
-import { NavLink } from "react-router-dom";
-import { useAccessibility } from "@/components/theme/theme-provider";
-import { Button } from "@/components/ui/button";
-import { HighContrastContainer } from "@/components/ui/high-contrast";
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { cn } from "@/lib/utils";
+import { useAdmin } from "@/hooks/useAdmin";
+import { 
+  Book, 
+  GraduationCap, 
+  Users,
+  Network, 
+  Trophy, 
+  Briefcase, 
+  BarChart, 
+  LucideIcon, 
+  Home, 
+  Settings,
+  Leaf,
+  ShieldCheck
+} from 'lucide-react';
 
-export default function DashboardSidebar() {
-  const { user } = useAuth();
-  const { highContrast, toggleHighContrast, reducedMotion, toggleReducedMotion } = useAccessibility();
+interface NavItemProps {
+  icon: LucideIcon;
+  label: string;
+  href: string;
+  isActive?: boolean;
+}
+
+const NavItem = ({ icon: Icon, label, href, isActive }: NavItemProps) => {
+  return (
+    <Link 
+      to={href}
+      className={cn(
+        "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
+        isActive 
+          ? "bg-primary text-primary-foreground" 
+          : "hover:bg-secondary"
+      )}
+    >
+      <Icon className="h-5 w-5" />
+      <span>{label}</span>
+    </Link>
+  );
+};
+
+export function DashboardSidebar() {
+  const location = useLocation();
+  const currentPath = location.pathname;
+  const { isAdmin, isLoading } = useAdmin();
 
   const navItems = [
-    { to: "/dashboard", label: "Dashboard", icon: GraduationCap, end: true },
-    { to: "/dashboard/projects", label: "Projects", icon: Briefcase },
-    { to: "/dashboard/career-twin", label: "Career Twin", icon: Brain },
-    { to: "/dashboard/green-skills", label: "Green Skills", icon: Leaf },
-    { to: "/dashboard/skill-staking", label: "Skill Staking", icon: Coins },
-    { to: "/dashboard/arcade", label: "Nano Arcade", icon: Gamepad2 },
-    { to: "/dashboard/study-bee", label: "Study Bee", icon: BookOpen },
+    { icon: Home, label: "Dashboard", href: "/dashboard" },
+    { icon: Network, label: "Network", href: "/dashboard/network" },
+    { icon: Book, label: "Learning Paths", href: "/dashboard/learning" },
+    { icon: GraduationCap, label: "Skills & Badges", href: "/dashboard/skills" },
+    { icon: Users, label: "Mentorship", href: "/dashboard/mentorship" },
+    { icon: Briefcase, label: "Opportunities", href: "/dashboard/opportunities" },
+    { icon: Trophy, label: "Nano-Arcade", href: "/dashboard/arcade" },
+    { icon: BarChart, label: "Career Twin", href: "/dashboard/career-twin" },
+    { icon: Leaf, label: "Green Skills", href: "/dashboard/green-skills" },
+    { icon: Book, label: "Study Bee", href: "/dashboard/study-bee" },
+    { icon: Settings, label: "Settings", href: "/profile" }
   ];
-
+  
   return (
-    <div className="h-full flex flex-col" role="navigation">
-      <div className="space-y-4 py-4 flex-grow">
-        <div className="px-4 py-2">
-          <h2 className="text-lg font-semibold tracking-tight">
-            {user ? `Welcome, ${user.email?.split("@")[0]}` : "Dashboard"}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Navigate your learning journey
-          </p>
-        </div>
-
-        <nav className="space-y-1 px-2" aria-label="Main navigation">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-muted"
-                }`
-              }
-              end={item.end}
-            >
-              <item.icon className="mr-2 h-4 w-4" aria-hidden="true" />
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
-        </nav>
+    <nav className="w-64 border-r h-full flex flex-col">
+      <div className="p-4 border-b">
+        <h2 className="font-semibold text-xl">ProLawh</h2>
+        <p className="text-sm text-muted-foreground">Learning & Workforce Hub</p>
       </div>
       
-      <div className="px-4 py-4 border-t">
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium" id="accessibility-heading">Accessibility</h3>
-          <div className="space-y-2" aria-labelledby="accessibility-heading">
-            <Button 
-              onClick={toggleHighContrast} 
-              variant="outline" 
-              size="sm"
-              className="w-full justify-start"
-              aria-pressed={highContrast}
-            >
-              <Contrast className="mr-2 h-4 w-4" aria-hidden="true" />
-              {highContrast ? "Standard Contrast" : "High Contrast"}
-            </Button>
-            
-            <Button 
-              onClick={toggleReducedMotion} 
-              variant="outline" 
-              size="sm"
-              className="w-full justify-start"
-              aria-pressed={reducedMotion}
-            >
-              <ActivitySquare className="mr-2 h-4 w-4" aria-hidden="true" />
-              {reducedMotion ? "Enable Animations" : "Reduce Motion"}
-            </Button>
+      <div className="flex flex-col gap-1 p-2 flex-1">
+        {navItems.map((item) => (
+          <NavItem 
+            key={item.href}
+            icon={item.icon}
+            label={item.label}
+            href={item.href}
+            isActive={currentPath === item.href}
+          />
+        ))}
+        
+        {!isLoading && isAdmin && (
+          <NavItem
+            icon={ShieldCheck}
+            label="Admin Dashboard"
+            href="/admin"
+            isActive={currentPath.startsWith("/admin")}
+          />
+        )}
+      </div>
+      
+      <div className="p-4 border-t mt-auto">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+            <span className="text-sm font-medium">PL</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium">ProLawh User</span>
+            <span className="text-xs text-muted-foreground">user@example.com</span>
           </div>
         </div>
       </div>
-    </div>
+    </nav>
   );
-}
+};

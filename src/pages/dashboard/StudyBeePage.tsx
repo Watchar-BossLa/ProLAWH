@@ -25,7 +25,7 @@ export default function StudyBeePage() {
         <CardContent>
           <Button asChild size="lg" className="w-full sm:w-auto">
             <a 
-              href="https://studybee.info" 
+              href="https://studybee.example.com" 
               target="_blank" 
               rel="noopener noreferrer"
               className="flex items-center gap-2"

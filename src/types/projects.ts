@@ -3,20 +3,23 @@ export interface GreenProject {
   id: string;
   title: string;
   description: string;
-  category: string;
   skillsNeeded: string[];
-  teamSize?: number;
-  duration?: string;
-  impactArea?: string;
+  teamSize: number;
+  duration: string;
+  category: string;
+  impactArea: string;
   location?: string;
   deadline?: string;
   carbonReduction?: number;
-  sdgAlignment?: string[];
+  sdgAlignment?: number[];
   compensation?: string;
   hasInsurance?: boolean;
-  insuranceDetails?: Record<string, string>;
-  createdBy?: string | null;
-  status?: string;
+  insuranceDetails?: {
+    provider?: string;
+    coverage?: string;
+    premium?: string;
+    expiry?: string;
+  };
 }
 
 export interface ProjectApplication {
@@ -24,35 +27,21 @@ export interface ProjectApplication {
   userId: string;
   projectId: string;
   status: 'pending' | 'accepted' | 'rejected';
-  message?: string;
   appliedAt: string;
+  message?: string;
 }
 
-export interface SkillStake {
+export interface TeamMember {
   id: string;
-  userId: string;
-  projectId: string;
-  credentialId: string;
-  amount: number;
-  startedAt: string;
-  endsAt?: string;
-  status: 'active' | 'completed' | 'cancelled';
+  name: string;
+  role: string;
+  skills: string[];
+  avatarUrl?: string;
 }
 
-export interface ProjectInsurance {
+export interface ProjectTeam {
   projectId: string;
-  provider: string;
-  coverageAmount: number;
-  premium: number;
-  startDate: string;
-  endDate?: string;
-  policyDetails: Record<string, any>;
-}
-
-export interface BiasShieldMetrics {
-  equalOpportunity: number;
-  demographicParity: number;
-  biasScore: number;
-  timestamp: string;
-  matchId: string;
+  members: TeamMember[];
+  skillsCoverage: number;
+  missingSkills: string[];
 }

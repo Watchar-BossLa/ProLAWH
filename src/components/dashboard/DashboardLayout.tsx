@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import DashboardSidebar from "./DashboardSidebar";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { ThemeSwitcher } from "@/components/theme/theme-switcher";
 import { 
   Sidebar,
@@ -28,5 +28,3 @@ export function DashboardLayout() {
     </SidebarProvider>
   );
 }
-
-export default DashboardLayout;

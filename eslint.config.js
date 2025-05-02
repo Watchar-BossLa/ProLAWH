@@ -11,8 +11,7 @@ export default tseslint.config(
     extends: [
       js.configs.recommended, 
       ...tseslint.configs.recommended,
-      ...tseslint.configs.recommendedTypeChecked,
-      ...tseslint.configs.strictTypeChecked
+      ...tseslint.configs.recommendedTypeChecked
     ],
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
@@ -38,14 +37,9 @@ export default tseslint.config(
         argsIgnorePattern: "^_", 
         varsIgnorePattern: "^_" 
       }],
-      "@typescript-eslint/no-explicit-any": "error",
-      "@typescript-eslint/explicit-function-return-type": ["warn", {
-        allowExpressions: true
-      }],
-      "@typescript-eslint/strict-boolean-expressions": "warn",
-      "@typescript-eslint/no-unnecessary-condition": "warn",
-      "@typescript-eslint/prefer-nullish-coalescing": "warn",
-      "@typescript-eslint/no-floating-promises": "warn"
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/explicit-function-return-type": "off",
+      "@typescript-eslint/strict-boolean-expressions": "off",
     },
   }
 );

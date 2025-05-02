@@ -8,35 +8,27 @@ import {
   ChartTooltipContent 
 } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts';
-import { Globe } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useSDGImpact, SDGData } from '@/hooks/useSDGImpact';
 
-export function SDGAlignmentChart() {
-  const { sdgData, isLoading } = useSDGImpact();
+interface SDGData {
+  sdgNumber: number;
+  name: string;
+  alignment: number;
+  color: string;
+}
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Globe className="h-5 w-5 text-primary" />
-            SDG Alignment
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Skeleton className="h-[260px] w-full" />
-          <Skeleton className="h-[100px] w-full" />
-        </CardContent>
-      </Card>
-    );
-  }
+interface SDGAlignmentChartProps {
+  sdgData: SDGData[];
+}
 
+export function SDGAlignmentChart({ sdgData }: SDGAlignmentChartProps) {
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Globe className="h-5 w-5 text-primary" />
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-primary">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
           SDG Alignment
         </CardTitle>
       </CardHeader>

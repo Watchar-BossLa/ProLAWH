@@ -1,22 +1,27 @@
-
 import React from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCheck, Clock, XCircle, BarChart } from "lucide-react"
+import { CheckCheck, Clock, XCircle } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
-import { CareerRecommendation } from "@/types/career"
-import { CareerActionPanel } from './CareerActionPanel'
+import { supabase } from "@/integrations/supabase/client"
+import { CareerRecommendation } from "@/hooks/useCareerRecommendations"
 
 interface CareerTwinCardProps {
   recommendation: CareerRecommendation
   onStatusUpdate: (id: string, status: CareerRecommendation["status"]) => void
-  onImplement: (id: string) => Promise<void>
 }
 
-export const CareerTwinCard = ({ recommendation, onStatusUpdate, onImplement }: CareerTwinCardProps) => {
+export const CareerTwinCard = ({ recommendation, onStatusUpdate }: CareerTwinCardProps) => {
   const handleStatusUpdate = async (status: CareerRecommendation["status"]) => {
     try {
-      await onStatusUpdate(recommendation.id, status)
+      const { error } = await supabase
+        .from('career_recommendations')
+        .update({ status })
+        .eq('id', recommendation.id)
+
+      if (error) throw error
+
+      onStatusUpdate(recommendation.id, status)
       toast({
         title: "Status updated",
         description: `Recommendation marked as ${status}`,
@@ -37,10 +42,10 @@ export const CareerTwinCard = ({ recommendation, onStatusUpdate, onImplement }: 
           {recommendation.type === 'skill_gap' && 'Skill Gap Analysis'}
           {recommendation.type === 'job_match' && 'Job Match'}
           {recommendation.type === 'mentor_suggest' && 'Mentorship Suggestion'}
+          {recommendation.type === 'learning_path' && 'Learning Path'}
           {recommendation.status === 'pending' && <Clock className="h-4 w-4 text-yellow-500" />}
           {recommendation.status === 'accepted' && <CheckCheck className="h-4 w-4 text-green-500" />}
           {recommendation.status === 'rejected' && <XCircle className="h-4 w-4 text-red-500" />}
-          {recommendation.status === 'implemented' && <BarChart className="h-4 w-4 text-blue-500" />}
         </CardTitle>
         <CardDescription>
           Relevance Score: {Math.round(recommendation.relevance_score * 100)}%
@@ -67,13 +72,6 @@ export const CareerTwinCard = ({ recommendation, onStatusUpdate, onImplement }: 
               Reject
             </Button>
           </div>
-        )}
-
-        {recommendation.status === 'accepted' && (
-          <CareerActionPanel 
-            recommendation={recommendation} 
-            onImplement={onImplement} 
-          />
         )}
       </CardContent>
     </Card>

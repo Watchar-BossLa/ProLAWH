@@ -1,102 +1,93 @@
 
-import React, { useState, useEffect } from 'react'
-import './App.css'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import DashboardLayout from './layouts/DashboardLayout'
-import { ThemeProvider } from './components/theme/theme-provider'
-import { Toaster } from "./components/ui/toaster"
-import Index from './pages/Index'
-import DashboardHome from './pages/dashboard/DashboardHome'
-import NotFound from './pages/NotFound'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import AdminLayout from './layouts/AdminLayout'
-import AdminDashboard from './pages/admin/AdminDashboard'
-import AnalyticsPage from './pages/admin/AnalyticsPage'
-import PaymentsPage from './pages/admin/PaymentsPage'
-import UsersPage from './pages/admin/UsersPage'
-import SettingsPage from './pages/admin/SettingsPage'
-import ProjectsMarketplacePage from './pages/dashboard/ProjectsMarketplacePage'
-import { AuthProvider } from './hooks/useAuth'
-import CareerTwinPage from './pages/dashboard/CareerTwinPage'
-import GreenSkillsPage from './pages/dashboard/GreenSkillsPage'
-import SkillStakingPage from './pages/dashboard/SkillStakingPage'
-import ArcadePage from './pages/dashboard/ArcadePage'
-import StudyBeePage from './pages/dashboard/StudyBeePage'
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "@/components/theme/theme-provider";
+import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
+import AuthPage from "./pages/auth/AuthPage";
+import ProfilePage from "./pages/profile/ProfilePage";
+import { DashboardLayout } from "./components/dashboard/DashboardLayout";
+import { DashboardHome } from "./components/dashboard/DashboardHome";
+import DashboardPlaceholder from "./pages/dashboard/DashboardPlaceholder";
+import CareerTwinPage from "./pages/dashboard/CareerTwinPage";
+import ArcadePage from "./pages/dashboard/ArcadePage";
+import ChallengePage from "./pages/dashboard/ChallengePage";
+import SkillStakingPage from "./pages/dashboard/SkillStakingPage";
+import GreenSkillsPage from "./pages/dashboard/GreenSkillsPage";
+import StudyBeePage from "./pages/dashboard/StudyBeePage";
+import OpportunityMarketplace from "./pages/dashboard/OpportunityMarketplace";
+import NetworkDashboard from "./pages/dashboard/NetworkDashboard";
+import NetworkConnectionProfile from "./pages/dashboard/NetworkConnectionProfile";
+import { AuthProvider } from "./hooks/useAuth";
+import LearningDashboard from "./pages/dashboard/LearningDashboard";
+import CourseDetailsPage from "./pages/dashboard/CourseDetailsPage";
+import SkillsAndBadgesPage from "./pages/dashboard/SkillsAndBadgesPage";
+import { AdminLayout } from "@/components/admin/AdminLayout";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import UsersPage from "./pages/admin/UsersPage";
+import AnalyticsPage from "./pages/admin/AnalyticsPage";
+import PaymentsPage from "./pages/admin/PaymentsPage";
+import SettingsPage from "./pages/admin/SettingsPage";
+import MentorshipDashboard from "./pages/dashboard/MentorshipDashboard";
+import MentorshipDetailPage from "./pages/dashboard/MentorshipDetailPage";
 
-// Add an accessibility component for keyboard navigation
-function SkipToContent() {
-  return (
-    <a href="#main-content" className="skip-link">
-      Skip to content
-    </a>
-  );
-}
-
-function App() {
-  const [queryClient] = useState(() => new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 1000 * 60 * 5, // 5 minutes
-        retry: 1,
-      },
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
     },
-  }))
+  },
+});
 
-  // Make sure accessibility settings are applied on initial load
-  useEffect(() => {
-    // Check stored preferences
-    const highContrast = localStorage.getItem('accessibility-highContrast') === 'true';
-    const reducedMotion = localStorage.getItem('accessibility-reducedMotion') === 'true' || 
-                        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    
-    // Apply classes right away to prevent flash of unstyled content
-    if (highContrast) {
-      document.documentElement.classList.add('high-contrast');
-    }
-    
-    if (reducedMotion) {
-      document.documentElement.classList.add('reduce-motion');
-    }
-    
-    // Apply theme preference
-    const theme = localStorage.getItem('theme') || 'system';
-    if (theme === 'dynamic') {
-      document.documentElement.classList.add('dynamic');
-    }
-  }, []);
-
-  return (
+const App = () => (
+  <ThemeProvider>
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="system" storageKey="theme">
-        <AuthProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
           <BrowserRouter>
-            <SkipToContent />
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<AuthPage />} />
+              
               <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route index element={<DashboardHome />} />
-                <Route path="projects" element={<ProjectsMarketplacePage />} />
+                <Route path="learning" element={<LearningDashboard />} />
+                <Route path="learning/course/:courseId" element={<CourseDetailsPage />} />
+                <Route path="skills" element={<SkillsAndBadgesPage />} />
+                <Route path="mentorship" element={<MentorshipDashboard />} />
+                <Route path="mentorship/:mentorshipId" element={<MentorshipDetailPage />} />
+                <Route path="opportunities" element={<OpportunityMarketplace />} />
+                <Route path="arcade" element={<ArcadePage />} />
+                <Route path="arcade/challenge/:challengeId" element={<ChallengePage />} />
                 <Route path="career-twin" element={<CareerTwinPage />} />
                 <Route path="green-skills" element={<GreenSkillsPage />} />
-                <Route path="skill-staking" element={<SkillStakingPage />} />
-                <Route path="arcade" element={<ArcadePage />} />
+                <Route path="staking" element={<SkillStakingPage />} />
                 <Route path="study-bee" element={<StudyBeePage />} />
+                <Route path="network" element={<NetworkDashboard />} />
+                <Route path="network/:connectionId" element={<NetworkConnectionProfile />} />
               </Route>
+              
+              <Route path="/profile" element={<ProfilePage />} />
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<AdminDashboard />} />
+                <Route path="users" element={<UsersPage />} />
                 <Route path="analytics" element={<AnalyticsPage />} />
                 <Route path="payments" element={<PaymentsPage />} />
-                <Route path="users" element={<UsersPage />} />
                 <Route path="settings" element={<SettingsPage />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
-          <Toaster />
-        </AuthProvider>
-      </ThemeProvider>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
-  )
-}
+  </ThemeProvider>
+)
 
 export default App

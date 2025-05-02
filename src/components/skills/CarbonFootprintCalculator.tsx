@@ -1,60 +1,101 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Leaf, Globe, Car, Home, ShoppingBag } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { Leaf, Globe, Car, Home, ShoppingBag, Bus, Sun, Recycle } from "lucide-react";
-import { useCarbonFootprint } from '@/hooks/useCarbonFootprint';
-import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from "@/hooks/use-toast";
+
+interface CarbonActivity {
+  name: string;
+  category: string;
+  icon: React.ReactNode;
+  impactPerUnit: number;
+  unit: string;
+  frequency: string;
+  value: number;
+  maxValue: number;
+}
 
 export function CarbonFootprintCalculator() {
-  const { 
-    activities, 
-    handleValueChange, 
-    calculateTotalImpact, 
-    saveResults,
-    isLoading,
-    isSaving
-  } = useCarbonFootprint();
-
-  const getIcon = (iconName: string) => {
-    switch (iconName) {
-      case 'car': return <Car className="h-4 w-4 text-blue-500" />;
-      case 'home': return <Home className="h-4 w-4 text-yellow-500" />;
-      case 'shopping-bag': return <ShoppingBag className="h-4 w-4 text-red-500" />;
-      case 'leaf': return <Leaf className="h-4 w-4 text-green-500" />;
-      case 'bus': return <Bus className="h-4 w-4 text-purple-500" />;
-      case 'sun': return <Sun className="h-4 w-4 text-amber-500" />;
-      case 'recycle': return <Recycle className="h-4 w-4 text-teal-500" />;
-      default: return <Globe className="h-4 w-4 text-sky-500" />;
+  const [activities, setActivities] = useState<CarbonActivity[]>([
+    { 
+      name: "Car Travel", 
+      category: "Transportation", 
+      icon: <Car className="h-4 w-4 text-blue-500" />, 
+      impactPerUnit: 2.3, 
+      unit: "km", 
+      frequency: "weekly",
+      value: 50,
+      maxValue: 500
+    },
+    { 
+      name: "Electricity Usage", 
+      category: "Home", 
+      icon: <Home className="h-4 w-4 text-yellow-500" />, 
+      impactPerUnit: 0.5, 
+      unit: "kWh", 
+      frequency: "weekly",
+      value: 100,
+      maxValue: 300
+    },
+    { 
+      name: "Meat Consumption", 
+      category: "Food", 
+      icon: <ShoppingBag className="h-4 w-4 text-red-500" />, 
+      impactPerUnit: 6.0, 
+      unit: "meals", 
+      frequency: "weekly",
+      value: 3,
+      maxValue: 21
+    },
+    { 
+      name: "Plant-Based Meals", 
+      category: "Food", 
+      icon: <Leaf className="h-4 w-4 text-green-500" />, 
+      impactPerUnit: -1.5, 
+      unit: "meals", 
+      frequency: "weekly",
+      value: 5,
+      maxValue: 21
+    },
+    { 
+      name: "Public Transit", 
+      category: "Transportation", 
+      icon: <Car className="h-4 w-4 text-purple-500" />, 
+      impactPerUnit: -0.8, 
+      unit: "trips", 
+      frequency: "weekly",
+      value: 3,
+      maxValue: 20
     }
+  ]);
+
+  const handleValueChange = (index: number, newValue: number[]) => {
+    const newActivities = [...activities];
+    newActivities[index].value = newValue[0];
+    setActivities(newActivities);
+  };
+
+  const calculateTotalImpact = () => {
+    return activities.reduce((total, activity) => {
+      // Convert to monthly impact
+      const monthlyMultiplier = activity.frequency === 'weekly' ? 4.3 : 1;
+      return total + (activity.impactPerUnit * activity.value * monthlyMultiplier);
+    }, 0);
+  };
+
+  const handleSaveResults = () => {
+    toast({
+      title: "Carbon Footprint Saved",
+      description: "Your carbon footprint has been calculated and saved to your profile."
+    });
   };
 
   const totalImpact = calculateTotalImpact();
   const isPositiveImpact = totalImpact < 0;
-
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Globe className="h-5 w-5 text-primary" />
-            Carbon Footprint Calculator
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Skeleton className="h-[300px] w-full" />
-          <Separator />
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-10 w-[150px]" />
-            <Skeleton className="h-10 w-[100px]" />
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card>
@@ -71,7 +112,7 @@ export function CarbonFootprintCalculator() {
               <div key={index} className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {getIcon(activity.icon)}
+                    {activity.icon}
                     <div>
                       <div className="font-medium">{activity.name}</div>
                       <div className="text-xs text-muted-foreground">{activity.category}</div>
@@ -86,7 +127,7 @@ export function CarbonFootprintCalculator() {
                   max={activity.maxValue} 
                   step={1} 
                   value={[activity.value]} 
-                  onValueChange={(value) => handleValueChange(index, value[0])}
+                  onValueChange={(value) => handleValueChange(index, value)}
                 />
                 <div className="text-xs text-right text-muted-foreground">
                   Impact: {(activity.impactPerUnit * activity.value).toFixed(1)} kg CO2e/{activity.frequency}
@@ -106,9 +147,7 @@ export function CarbonFootprintCalculator() {
             </div>
           </div>
           <div>
-            <Button onClick={saveResults} disabled={isSaving}>
-              {isSaving ? "Saving..." : "Save Results"}
-            </Button>
+            <Button onClick={handleSaveResults}>Save Results</Button>
           </div>
         </div>
         

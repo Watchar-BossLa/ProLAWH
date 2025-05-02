@@ -23,16 +23,6 @@ const sampleRecommendations = [
     type: "mentor_suggest",
     recommendation: "You would benefit from connecting with mentors who have experience transitioning from backend to full-stack development. This matches your career trajectory.",
     relevance_score: 0.78
-  },
-  {
-    type: "skill_gap",
-    recommendation: "Adding expertise in Green Energy Systems could position you well for the sustainable technology sector, which is seeing 35% growth annually.",
-    relevance_score: 0.85
-  },
-  {
-    type: "job_match",
-    recommendation: "With your experience, you're ideally suited for Sustainable Technology Consultant roles at firms focused on green infrastructure.",
-    relevance_score: 0.88
   }
 ];
 
@@ -87,19 +77,17 @@ serve(async (req) => {
         activity_type: 'career_twin_recommendation_generated',
         metadata: { recommendation_type: recommendation.type }
       })
-      .catch(err => console.error("Failed to log activity:", err))
 
     return new Response(
-      JSON.stringify({ success: true, data: recommendation }),
+      JSON.stringify({ success: true, data }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       }
     )
   } catch (error) {
-    console.error("Career Twin error:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error occurred" }),
+      JSON.stringify({ error: error.message }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,

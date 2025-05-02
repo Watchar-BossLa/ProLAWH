@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,10 +12,9 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Brain, ArrowRight, Loader2 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { useCareerTwin } from "@/hooks/useCareeriTwin";
-import { useNavigate } from 'react-router-dom';
-import { CareerRecommendation } from '@/types/career';
+import { useCareerRecommendations, CareerRecommendation } from "@/hooks/useCareerRecommendations";
 
 interface CareerTwinSimulatorProps {
   userSkills: string[];
@@ -25,9 +25,7 @@ export function CareerTwinSimulator({ userSkills }: CareerTwinSimulatorProps) {
   const [openDialog, setOpenDialog] = useState(false);
   const [simulationProgress, setSimulationProgress] = useState(0);
   const [currentStage, setCurrentStage] = useState('');
-  const [recommendations, setRecommendations] = useState<CareerRecommendation[]>([]);
-  const { addRecommendation, getRecommendations } = useCareerTwin();
-  const navigate = useNavigate();
+  const { generateNewRecommendation, recommendations } = useCareerRecommendations();
   
   const handleSimulate = async () => {
     setOpenDialog(true);
@@ -42,21 +40,12 @@ export function CareerTwinSimulator({ userSkills }: CareerTwinSimulatorProps) {
     await simulateProgress(100, 'Creating skill development plan...');
     
     try {
-      await addRecommendation();
-      const fetchedRecommendations = await getRecommendations();
-      if (fetchedRecommendations) {
-        setRecommendations(fetchedRecommendations);
-      }
+      await generateNewRecommendation.mutateAsync();
       setIsSimulating(false);
     } catch (error) {
       console.error('Failed to generate career recommendation:', error);
       setIsSimulating(false);
     }
-  };
-
-  const goToCareerTwin = () => {
-    setOpenDialog(false);
-    navigate('/dashboard/career-twin');
   };
   
   const simulateProgress = async (progress: number, stage: string) => {
@@ -144,7 +133,7 @@ export function CareerTwinSimulator({ userSkills }: CareerTwinSimulatorProps) {
                     <Badge variant="outline">
                       {Math.round(recommendation.relevance_score * 100)}% Match
                     </Badge>
-                    <Button variant="ghost" size="sm" onClick={goToCareerTwin}>
+                    <Button variant="ghost" size="sm">
                       <ArrowRight className="h-4 w-4" />
                     </Button>
                   </div>
@@ -161,10 +150,10 @@ export function CareerTwinSimulator({ userSkills }: CareerTwinSimulatorProps) {
           
           <DialogFooter>
             <Button 
-              onClick={goToCareerTwin}
+              onClick={() => setOpenDialog(false)} 
               disabled={isSimulating}
             >
-              {isSimulating ? 'Please wait...' : 'View All Insights'}
+              {isSimulating ? 'Please wait...' : 'Close'}
             </Button>
           </DialogFooter>
         </DialogContent>
