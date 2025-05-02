@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
@@ -57,7 +56,7 @@ export default function CameraChallenge({ challenge, onComplete }: CameraChallen
             toast({
               title: "Challenge Completed!",
               description: "Congratulations! All items detected.",
-              variant: "success"
+              variant: "default"
             });
             
             onComplete(true, {
