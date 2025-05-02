@@ -1,6 +1,6 @@
 
 import { useAuth } from "@/hooks/useAuth";
-import { Brain, Briefcase, GraduationCap, Leaf, Coins, Gamepad2, Contrast, ActivitySquare } from "lucide-react";
+import { Brain, Briefcase, GraduationCap, Leaf, Coins, Gamepad2, Contrast, ActivitySquare, BookOpen } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useAccessibility } from "@/components/theme/theme-provider";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ export default function DashboardSidebar() {
     { to: "/dashboard/green-skills", label: "Green Skills", icon: Leaf },
     { to: "/dashboard/skill-staking", label: "Skill Staking", icon: Coins },
     { to: "/dashboard/arcade", label: "Nano Arcade", icon: Gamepad2 },
+    { to: "/dashboard/study-bee", label: "Study Bee", icon: BookOpen },
   ];
 
   return (

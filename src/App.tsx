@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import './App.css'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import DashboardLayout from './layouts/DashboardLayout'
@@ -21,6 +21,7 @@ import CareerTwinPage from './pages/dashboard/CareerTwinPage'
 import GreenSkillsPage from './pages/dashboard/GreenSkillsPage'
 import SkillStakingPage from './pages/dashboard/SkillStakingPage'
 import ArcadePage from './pages/dashboard/ArcadePage'
+import StudyBeePage from './pages/dashboard/StudyBeePage'
 
 // Add an accessibility component for keyboard navigation
 function SkipToContent() {
@@ -42,7 +43,7 @@ function App() {
   }))
 
   // Make sure accessibility settings are applied on initial load
-  React.useEffect(() => {
+  useEffect(() => {
     // Check stored preferences
     const highContrast = localStorage.getItem('accessibility-highContrast') === 'true';
     const reducedMotion = localStorage.getItem('accessibility-reducedMotion') === 'true' || 
@@ -79,6 +80,7 @@ function App() {
                 <Route path="green-skills" element={<GreenSkillsPage />} />
                 <Route path="skill-staking" element={<SkillStakingPage />} />
                 <Route path="arcade" element={<ArcadePage />} />
+                <Route path="study-bee" element={<StudyBeePage />} />
               </Route>
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<AdminDashboard />} />
