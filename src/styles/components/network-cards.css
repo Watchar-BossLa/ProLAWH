@@ -14,7 +14,7 @@
 }
 
 .connection-indicator-mentor {
-  background: linear-gradient(to bottom, theme('colors.primary.DEFAULT'), theme('colors.primary.600'));
+  background: linear-gradient(to bottom, hsl(var(--primary)), hsl(var(--primary)));
 }
 
 .connection-indicator-peer {
