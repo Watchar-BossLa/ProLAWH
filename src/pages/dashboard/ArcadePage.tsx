@@ -4,35 +4,61 @@ import { useArcadeChallenges } from "@/hooks/useArcadeChallenges";
 import { ChallengeCard } from "@/components/arcade/ChallengeCard";
 import { ArcadeIntro } from "@/components/arcade/ArcadeIntro";
 import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Gamepad2 } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { pageTransitions } from "@/lib/transitions";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function ArcadePage() {
   const { data: challenges, isLoading, error } = useArcadeChallenges();
-  const [userId, setUserId] = useState<string | null>(null);
+  const { user } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Check authentication and get user ID
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast({
-          title: "Authentication Required",
-          description: "Please sign in to access the Arcade",
-          variant: "destructive",
-        });
-        navigate("/auth");
-        return;
+  // Mock challenges data for testing
+  const mockChallenges = [
+    {
+      id: "1",
+      title: "Python Data Structures",
+      description: "Demonstrate basic Python data structure knowledge",
+      difficulty_level: "beginner" as const,
+      points: 50,
+      time_limit: 60,
+      type: "camera" as const,
+      instructions: "Show code examples of Python lists, dictionaries, and tuples",
+      validation_rules: {
+        required_items: ["python", "list", "dictionary"]
       }
-      setUserId(session.user.id);
-    };
+    },
+    {
+      id: "2",
+      title: "Kubernetes Architecture",
+      description: "Identify key components in Kubernetes architecture",
+      difficulty_level: "intermediate" as const,
+      points: 100,
+      time_limit: 60,
+      type: "camera" as const,
+      instructions: "Show a diagram or representation of Kubernetes pods, services, and deployments",
+      validation_rules: {
+        required_items: ["kubernetes", "pod", "service", "deployment"]
+      }
+    },
+    {
+      id: "3",
+      title: "Rust Memory Safety",
+      description: "Explain Rust's ownership and borrowing system",
+      difficulty_level: "advanced" as const,
+      points: 150,
+      time_limit: 60,
+      type: "camera" as const,
+      instructions: "Show and explain code examples demonstrating ownership, borrowing and lifetimes in Rust",
+      validation_rules: {
+        required_items: ["rust", "ownership", "borrowing"]
+      }
+    }
+  ];
 
-    checkAuth();
-  }, [navigate]);
+  const displayChallenges = challenges?.length ? challenges : mockChallenges;
 
   if (error) {
     return (
@@ -69,7 +95,7 @@ export default function ArcadePage() {
             </div>
           ))}
         </div>
-      ) : challenges?.length === 0 ? (
+      ) : displayChallenges.length === 0 ? (
         <div className="text-center py-12">
           <Gamepad2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">No Challenges Available</h3>
@@ -77,7 +103,7 @@ export default function ArcadePage() {
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 animate-in fade-in-50 duration-500">
-          {challenges?.map((challenge) => (
+          {displayChallenges.map((challenge) => (
             <ChallengeCard
               key={challenge.id}
               challenge={challenge}

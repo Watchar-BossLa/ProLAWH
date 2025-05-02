@@ -7,12 +7,14 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   error: Error | null;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: true,
-  error: null
+  error: null,
+  signOut: async () => {}
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -55,8 +57,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Error during sign out'));
+      console.error("Error during sign out:", err);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, error }}>
+    <AuthContext.Provider value={{ user, isLoading, error, signOut }}>
       {children}
     </AuthContext.Provider>
   );
