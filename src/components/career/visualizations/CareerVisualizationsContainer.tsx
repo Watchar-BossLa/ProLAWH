@@ -6,7 +6,7 @@ import { RecommendationAnalytics } from './RecommendationAnalytics';
 import { ImplementationProgressTracker } from './ImplementationProgressTracker';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { useCareerTwin, CareerRecommendation, ImplementationPlan } from '@/hooks/useCareeriTwin';
+import { useCareerTwin, CareerRecommendation, ImplementationPlan } from '@/hooks/useCareerTwin';
 import { useImplementationPlans } from '@/hooks/useImplementationPlans';
 
 export const CareerVisualizationsContainer = () => {
@@ -37,7 +37,7 @@ export const CareerVisualizationsContainer = () => {
     };
     
     fetchData();
-  }, []);
+  }, [getRecommendations, getImplementationPlans]);
   
   if (loading) {
     return <Card className="w-full h-[400px] flex items-center justify-center">Loading visualizations...</Card>;

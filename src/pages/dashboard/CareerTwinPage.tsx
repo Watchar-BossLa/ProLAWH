@@ -1,6 +1,7 @@
+
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useCareerTwin, CareerRecommendation } from "@/hooks/useCareeriTwin";
+import { useCareerTwin, CareerRecommendation } from "@/hooks/useCareerTwin";
 import { toast } from "@/hooks/use-toast";
 import { CareerTwinHeader } from "@/components/career/CareerTwinHeader";
 import { CareerTwinFilters } from "@/components/career/CareerTwinFilters";
