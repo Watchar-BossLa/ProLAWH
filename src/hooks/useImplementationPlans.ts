@@ -1,9 +1,10 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import { CareerRecommendation, ImplementationPlan } from '@/types/career';
+
+export type { ImplementationPlan };
 
 export function useImplementationPlans() {
   const { user } = useAuth();
