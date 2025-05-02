@@ -20,6 +20,7 @@ import { AuthProvider } from './hooks/useAuth'
 import CareerTwinPage from './pages/dashboard/CareerTwinPage'
 import GreenSkillsPage from './pages/dashboard/GreenSkillsPage'
 import SkillStakingPage from './pages/dashboard/SkillStakingPage'
+import ArcadePage from './pages/dashboard/ArcadePage'
 
 function App() {
   const [queryClient] = useState(() => new QueryClient({
@@ -44,6 +45,7 @@ function App() {
                 <Route path="career-twin" element={<CareerTwinPage />} />
                 <Route path="green-skills" element={<GreenSkillsPage />} />
                 <Route path="skill-staking" element={<SkillStakingPage />} />
+                <Route path="arcade" element={<ArcadePage />} />
               </Route>
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<AdminDashboard />} />
