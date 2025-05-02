@@ -2,6 +2,7 @@
 import { cn } from "@/lib/utils";
 import React from "react";
 import { useAccessibility } from "../theme/theme-provider";
+import { Contrast } from "lucide-react";
 
 interface HighContrastContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
