@@ -11,12 +11,18 @@ interface AccessibilityContextValue {
   highContrast: boolean;
   setHighContrast: (value: boolean) => void;
   toggleHighContrast: () => void;
+  reducedMotion: boolean;
+  setReducedMotion: (value: boolean) => void;
+  toggleReducedMotion: () => void;
 }
 
 export const AccessibilityContext = React.createContext<AccessibilityContextValue>({
   highContrast: false,
   setHighContrast: () => null,
   toggleHighContrast: () => null,
+  reducedMotion: false,
+  setReducedMotion: () => null,
+  toggleReducedMotion: () => null,
 });
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
@@ -24,6 +30,18 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
   const [highContrast, setHighContrast] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem('accessibility-highContrast') === 'true';
+    }
+    return false;
+  });
+  const [reducedMotion, setReducedMotion] = useState(() => {
+    if (typeof window !== "undefined") {
+      // Check localStorage first, then fall back to system preference
+      const storedPreference = localStorage.getItem('accessibility-reducedMotion');
+      if (storedPreference !== null) {
+        return storedPreference === 'true';
+      }
+      // Check system preference
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     }
     return false;
   });
@@ -37,6 +55,12 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
     const storedHighContrast = localStorage.getItem('accessibility-highContrast');
     if (storedHighContrast === 'true') {
       document.documentElement.classList.add('high-contrast');
+    }
+
+    // Check for reduced motion preference
+    const storedReducedMotion = localStorage.getItem('accessibility-reducedMotion');
+    if (storedReducedMotion === 'true' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.documentElement.classList.add('reduce-motion');
     }
   }, []);
   
@@ -59,6 +83,13 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
       } else {
         document.documentElement.classList.remove('high-contrast');
       }
+
+      // Apply reduce-motion class
+      if (reducedMotion) {
+        document.documentElement.classList.add('reduce-motion');
+      } else {
+        document.documentElement.classList.remove('reduce-motion');
+      }
     };
     
     // Initial setup
@@ -66,11 +97,23 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
     
     // Listen for theme changes
     window.addEventListener('theme-change', handleThemeChange);
+
+    // Listen for system preference changes
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handleReducedMotionChange = (e: MediaQueryListEvent) => {
+      // Only update if user hasn't explicitly set a preference
+      if (localStorage.getItem('accessibility-reducedMotion') === null) {
+        setReducedMotion(e.matches);
+      }
+    };
+    
+    prefersReducedMotion.addEventListener('change', handleReducedMotionChange);
     
     return () => {
       window.removeEventListener('theme-change', handleThemeChange);
+      prefersReducedMotion.removeEventListener('change', handleReducedMotionChange);
     };
-  }, [highContrast]);
+  }, [highContrast, reducedMotion]);
 
   const toggleHighContrast = () => {
     const newValue = !highContrast;
@@ -84,10 +127,25 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
     }));
   };
 
+  const toggleReducedMotion = () => {
+    const newValue = !reducedMotion;
+    setReducedMotion(newValue);
+    localStorage.setItem('accessibility-reducedMotion', newValue.toString());
+    document.documentElement.classList.toggle('reduce-motion', newValue);
+    
+    // Dispatch event for other components to react
+    window.dispatchEvent(new CustomEvent('accessibility-change', { 
+      detail: { reducedMotion: newValue } 
+    }));
+  };
+
   const accessibilityValue = {
     highContrast,
     setHighContrast,
     toggleHighContrast,
+    reducedMotion,
+    setReducedMotion,
+    toggleReducedMotion,
   };
   
   return (

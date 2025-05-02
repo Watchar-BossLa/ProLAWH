@@ -48,7 +48,20 @@
   }
 }
 
-/* Reduced motion support */
+/* Reduced motion support - disables animations when enabled */
+.reduce-motion * {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+.reduce-motion .animate-motion {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* System preference for reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -1,13 +1,13 @@
 
 import { useAuth } from "@/hooks/useAuth";
-import { Brain, Briefcase, GraduationCap, Leaf, Coins, Gamepad2, Contrast } from "lucide-react";
+import { Brain, Briefcase, GraduationCap, Leaf, Coins, Gamepad2, Contrast, ActivitySquare } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useAccessibility } from "@/components/theme/theme-provider";
 import { Button } from "@/components/ui/button";
 
 export default function DashboardSidebar() {
   const { user } = useAuth();
-  const { highContrast, toggleHighContrast } = useAccessibility();
+  const { highContrast, toggleHighContrast, reducedMotion, toggleReducedMotion } = useAccessibility();
 
   const navItems = [
     { to: "/dashboard", label: "Dashboard", icon: GraduationCap, end: true },
@@ -42,7 +42,7 @@ export default function DashboardSidebar() {
                     : "hover:bg-muted"
                 }`
               }
-              end={item.to === "/dashboard"}
+              end={item.end}
             >
               <item.icon className="mr-2 h-4 w-4" aria-hidden="true" />
               <span>{item.label}</span>
@@ -50,7 +50,7 @@ export default function DashboardSidebar() {
           ))}
         </nav>
         
-        <div className="px-4 py-2">
+        <div className="px-4 py-2 space-y-2">
           <Button 
             onClick={toggleHighContrast} 
             variant="outline" 
@@ -60,6 +60,17 @@ export default function DashboardSidebar() {
           >
             <Contrast className="mr-2 h-4 w-4" aria-hidden="true" />
             {highContrast ? "Standard Contrast" : "High Contrast"}
+          </Button>
+          
+          <Button 
+            onClick={toggleReducedMotion} 
+            variant="outline" 
+            size="sm"
+            className="w-full justify-start"
+            aria-pressed={reducedMotion}
+          >
+            <ActivitySquare className="mr-2 h-4 w-4" aria-hidden="true" />
+            {reducedMotion ? "Enable Animations" : "Reduce Motion"}
           </Button>
         </div>
       </div>

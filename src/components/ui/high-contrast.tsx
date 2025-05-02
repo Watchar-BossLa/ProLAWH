@@ -2,7 +2,7 @@
 import { cn } from "@/lib/utils";
 import React from "react";
 import { useAccessibility } from "../theme/theme-provider";
-import { Contrast } from "lucide-react";
+import { Contrast, ActivitySquare } from "lucide-react";
 
 interface HighContrastContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -131,6 +131,30 @@ export function AccessibilityToggle() {
       </span>
       <Contrast className="h-4 w-4 mr-2" />
       {highContrast ? "Standard Contrast" : "High Contrast"}
+    </button>
+  );
+}
+
+export function ReducedMotionToggle() {
+  const { reducedMotion, toggleReducedMotion } = useAccessibility();
+  
+  return (
+    <button
+      type="button"
+      onClick={toggleReducedMotion}
+      className={cn(
+        "inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
+        reducedMotion 
+          ? "bg-primary text-primary-foreground" 
+          : "bg-accent text-accent-foreground"
+      )}
+      aria-pressed={reducedMotion}
+    >
+      <span className="sr-only">
+        {reducedMotion ? "Enable" : "Disable"} animations
+      </span>
+      <ActivitySquare className="h-4 w-4 mr-2" />
+      {reducedMotion ? "Enable Animations" : "Reduce Motion"}
     </button>
   );
 }
