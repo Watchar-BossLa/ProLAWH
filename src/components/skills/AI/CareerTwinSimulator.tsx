@@ -13,8 +13,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Brain, ArrowRight, Loader2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { useCareerRecommendations } from "@/hooks/useCareerRecommendations";
+import { useCareerTwin } from "@/hooks/useCareeriTwin";
 import { useNavigate } from 'react-router-dom';
+import { CareerRecommendation } from '@/types/career';
 
 interface CareerTwinSimulatorProps {
   userSkills: string[];
@@ -25,7 +26,8 @@ export function CareerTwinSimulator({ userSkills }: CareerTwinSimulatorProps) {
   const [openDialog, setOpenDialog] = useState(false);
   const [simulationProgress, setSimulationProgress] = useState(0);
   const [currentStage, setCurrentStage] = useState('');
-  const { generateNewRecommendation, recommendations } = useCareerRecommendations();
+  const [recommendations, setRecommendations] = useState<CareerRecommendation[]>([]);
+  const { addRecommendation, getRecommendations } = useCareerTwin();
   const navigate = useNavigate();
   
   const handleSimulate = async () => {
@@ -41,7 +43,11 @@ export function CareerTwinSimulator({ userSkills }: CareerTwinSimulatorProps) {
     await simulateProgress(100, 'Creating skill development plan...');
     
     try {
-      await generateNewRecommendation.mutateAsync();
+      await addRecommendation();
+      const fetchedRecommendations = await getRecommendations();
+      if (fetchedRecommendations) {
+        setRecommendations(fetchedRecommendations);
+      }
       setIsSimulating(false);
     } catch (error) {
       console.error('Failed to generate career recommendation:', error);

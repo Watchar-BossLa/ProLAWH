@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useCareerRecommendations } from '@/hooks/useCareerRecommendations';
 import { useCareerRecommendationGenerator } from '@/hooks/useCareerRecommendationGenerator';
@@ -67,7 +67,7 @@ export function useCareerTwin() {
   };
 
   // Combine errors from all hooks
-  useState(() => {
+  useEffect(() => {
     const currentError = recommendationsError || generationError || implementationError;
     if (currentError) {
       setError(currentError);
@@ -75,7 +75,7 @@ export function useCareerTwin() {
   }, [recommendationsError, generationError, implementationError]);
 
   // Combine loading states from all hooks
-  useState(() => {
+  useEffect(() => {
     const isCurrentlyLoading = recommendationsLoading || isGenerating || implementationLoading;
     setLoading(isCurrentlyLoading);
   }, [recommendationsLoading, isGenerating, implementationLoading]);

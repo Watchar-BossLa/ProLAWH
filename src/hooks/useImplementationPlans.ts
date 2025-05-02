@@ -30,7 +30,7 @@ export function useImplementationPlans() {
       if (updateError) throw updateError;
 
       // Then fetch the recommendation details
-      const { data: recommendation, error: fetchError } = await supabase
+      const { data: recommendationData, error: fetchError } = await supabase
         .from('career_recommendations')
         .select('*')
         .eq('id', recommendationId)
@@ -39,14 +39,11 @@ export function useImplementationPlans() {
       if (fetchError) throw fetchError;
 
       // Create implementation plan based on recommendation type
-      const typedRecommendation = {
-        ...recommendation,
-        type: recommendation.type as 'skill_gap' | 'job_match' | 'mentor_suggest'
-      };
+      const recommendation = recommendationData as unknown as CareerRecommendation;
       
       const planTitle = `Plan for ${
-        typedRecommendation.type === 'skill_gap' ? 'Skill Development' : 
-        typedRecommendation.type === 'job_match' ? 'Career Transition' : 
+        recommendation.type === 'skill_gap' ? 'Skill Development' : 
+        recommendation.type === 'job_match' ? 'Career Transition' : 
         'Finding Mentorship'
       }`;
 
@@ -57,7 +54,7 @@ export function useImplementationPlans() {
           recommendation_id: recommendationId,
           title: planTitle,
           status: 'in_progress',
-          steps: generateImplementationSteps(typedRecommendation),
+          steps: generateImplementationSteps(recommendation),
         });
 
       if (planError) throw planError;
