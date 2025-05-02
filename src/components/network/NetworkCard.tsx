@@ -9,6 +9,7 @@ import { NetworkCardContent } from "./cards/NetworkCardContent";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { SmartChatInterface } from "./SmartChatInterface";
 import { toast } from "sonner";
+import { RelationshipTools } from "./relationship/RelationshipTools";
 
 interface NetworkCardProps {
   connection: NetworkConnection;
@@ -19,6 +20,7 @@ export function NetworkCard({ connection, onChatOpen }: NetworkCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [showMentorshipForm, setShowMentorshipForm] = useState(false);
   const [showSmartChat, setShowSmartChat] = useState(false);
+  const [showRelationshipTools, setShowRelationshipTools] = useState(false);
   
   const showMentorshipBadge = connection.connectionType === 'mentor' && 
     connection.mentorship && 
@@ -26,7 +28,6 @@ export function NetworkCard({ connection, onChatOpen }: NetworkCardProps) {
 
   const handleMentorshipRequest = (request: MentorshipRequest) => {
     console.log("Mentorship request:", request);
-    // Fixed toast usage to match sonner's API
     toast("Mentorship Request Sent", {
       description: `Your mentorship request has been sent to ${connection.name}.`
     });
@@ -57,6 +58,7 @@ export function NetworkCard({ connection, onChatOpen }: NetworkCardProps) {
         isHovered={isHovered}
         onChatOpen={handleChatClick}
         onMentorshipRequest={() => setShowMentorshipForm(true)}
+        onShowTools={() => setShowRelationshipTools(true)}
       />
       
       <MentorshipRequestForm
@@ -71,6 +73,15 @@ export function NetworkCard({ connection, onChatOpen }: NetworkCardProps) {
           <SmartChatInterface 
             connection={connection} 
             onClose={() => setShowSmartChat(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showRelationshipTools} onOpenChange={setShowRelationshipTools}>
+        <DialogContent className="sm:max-w-[600px]">
+          <RelationshipTools 
+            connection={connection} 
+            onClose={() => setShowRelationshipTools(false)}
           />
         </DialogContent>
       </Dialog>

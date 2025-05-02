@@ -1,3 +1,4 @@
+
 export interface NetworkConnection {
   id: string;
   userId: string;
@@ -18,6 +19,20 @@ export interface NetworkConnection {
   careerPath?: string;
   expertise?: string[];
   mentorship?: MentorshipDetails;
+  // Added fields for enhanced networking
+  sector?: string;
+  seniorityLevel?: 'junior' | 'mid' | 'senior' | 'executive';
+  sharedInterests?: string[];
+  recommendedActivities?: string[];
+  relationshipHistory?: RelationshipHistoryItem[];
+}
+
+export interface RelationshipHistoryItem {
+  id: string;
+  type: 'meeting' | 'project' | 'message' | 'resource' | 'other';
+  date: string;
+  description: string;
+  outcome?: string;
 }
 
 export interface MentorshipDetails {
@@ -108,4 +123,25 @@ export interface MentorshipRequest {
   industry: string;
   expectedDuration?: string;
   goals?: string[];
+}
+
+export interface CollaborationProject {
+  id: string;
+  title: string;
+  description: string;
+  participantIds: string[];
+  createdBy: string;
+  createdAt: string;
+  status: 'planning' | 'active' | 'completed';
+  resources: MentorshipResource[];
+  tasks?: CollaborationTask[];
+}
+
+export interface CollaborationTask {
+  id: string;
+  title: string;
+  description?: string;
+  assigneeId?: string;
+  status: 'todo' | 'in_progress' | 'completed';
+  dueDate?: string;
 }

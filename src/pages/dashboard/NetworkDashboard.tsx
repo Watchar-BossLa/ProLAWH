@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,8 +9,20 @@ import { NetworkHeader } from "@/components/network/header/NetworkHeader";
 import { NetworkTabsContent } from "@/components/network/tabs/NetworkTabsContent";
 import { ChatInterface } from "@/components/network/ChatInterface";
 import { useNetworkRecommendations } from "@/hooks/useNetworkRecommendations";
-import { Users, Network, Brain, BarChart } from "lucide-react";
+import { Users, Network, Brain, BarChart, Filter, Tag } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { NetworkFilters } from "@/components/network/NetworkFilters";
+import { NetworkIndustrySelector } from "@/components/network/NetworkIndustrySelector";
+import { Badge } from "@/components/ui/badge";
+import { 
+  DropdownMenu, 
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 // Mock data - Replace with actual data from your backend
 const mockStats: NetworkStats = {
@@ -26,6 +39,12 @@ const mockUserSkills = [
   "Data Analysis", "Node.js", "Technical Leadership"
 ];
 
+// Mock industries/sectors for filtering
+const mockIndustries = [
+  "Technology", "Finance", "Healthcare", "Education", 
+  "Environment", "Marketing", "Design", "Data Science"
+];
+
 export default function NetworkDashboard() {
   const [filterType, setFilterType] = useState<string>("all");
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -34,6 +53,7 @@ export default function NetworkDashboard() {
   const [activeTab, setActiveTab] = useState<string>("connections");
   const [selectedConnectionId, setSelectedConnectionId] = useState<string | null>(null);
   const [connections, setConnections] = useState<NetworkConnection[]>([]);
+  const [selectedIndustry, setSelectedIndustry] = useState<string | null>(null);
   
   const { 
     getRecommendations, 
@@ -56,7 +76,8 @@ export default function NetworkDashboard() {
     skills: ["React", "TypeScript", "UI/UX"],
     bio: "Tech lead with 10+ years in frontend development",
     location: "San Francisco, CA",
-    onlineStatus: "online"
+    onlineStatus: "online",
+    industry: "Technology"
   };
 
   // Fetch connections (mock function)
@@ -79,7 +100,10 @@ export default function NetworkDashboard() {
           bio: "Tech lead with 10+ years in frontend development",
           location: "San Francisco, CA",
           onlineStatus: "online",
-          unreadMessages: 2
+          unreadMessages: 2,
+          industry: "Technology",
+          careerPath: "Software Engineering",
+          expertise: ["Frontend Development", "Technical Leadership"]
         },
         {
           id: "2",
@@ -94,7 +118,8 @@ export default function NetworkDashboard() {
           skills: ["Product Strategy", "Market Analysis", "Agile", "Data Analysis"],
           location: "New York, NY",
           industry: "Technology",
-          onlineStatus: "away"
+          onlineStatus: "away",
+          careerPath: "Product Management"
         },
         {
           id: "3",
@@ -109,7 +134,8 @@ export default function NetworkDashboard() {
           skills: ["Machine Learning", "Python", "Data Visualization", "Statistics"],
           bio: "Turning data into actionable insights",
           industry: "Data Analytics",
-          onlineStatus: "offline"
+          onlineStatus: "offline",
+          careerPath: "Data Science"
         },
         {
           id: "4",
@@ -125,7 +151,8 @@ export default function NetworkDashboard() {
           location: "Austin, TX",
           industry: "Design",
           onlineStatus: "online",
-          unreadMessages: 5
+          unreadMessages: 5,
+          careerPath: "Design"
         },
         {
           id: "5",
@@ -139,7 +166,9 @@ export default function NetworkDashboard() {
           status: "connected",
           skills: ["Node.js", "Database Design", "API Development", "AWS", "Microservices"],
           industry: "Cloud Computing",
-          bio: "Building scalable systems for enterprise applications"
+          bio: "Building scalable systems for enterprise applications",
+          careerPath: "Software Engineering",
+          expertise: ["Backend Development", "Cloud Architecture"]
         },
         {
           id: "6",
@@ -154,7 +183,8 @@ export default function NetworkDashboard() {
           skills: ["Content Strategy", "SEO", "Social Media", "Analytics", "Copywriting"],
           location: "Chicago, IL",
           industry: "Marketing",
-          onlineStatus: "online"
+          onlineStatus: "online",
+          careerPath: "Marketing"
         }
       ];
       
@@ -163,6 +193,25 @@ export default function NetworkDashboard() {
     
     fetchConnections();
   }, []);
+
+  // Filter connections based on type and industry
+  const filteredConnections = connections.filter(conn => {
+    // Filter by connection type
+    const typeMatch = filterType === "all" ? true : conn.connectionType === filterType;
+    
+    // Filter by industry if one is selected
+    const industryMatch = !selectedIndustry ? true : conn.industry === selectedIndustry;
+    
+    // Filter by search query
+    const searchMatch = !searchQuery ? true : 
+      conn.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      conn.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (conn.skills && conn.skills.some(skill => 
+        skill.toLowerCase().includes(searchQuery.toLowerCase())
+      ));
+    
+    return typeMatch && industryMatch && searchMatch;
+  });
 
   const handleChatOpen = (connectionId: string) => {
     setActiveChatId(connectionId);
@@ -198,6 +247,44 @@ export default function NetworkDashboard() {
       
       <NetworkStatsCards stats={mockStats} />
       
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+        <NetworkFilters 
+          activeFilter={filterType}
+          onFilterChange={setFilterType}
+        />
+        
+        <div className="flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-2">
+                <Tag size={16} />
+                <span>Industry/Sector</span>
+                {selectedIndustry && (
+                  <Badge variant="secondary" className="ml-1">
+                    {selectedIndustry}
+                  </Badge>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuLabel>Select Industry</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setSelectedIndustry(null)}>
+                All Industries
+              </DropdownMenuItem>
+              {mockIndustries.map((industry) => (
+                <DropdownMenuItem
+                  key={industry}
+                  onClick={() => setSelectedIndustry(industry)}
+                >
+                  {industry}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+      
       <NetworkMetrics stats={mockStats} />
       
       <Tabs defaultValue="connections" value={activeTab} onValueChange={setActiveTab}>
@@ -224,7 +311,7 @@ export default function NetworkDashboard() {
           activeTab={activeTab}
           filterType={filterType}
           onChatOpen={handleChatOpen}
-          connections={connections}
+          connections={filteredConnections}
           selectedConnectionId={selectedConnectionId}
           onConnectionSelect={handleConnectionSelect}
           recommendations={recommendations}

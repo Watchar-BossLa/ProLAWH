@@ -6,19 +6,22 @@ import { NetworkConnection } from "@/types/network";
 import { NetworkConnectionStrength } from "./NetworkConnectionStrength";
 import { NetworkCardActions } from "./NetworkCardActions";
 import { NetworkCardMentorship } from "./NetworkCardMentorship";
+import { NetworkCardIndustry } from "./NetworkCardIndustry";
 
 interface NetworkCardContentProps {
   connection: NetworkConnection;
   isHovered: boolean;
   onChatOpen?: (connectionId: string) => void;
   onMentorshipRequest?: () => void;
+  onShowTools?: () => void;
 }
 
 export function NetworkCardContent({ 
   connection, 
   isHovered,
   onChatOpen,
-  onMentorshipRequest 
+  onMentorshipRequest,
+  onShowTools
 }: NetworkCardContentProps) {
   return (
     <CardContent className="grid gap-2">
@@ -28,6 +31,8 @@ export function NetworkCardContent({
           {connection.connectionType}
         </Badge>
       </div>
+      
+      <NetworkCardIndustry industry={connection.industry} careerPath={connection.careerPath} />
       
       {connection.skills && connection.skills.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-1">
@@ -51,6 +56,7 @@ export function NetworkCardContent({
         isHovered={isHovered}
         onChatOpen={onChatOpen}
         onMentorshipRequest={onMentorshipRequest}
+        onShowTools={onShowTools}
       />
       
       <NetworkCardMentorship connection={connection} />
