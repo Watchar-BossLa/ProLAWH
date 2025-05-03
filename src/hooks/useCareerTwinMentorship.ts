@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -74,11 +75,14 @@ export function useCareerTwinMentorship() {
           const profileData = mentor.profiles;
           let fullName = "Unnamed Mentor";
           
-          // Use proper null/undefined checking before trying to access properties
-          if (profileData && typeof profileData === 'object' && !('error' in profileData)) {
-            // The type assertion is needed here because TypeScript still doesn't recognize that profileData is safe
-            const profile = profileData as MentorProfile;
-            fullName = profile?.full_name || "Unnamed Mentor";
+          // Fix: Use proper null/undefined checking before accessing properties
+          if (profileData && typeof profileData === 'object') {
+            // Check if it's not an error object and has expected properties
+            if (!('error' in profileData) && profileData !== null) {
+              // The type assertion is safe here after our checks
+              const profile = profileData as MentorProfile;
+              fullName = profile.full_name || "Unnamed Mentor";
+            }
           }
           
           mentorMatches.push({
