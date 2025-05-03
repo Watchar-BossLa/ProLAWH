@@ -15,6 +15,12 @@ interface MentorRecommendation {
   recommendationId?: string;
 }
 
+interface MentorProfile {
+  id: string;
+  full_name?: string;
+  avatar_url?: string;
+}
+
 export function useCareerTwinMentorship() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -60,8 +66,9 @@ export function useCareerTwinMentorship() {
           
           const relevanceScore = overlapCount / Math.max(1, mentorSkills.length);
           
-          // Safely access the profile properties
-          const fullName = mentor.profiles?.full_name || "Unnamed Mentor";
+          // Type assertion to help TypeScript understand the profile structure
+          const profile = mentor.profiles as MentorProfile | null;
+          const fullName = profile?.full_name || "Unnamed Mentor";
           
           mentorMatches.push({
             id: `${rec.id}-${mentor.id}`,
