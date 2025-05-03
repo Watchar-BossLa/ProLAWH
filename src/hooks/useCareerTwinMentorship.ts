@@ -75,7 +75,7 @@ export function useCareerTwinMentorship() {
           const profileData = mentor.profiles;
           let fullName = "Unnamed Mentor";
           
-          // Use type checking to safely access profile properties
+          // Use proper null/undefined checking before trying to access properties
           if (profileData && typeof profileData === 'object' && !('error' in profileData)) {
             fullName = (profileData as any).full_name || "Unnamed Mentor";
           }
