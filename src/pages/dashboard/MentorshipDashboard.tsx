@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { MentorshipList } from "@/components/mentorship/MentorshipList";
 import { MentorFinderSection } from "@/components/mentorship/MentorFinderSection";
+import { CareerTwinMentorRecommendations } from "@/components/mentorship/CareerTwinMentorRecommendations";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -82,6 +83,9 @@ export default function MentorshipDashboard() {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Career Twin Mentor Recommendations Section */}
+      <CareerTwinMentorRecommendations />
 
       <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
