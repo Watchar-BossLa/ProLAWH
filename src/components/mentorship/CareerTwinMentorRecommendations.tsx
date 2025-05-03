@@ -20,9 +20,29 @@ import { Badge } from "@/components/ui/badge";
 import { MentorshipRequestForm } from "@/components/mentorship/MentorshipRequestForm";
 import { Brain, UserPlus, Loader2, AlertCircle } from "lucide-react";
 
+// Define the type for mentor recommendation
+interface MentorRecommendationData {
+  id: string;
+  mentorId: string;
+  mentorName: string;
+  mentorExpertise: string[];
+  matchReason: string;
+  relevanceScore: number;
+  recommendationId?: string;
+}
+
+// Define the type for selected mentor
+interface SelectedMentor {
+  id: string;
+  name: string;
+  avatar?: string;
+  expertise?: string[];
+  recommendationId?: string;
+}
+
 export function CareerTwinMentorRecommendations() {
   const { mentorRecommendations, isLoading, error } = useCareerTwinMentorship();
-  const [selectedMentor, setSelectedMentor] = useState<any | null>(null);
+  const [selectedMentor, setSelectedMentor] = useState<SelectedMentor | null>(null);
   
   if (isLoading) {
     return (
@@ -99,7 +119,7 @@ export function CareerTwinMentorRecommendations() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {mentorRecommendations.slice(0, 3).map((rec) => (
+            {mentorRecommendations?.slice(0, 3).map((rec) => (
               <div key={rec.id} className="border rounded-lg p-4 hover:bg-muted/30 transition-colors">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-medium">{rec.mentorName}</h3>
@@ -142,7 +162,7 @@ export function CareerTwinMentorRecommendations() {
             ))}
           </div>
           
-          {mentorRecommendations.length > 3 && (
+          {mentorRecommendations && mentorRecommendations.length > 3 && (
             <div className="mt-4 text-center">
               <Button variant="outline" size="sm">
                 View All Recommendations

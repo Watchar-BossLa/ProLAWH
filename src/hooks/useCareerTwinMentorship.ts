@@ -21,6 +21,11 @@ interface MentorProfile {
   avatar_url?: string;
 }
 
+// Type guard to check if an object is a valid MentorProfile
+function isMentorProfile(obj: any): obj is MentorProfile {
+  return obj && typeof obj === 'object' && 'id' in obj;
+}
+
 export function useCareerTwinMentorship() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -66,9 +71,14 @@ export function useCareerTwinMentorship() {
           
           const relevanceScore = overlapCount / Math.max(1, mentorSkills.length);
           
-          // Type assertion to help TypeScript understand the profile structure
-          const profile = mentor.profiles as MentorProfile | null;
-          const fullName = profile?.full_name || "Unnamed Mentor";
+          // Safely handle the profile data
+          const profileData = mentor.profiles;
+          let fullName = "Unnamed Mentor";
+          
+          // Use type checking to safely access profile properties
+          if (profileData && typeof profileData === 'object' && !('error' in profileData)) {
+            fullName = (profileData as any).full_name || "Unnamed Mentor";
+          }
           
           mentorMatches.push({
             id: `${rec.id}-${mentor.id}`,
