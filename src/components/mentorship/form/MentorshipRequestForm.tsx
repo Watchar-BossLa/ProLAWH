@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,7 +23,7 @@ interface MentorshipRequestFormProps {
     name: string;
     avatar?: string;
     expertise?: string[];
-    recommendationId?: string; // Added recommendation ID
+    recommendationId?: string; // Add this property to match the usage in CareerTwinMentorRecommendations
   };
   onSuccess?: () => void;
 }

@@ -43,7 +43,7 @@ export function useCareerTwinMentorship() {
           .select(`
             id,
             expertise,
-            profiles:id(full_name, avatar_url)
+            profiles:id (full_name, avatar_url)
           `)
           .filter("is_accepting_mentees", "eq", true)
           .filter("expertise", "cs", `{${rec.skills.join(',')}}`);
@@ -60,10 +60,13 @@ export function useCareerTwinMentorship() {
           
           const relevanceScore = overlapCount / Math.max(1, mentorSkills.length);
           
+          // Safely access the profile properties
+          const fullName = mentor.profiles?.full_name || "Unnamed Mentor";
+          
           mentorMatches.push({
             id: `${rec.id}-${mentor.id}`,
             mentorId: mentor.id,
-            mentorName: mentor.profiles?.full_name || "Unnamed Mentor",
+            mentorName: fullName,
             mentorExpertise: mentor.expertise || [],
             matchReason: rec.recommendation,
             relevanceScore: relevanceScore,

@@ -9,6 +9,7 @@ interface MentorshipFormHeaderProps {
     name: string;
     avatar?: string;
     expertise?: string[];
+    recommendationId?: string; // Add this property to match the usage
   };
   isCareerTwinRecommended?: boolean;
 }
