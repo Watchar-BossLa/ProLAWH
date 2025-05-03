@@ -77,8 +77,9 @@ export function useCareerTwinMentorship() {
           
           // Use proper null/undefined checking before trying to access properties
           if (profileData && typeof profileData === 'object' && !('error' in profileData)) {
-            // Use non-null assertion after proper check to inform TypeScript that profileData is safe
-            fullName = (profileData as MentorProfile).full_name || "Unnamed Mentor";
+            // The type assertion is needed here because TypeScript still doesn't recognize that profileData is safe
+            const profile = profileData as MentorProfile;
+            fullName = profile.full_name || "Unnamed Mentor";
           }
           
           mentorMatches.push({
