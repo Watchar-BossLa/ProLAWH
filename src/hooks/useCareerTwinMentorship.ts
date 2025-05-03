@@ -77,7 +77,8 @@ export function useCareerTwinMentorship() {
           
           // Use proper null/undefined checking before trying to access properties
           if (profileData && typeof profileData === 'object' && !('error' in profileData)) {
-            fullName = (profileData as any).full_name || "Unnamed Mentor";
+            // Use optional chaining to safely access full_name
+            fullName = profileData?.full_name || "Unnamed Mentor";
           }
           
           mentorMatches.push({
