@@ -33,6 +33,8 @@ import PaymentsPage from "./pages/admin/PaymentsPage";
 import SettingsPage from "./pages/admin/SettingsPage";
 import MentorshipDashboard from "./pages/dashboard/MentorshipDashboard";
 import MentorshipDetailPage from "./pages/dashboard/MentorshipDetailPage";
+import { QuorumForgeProvider } from "./hooks/useQuorumForge";
+import QuorumForgeDashboard from "./pages/dashboard/QuorumForgeDashboard";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,44 +49,47 @@ const App = () => (
   <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<AuthPage />} />
-              
-              <Route path="/dashboard" element={<DashboardLayout />}>
-                <Route index element={<DashboardHome />} />
-                <Route path="learning" element={<LearningDashboard />} />
-                <Route path="learning/course/:courseId" element={<CourseDetailsPage />} />
-                <Route path="skills" element={<SkillsAndBadgesPage />} />
-                <Route path="mentorship" element={<MentorshipDashboard />} />
-                <Route path="mentorship/:mentorshipId" element={<MentorshipDetailPage />} />
-                <Route path="opportunities" element={<OpportunityMarketplace />} />
-                <Route path="arcade" element={<ArcadePage />} />
-                <Route path="arcade/challenge/:challengeId" element={<ChallengePage />} />
-                <Route path="career-twin" element={<CareerTwinPage />} />
-                <Route path="green-skills" element={<GreenSkillsPage />} />
-                <Route path="staking" element={<SkillStakingPage />} />
-                <Route path="study-bee" element={<StudyBeePage />} />
-                <Route path="network" element={<NetworkDashboard />} />
-                <Route path="network/:connectionId" element={<NetworkConnectionProfile />} />
-              </Route>
-              
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<AdminDashboard />} />
-                <Route path="users" element={<UsersPage />} />
-                <Route path="analytics" element={<AnalyticsPage />} />
-                <Route path="payments" element={<PaymentsPage />} />
-                <Route path="settings" element={<SettingsPage />} />
-              </Route>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+        <QuorumForgeProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<AuthPage />} />
+                
+                <Route path="/dashboard" element={<DashboardLayout />}>
+                  <Route index element={<DashboardHome />} />
+                  <Route path="learning" element={<LearningDashboard />} />
+                  <Route path="learning/course/:courseId" element={<CourseDetailsPage />} />
+                  <Route path="skills" element={<SkillsAndBadgesPage />} />
+                  <Route path="mentorship" element={<MentorshipDashboard />} />
+                  <Route path="mentorship/:mentorshipId" element={<MentorshipDetailPage />} />
+                  <Route path="opportunities" element={<OpportunityMarketplace />} />
+                  <Route path="arcade" element={<ArcadePage />} />
+                  <Route path="arcade/challenge/:challengeId" element={<ChallengePage />} />
+                  <Route path="career-twin" element={<CareerTwinPage />} />
+                  <Route path="green-skills" element={<GreenSkillsPage />} />
+                  <Route path="staking" element={<SkillStakingPage />} />
+                  <Route path="study-bee" element={<StudyBeePage />} />
+                  <Route path="network" element={<NetworkDashboard />} />
+                  <Route path="network/:connectionId" element={<NetworkConnectionProfile />} />
+                  <Route path="quorumforge" element={<QuorumForgeDashboard />} />
+                </Route>
+                
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="users" element={<UsersPage />} />
+                  <Route path="analytics" element={<AnalyticsPage />} />
+                  <Route path="payments" element={<PaymentsPage />} />
+                  <Route path="settings" element={<SettingsPage />} />
+                </Route>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </QuorumForgeProvider>
       </AuthProvider>
     </QueryClientProvider>
   </ThemeProvider>

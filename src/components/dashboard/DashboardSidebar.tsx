@@ -15,7 +15,8 @@ import {
   Home, 
   Settings,
   Leaf,
-  ShieldCheck
+  ShieldCheck,
+  Brain
 } from 'lucide-react';
 
 interface NavItemProps {
@@ -58,6 +59,7 @@ export function DashboardSidebar() {
     { icon: BarChart, label: "Career Twin", href: "/dashboard/career-twin" },
     { icon: Leaf, label: "Green Skills", href: "/dashboard/green-skills" },
     { icon: Book, label: "Study Bee", href: "/dashboard/study-bee" },
+    { icon: Brain, label: "QuorumForge OS", href: "/dashboard/quorumforge" },
     { icon: Settings, label: "Settings", href: "/profile" }
   ];
   

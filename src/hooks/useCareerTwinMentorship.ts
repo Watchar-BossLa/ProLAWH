@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -79,7 +78,7 @@ export function useCareerTwinMentorship() {
           if (profileData && typeof profileData === 'object' && !('error' in profileData)) {
             // The type assertion is needed here because TypeScript still doesn't recognize that profileData is safe
             const profile = profileData as MentorProfile;
-            fullName = profile.full_name || "Unnamed Mentor";
+            fullName = profile?.full_name || "Unnamed Mentor";
           }
           
           mentorMatches.push({
