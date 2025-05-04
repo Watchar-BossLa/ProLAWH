@@ -75,12 +75,13 @@ export function useCareerTwinMentorship() {
           const profileData = mentor.profiles;
           let fullName = "Unnamed Mentor";
           
-          // Fix: First check if profileData is not null before checking properties
-          if (profileData !== null && typeof profileData === 'object') {
-            // Now it's safe to check if full_name exists on profileData
-            if ('full_name' in profileData) {
-              // TypeScript now knows profileData is not null and has full_name property
-              fullName = profileData.full_name || "Unnamed Mentor";
+          // Fix: Make sure profileData is not null and is an object
+          if (profileData && typeof profileData === 'object') {
+            // TypeScript now knows profileData is an object
+            const profile = profileData as Record<string, unknown>;
+            // Now check if full_name exists and is a string
+            if ('full_name' in profile && typeof profile.full_name === 'string') {
+              fullName = profile.full_name || "Unnamed Mentor";
             }
           }
           
