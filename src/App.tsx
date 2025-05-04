@@ -35,6 +35,7 @@ import MentorshipDashboard from "./pages/dashboard/MentorshipDashboard";
 import MentorshipDetailPage from "./pages/dashboard/MentorshipDetailPage";
 import { QuorumForgeProvider } from "./hooks/useQuorumForge";
 import QuorumForgeDashboard from "./pages/dashboard/QuorumForgeDashboard";
+import VeriSkillNetworkPage from "./pages/dashboard/VeriSkillNetworkPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -75,6 +76,7 @@ const App = () => (
                   <Route path="network" element={<NetworkDashboard />} />
                   <Route path="network/:connectionId" element={<NetworkConnectionProfile />} />
                   <Route path="quorumforge" element={<QuorumForgeDashboard />} />
+                  <Route path="veriskill" element={<VeriSkillNetworkPage />} />
                 </Route>
                 
                 <Route path="/profile" element={<ProfilePage />} />
