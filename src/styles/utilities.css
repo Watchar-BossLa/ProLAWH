@@ -16,6 +16,19 @@
     @apply relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-shimmer before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent;
   }
 
+  /* High contrast text utilities */
+  .high-contrast-heading {
+    @apply text-gray-900 dark:text-gray-50;
+  }
+
+  .high-contrast-subheading {
+    @apply text-gray-800 dark:text-gray-100;
+  }
+
+  .high-contrast-body {
+    @apply text-gray-700 dark:text-gray-200;
+  }
+
   /* Dynamic theme gradient utilities */
   .dynamic {
     /* Gradient Card Component */

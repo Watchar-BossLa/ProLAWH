@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { BookOpen, Brain, Briefcase, GraduationCap, Trophy, Users } from "lucide-react";
@@ -45,9 +46,9 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
             <span className="block">ProLawh</span>
-            <span className="block text-blue-600">Learning And Workforce Hub</span>
+            <span className="block text-blue-700">Learning And Workforce Hub</span>
           </h1>
-          <p className="mt-6 max-w-2xl mx-auto text-xl text-gray-500">
+          <p className="mt-6 max-w-2xl mx-auto text-xl text-gray-700">
             Empowering your journey through personalized education, verifiable skills, and dynamic work opportunities.
           </p>
           <div className="mt-10 flex justify-center gap-4">
@@ -76,7 +77,7 @@ const Index = () => {
             <h2 className="text-3xl font-extrabold text-gray-900">
               Platform Features
             </h2>
-            <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
+            <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-700">
               Everything you need to learn, validate skills, and advance your career
             </p>
           </div>
@@ -88,7 +89,7 @@ const Index = () => {
                 className="border rounded-lg p-6 hover:shadow-md transition-shadow"
               >
                 <div className="mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
+                <h3 className="text-xl font-bold mb-2 text-gray-800">{feature.title}</h3>
                 <p className="text-gray-600">{feature.description}</p>
               </div>
             ))}
@@ -102,7 +103,7 @@ const Index = () => {
           <h2 className="text-3xl font-extrabold text-white">
             Ready to start your journey?
           </h2>
-          <p className="mt-4 max-w-2xl mx-auto text-xl text-blue-100">
+          <p className="mt-4 max-w-2xl mx-auto text-xl text-blue-50">
             Join ProLawh today and take control of your learning and career path.
           </p>
           <div className="mt-8">
