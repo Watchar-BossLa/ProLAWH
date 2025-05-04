@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,10 @@ import { toast } from "@/hooks/use-toast";
 import { Loader2, LogIn, UserPlus } from "lucide-react";
 import { Label } from "@/components/ui/label";
 
+interface LocationState {
+  returnUrl?: string;
+}
+
 export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -16,6 +20,9 @@ export default function AuthPage() {
   const [fullName, setFullName] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state as LocationState;
+  const returnUrl = state?.returnUrl || "/dashboard";
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +54,7 @@ export default function AuthPage() {
 
         if (error) throw error;
         
-        navigate("/dashboard");
+        navigate(returnUrl);
       }
     } catch (error: any) {
       toast({
@@ -72,6 +79,11 @@ export default function AuthPage() {
               ? "Enter your details to create your account"
               : "Enter your credentials to access your account"}
           </CardDescription>
+          {returnUrl !== "/dashboard" && (
+            <div className="py-2 px-3 bg-muted/50 rounded-md text-sm">
+              You'll be redirected to {returnUrl.replace("/dashboard/", "")} after login
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           <form onSubmit={handleAuth} className="space-y-4">

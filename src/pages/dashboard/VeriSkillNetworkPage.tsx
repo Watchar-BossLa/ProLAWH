@@ -3,14 +3,16 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Wallet, Handshake, Shield } from "lucide-react";
+import { ExternalLink, Wallet, Handshake, Shield, LogIn } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VeriSkillOverview } from "@/components/veriskill/VeriSkillOverview";
 import { VeriSkillEmbed } from "@/components/veriskill/VeriSkillEmbed";
+import { useNavigate } from "react-router-dom";
 
 const VeriSkillNetworkPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'error'>('connecting');
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -23,15 +25,49 @@ const VeriSkillNetworkPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, [user]);
 
+  const handleSignIn = () => {
+    navigate('/auth', { state: { returnUrl: '/dashboard/veriskill' } });
+  };
+
   if (!user) {
     return (
       <div className="container mx-auto p-6">
-        <Alert variant="destructive">
-          <AlertTitle>Authentication Required</AlertTitle>
-          <AlertDescription>
-            Please sign in to access the VeriSkill Network platform.
-          </AlertDescription>
-        </Alert>
+        <Card className="w-full overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+            <CardTitle className="text-2xl">VeriSkill Network</CardTitle>
+            <CardDescription className="text-blue-100">
+              Decentralized skill passport, gig matching, and stablecoin payments
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-8">
+            <div className="flex flex-col items-center text-center gap-6">
+              <div className="bg-blue-100 p-6 rounded-full">
+                <Wallet className="h-16 w-16 text-blue-600" />
+              </div>
+              
+              <div>
+                <h2 className="text-xl font-semibold mb-2">Authentication Required</h2>
+                <p className="text-muted-foreground mb-6 max-w-md">
+                  Please sign in to access the VeriSkill Network platform. Your secure digital wallet
+                  and credentials can only be accessed through an authenticated session.
+                </p>
+                
+                <Button onClick={handleSignIn} size="lg" className="gap-2">
+                  <LogIn className="h-4 w-4" /> Sign In to Access VeriSkill
+                </Button>
+              </div>
+              
+              <div className="mt-4 w-full max-w-xl pt-8 border-t">
+                <h3 className="font-medium mb-2">What is VeriSkill Network?</h3>
+                <p className="text-sm text-muted-foreground">
+                  VeriSkill Network is a decentralized platform that securely stores your verified credentials,
+                  connects you with gig opportunities matching your skills, and enables stablecoin payments
+                  across borders with minimal fees.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }

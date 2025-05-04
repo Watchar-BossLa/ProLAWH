@@ -1,14 +1,42 @@
 
-import React from 'react';
-import { Outlet } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { ThemeSwitcher } from "@/components/theme/theme-switcher";
 import { 
   Sidebar,
   SidebarProvider,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/useAuth";
+import { Loader2 } from "lucide-react";
 
 export function DashboardLayout() {
+  const { user, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  useEffect(() => {
+    if (!isLoading && !user) {
+      // Redirect to auth page with return URL
+      navigate('/auth', { state: { returnUrl: location.pathname } });
+    }
+  }, [user, isLoading, navigate, location.pathname]);
+
+  if (isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Will be redirected by the useEffect
+  }
+
   return (
     <SidebarProvider>
       <div className="flex h-screen bg-background text-foreground transition-colors duration-300">
