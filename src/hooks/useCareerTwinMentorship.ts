@@ -75,11 +75,11 @@ export function useCareerTwinMentorship() {
           const profileData = mentor.profiles;
           let fullName = "Unnamed Mentor";
           
-          // Fix: Use proper null/undefined checking before accessing properties
+          // Fix: First check if profileData is not null before checking properties
           if (profileData !== null && typeof profileData === 'object') {
-            // Check if it's a valid object with the expected properties
+            // Now it's safe to check if full_name exists on profileData
             if ('full_name' in profileData) {
-              // Now TypeScript knows profileData.full_name exists
+              // TypeScript now knows profileData is not null and has full_name property
               fullName = profileData.full_name || "Unnamed Mentor";
             }
           }
