@@ -25,7 +25,7 @@ export function useBlockchainCredentials(userId?: string) {
         if (error) throw error;
 
         // Ensure we transform the mock data to match our expected types
-        if (data) {
+        if (data && Array.isArray(data)) {
           const typedCredentials: BlockchainCredential[] = data.map(item => ({
             id: item.id || '',
             user_id: item.user_id || userId,

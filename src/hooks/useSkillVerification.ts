@@ -3,9 +3,10 @@ import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { VerificationMethod } from '@/types/skills';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
+
+export type VerificationMethod = "challenge" | "credential" | "endorsement";
 
 export function useSkillVerification() {
   const { user } = useAuth();
@@ -118,6 +119,3 @@ export function useSkillVerification() {
     isVerifying: verifySkill.isPending
   };
 }
-
-// Re-export the VerificationMethod type for convenience
-export type { VerificationMethod };

@@ -1,3 +1,4 @@
+
 // Mock Supabase client for integration
 
 interface MockData {
@@ -94,6 +95,18 @@ export const supabase = {
           expertise: ['Green Energy', 'Sustainability'],
           profiles: { full_name: 'Expert Mentor', avatar_url: '/avatar.png' }
         }
+      ],
+      'career_recommendations': [
+        {
+          id: 'rec-1',
+          user_id: 'user-1',
+          type: 'skill_gap',
+          recommendation: 'Learn sustainable energy practices',
+          relevance_score: 0.85,
+          status: 'pending',
+          created_at: new Date().toISOString(),
+          skills: ['Solar Energy', 'Sustainability']
+        }
       ]
     };
 
@@ -102,6 +115,9 @@ export const supabase = {
     ];
 
     const mockTableData = mockDataMap[table] || defaultMockData;
+    
+    // Helper function to ensure data is always returned as an array
+    const ensureArray = (data: any) => Array.isArray(data) ? data : [data];
 
     const response = {
       data: [...mockTableData],
@@ -110,16 +126,26 @@ export const supabase = {
       select: (columns?: string) => {
         return {
           ...response,
+          data: [...mockTableData],
+          error: null,
           order: (column: string, options?: { ascending?: boolean }) => ({
             ...response,
+            data: [...mockTableData],
+            error: null,
             limit: (count: number) => ({
-              ...response
+              ...response,
+              data: [...mockTableData].slice(0, count),
+              error: null
             }),
             filter: (column: string, operator: string, value: any) => ({
-              ...response
+              ...response,
+              data: [...mockTableData],
+              error: null
             }),
             eq: (column: string, value: any) => ({
-              ...response
+              ...response,
+              data: [...mockTableData],
+              error: null
             }),
             single: () => ({
               data: mockTableData[0] || {},
@@ -130,10 +156,14 @@ export const supabase = {
               error: null
             }),
             match: (query: any) => ({
-              ...response
+              ...response,
+              data: [...mockTableData],
+              error: null
             }),
             gte: (column: string, value: any) => ({
-              ...response
+              ...response,
+              data: [...mockTableData],
+              error: null
             }),
             count: () => ({
               data: mockTableData.length,
@@ -142,16 +172,26 @@ export const supabase = {
           }),
           filter: (column: string, operator: string, value: any) => ({
             ...response,
+            data: [...mockTableData],
+            error: null,
             eq: (column: string, value: any) => ({
               ...response,
+              data: [...mockTableData],
+              error: null,
               limit: (count: number) => ({
-                ...response
+                ...response,
+                data: [...mockTableData].slice(0, count),
+                error: null
               })
             }),
             order: (column: string, options?: { ascending?: boolean }) => ({
               ...response,
+              data: [...mockTableData],
+              error: null,
               limit: (count: number) => ({
-                ...response
+                ...response,
+                data: [...mockTableData].slice(0, count),
+                error: null
               })
             }),
             single: () => ({
@@ -165,6 +205,8 @@ export const supabase = {
           }),
           match: (query: any) => ({
             ...response,
+            data: [...mockTableData],
+            error: null,
             single: () => ({
               data: mockTableData[0] || {},
               error: null
@@ -176,6 +218,8 @@ export const supabase = {
           }),
           gte: (column: string, value: any) => ({
             ...response,
+            data: [...mockTableData],
+            error: null,
             single: () => ({
               data: mockTableData[0] || {},
               error: null
@@ -198,18 +242,28 @@ export const supabase = {
             error: null
           }),
           limit: (count: number) => ({
-            ...response
+            ...response,
+            data: [...mockTableData].slice(0, count),
+            error: null
           }),
           eq: (column: string, value: any) => ({
             ...response,
+            data: [...mockTableData],
+            error: null,
             order: (column: string, options?: { ascending?: boolean }) => ({
               ...response,
+              data: [...mockTableData],
+              error: null,
               limit: (count: number) => ({
-                ...response
+                ...response,
+                data: [...mockTableData].slice(0, count),
+                error: null
               })
             }),
             filter: (column: string, operator: string, value: any) => ({
-              ...response
+              ...response,
+              data: [...mockTableData],
+              error: null
             }),
             single: () => ({
               data: mockTableData[0] || {},
@@ -220,21 +274,29 @@ export const supabase = {
               error: null
             }),
             match: (query: any) => ({
-              ...response
+              ...response,
+              data: [...mockTableData],
+              error: null
             }),
             gte: (column: string, value: any) => ({
-              ...response
+              ...response,
+              data: [...mockTableData],
+              error: null
             }),
             count: () => ({
               data: mockTableData.length,
               error: null
             }),
             limit: (count: number) => ({
-              ...response
+              ...response,
+              data: [...mockTableData].slice(0, count),
+              error: null
             })
           }),
           or: (query: string) => ({
-            ...response
+            ...response,
+            data: [...mockTableData],
+            error: null
           })
         };
       },
@@ -251,7 +313,8 @@ export const supabase = {
           data: mockTableData[0] || {},
           error: null
         }),
-        error: null 
+        error: null,
+        data: mockTableData[0] || {}
       }),
       update: (data: any) => ({
         eq: (column: string, value: any) => ({
@@ -279,6 +342,7 @@ export const supabase = {
           })
         }),
         error: null,
+        data: mockTableData[0] || {},
         single: () => ({
           data: mockTableData[0] || {},
           error: null
@@ -296,14 +360,22 @@ export const supabase = {
       }),
       eq: (column: string, value: any) => ({
         ...response,
+        data: [...mockTableData],
+        error: null,
         order: (column: string, options?: { ascending?: boolean }) => ({
           ...response,
+          data: [...mockTableData],
+          error: null,
           limit: (count: number) => ({
-            ...response
+            ...response,
+            data: [...mockTableData].slice(0, count),
+            error: null
           })
         }),
         filter: (column: string, operator: string, value: any) => ({
-          ...response
+          ...response,
+          data: [...mockTableData],
+          error: null
         }),
         single: () => ({
           data: mockTableData[0] || {},
@@ -314,24 +386,34 @@ export const supabase = {
           error: null
         }),
         match: (query: any) => ({
-          ...response
+          ...response,
+          data: [...mockTableData],
+          error: null
         }),
         gte: (column: string, value: any) => ({
-          ...response
+          ...response,
+          data: [...mockTableData],
+          error: null
         }),
         count: () => ({
           data: mockTableData.length,
           error: null
         }),
         limit: (count: number) => ({
-          ...response
+          ...response,
+          data: [...mockTableData].slice(0, count),
+          error: null
         })
       }),
       or: (query: string) => ({
-        ...response
+        ...response,
+        data: [...mockTableData],
+        error: null
       }),
       limit: (count: number) => ({
-        ...response
+        ...response,
+        data: [...mockTableData].slice(0, count),
+        error: null
       })
     };
     
