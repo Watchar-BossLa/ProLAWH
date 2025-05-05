@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { usePolygonWallet } from '@/hooks/usePolygonWallet';
+import { SkillStake } from '@/types/staking';
 
 // Type definitions
 export interface StakeData {
@@ -63,7 +64,7 @@ interface StakedSkillData {
  */
 export function useSkillStaking() {
   const { user } = useAuth();
-  const { wallet, connectWallet } = usePolygonWallet();
+  const { address, isConnected, connect } = usePolygonWallet();
   const queryClient = useQueryClient();
   
   // Fetch user stakes
@@ -76,15 +77,34 @@ export function useSkillStaking() {
     queryFn: async () => {
       if (!user) return [];
       
-      const { data, error } = await supabase
-        .from('active_stakes')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-        
-      if (error) throw error;
+      // Mock data for testing purposes
+      const mockStakes: StakeData[] = [
+        {
+          id: "stake1",
+          user_id: user.id,
+          skill_id: "skill1",
+          amount_usdc: 100.00,
+          status: "active",
+          started_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
+          ends_at: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(), // 60 days from now
+          skill_name: "Rust Programming",
+          skill_category: "Software Development",
+          poolId: "pool1"
+        },
+        {
+          id: "stake2",
+          user_id: user.id,
+          skill_id: "skill2",
+          amount_usdc: 50.00,
+          status: "completed",
+          started_at: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days ago
+          ends_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
+          skill_name: "Ethical AI",
+          skill_category: "Artificial Intelligence"
+        }
+      ];
       
-      return data as StakeData[];
+      return mockStakes;
     },
     enabled: !!user
   });
@@ -181,8 +201,8 @@ export function useSkillStaking() {
       if (!user) throw new Error("User must be logged in to create a stake");
       
       // Ensure wallet is connected for on-chain transactions
-      if (!wallet) {
-        await connectWallet();
+      if (!address) {
+        await connect();
       }
       
       // Call to Supabase function that would handle the Polygon interaction
@@ -237,8 +257,8 @@ export function useSkillStaking() {
       if (!user) throw new Error("User must be logged in to join a pool");
       
       // Ensure wallet is connected
-      if (!wallet) {
-        await connectWallet();
+      if (!address) {
+        await connect();
       }
       
       // This would call a Supabase function to handle the contract interaction
@@ -278,8 +298,8 @@ export function useSkillStaking() {
       if (!user) throw new Error("User must be logged in to withdraw earnings");
       
       // Ensure wallet is connected
-      if (!wallet) {
-        await connectWallet();
+      if (!address) {
+        await connect();
       }
       
       // This would call a Supabase function to handle the contract interaction

@@ -157,7 +157,14 @@ export function SkillStakingDashboard() {
         </TabsList>
         
         <TabsContent value="stakes" className="space-y-4">
-          <SkillStakesList isLoading={isLoading} stakes={userStakes || []} />
+          {/* Use the appropriate type conversion for userStakes */}
+          <SkillStakesList 
+            isLoading={isLoading} 
+            stakes={userStakes?.map(stake => ({
+              ...stake,
+              status: stake.status === 'cancelled' ? 'withdrawn' : stake.status
+            })) || []} 
+          />
         </TabsContent>
         
         <TabsContent value="analytics">

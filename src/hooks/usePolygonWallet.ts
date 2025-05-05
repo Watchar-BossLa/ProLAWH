@@ -12,7 +12,7 @@ export function usePolygonWallet() {
   const wallet = address ? { address } : null;
 
   // Connect to wallet
-  const connect = useCallback(async () => {
+  const connect = useCallback(async (): Promise<string | void> => {
     setIsConnecting(true);
     try {
       const walletAddress = await polygonClient.connectWallet();
@@ -29,7 +29,6 @@ export function usePolygonWallet() {
         description: error.message,
         variant: "destructive",
       });
-      return null;
     } finally {
       setIsConnecting(false);
     }

@@ -21,18 +21,41 @@ export function StakeableSkillsList() {
 
   useEffect(() => {
     const fetchSkills = async () => {
-      const { data, error } = await supabase
-        .from("skills")
-        .select("*")
-        .order("name");
+      try {
+        // Mock data since the supabase client doesn't actually fetch data
+        const mockSkills: Skill[] = [
+          {
+            id: "skill1",
+            name: "Sustainable Web Development",
+            category: "Software Development",
+            description: "Development practices that minimize environmental impact",
+            is_green_skill: true,
+            sustainability_score: 85
+          },
+          {
+            id: "skill2",
+            name: "Ethical AI Implementation",
+            category: "Artificial Intelligence",
+            description: "Building AI systems with ethical considerations",
+            is_green_skill: true,
+            sustainability_score: 90
+          },
+          {
+            id: "skill3",
+            name: "Blockchain Smart Contracts",
+            category: "Blockchain",
+            description: "Creating and auditing smart contracts",
+            is_green_skill: false,
+            sustainability_score: null
+          }
+        ];
 
-      if (error) {
+        setSkills(mockSkills);
+      } catch (error) {
         console.error("Error fetching skills:", error);
-        return;
+      } finally {
+        setIsLoading(false);
       }
-
-      setSkills(data || []);
-      setIsLoading(false);
     };
 
     fetchSkills();

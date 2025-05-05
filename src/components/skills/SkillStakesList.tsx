@@ -14,17 +14,7 @@ import { Coins, Link } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-
-interface SkillStake {
-  id: string;
-  skill_name: string;
-  skill_category: string;
-  amount_usdc: number;
-  status: "active" | "completed" | "withdrawn";
-  started_at: string;
-  polygon_tx_hash?: string;
-  polygon_contract_address?: string;
-}
+import { SkillStake } from "@/types/staking";
 
 interface SkillStakesListProps {
   isLoading?: boolean;
@@ -103,12 +93,12 @@ export function SkillStakesList({ isLoading = false, stakes = [] }: SkillStakesL
               <TableCell>{stake.amount_usdc}</TableCell>
               <TableCell>
                 <Badge variant={stake.status === 'active' ? 'default' : 
-                               stake.status === 'completed' ? 'secondary' : 'destructive'}>
+                              stake.status === 'completed' ? 'secondary' : 'destructive'}>
                   {stake.status}
                 </Badge>
               </TableCell>
               <TableCell>
-                {formatDistanceToNow(new Date(stake.started_at), {
+                {stake.started_at && formatDistanceToNow(new Date(stake.started_at), {
                   addSuffix: true,
                 })}
               </TableCell>

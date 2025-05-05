@@ -128,8 +128,14 @@ export function StakingTransactionHistory({ isLoading = false }: StakingTransact
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious 
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  className={currentPage <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  href="#" 
+                  onClick={(e) => { 
+                    e.preventDefault();
+                    if (currentPage > 1) {
+                      setCurrentPage(p => p - 1);
+                    }
+                  }}
+                  className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
                 />
               </PaginationItem>
               
@@ -150,7 +156,11 @@ export function StakingTransactionHistory({ isLoading = false }: StakingTransact
                 return (
                   <PaginationItem key={pageToShow}>
                     <PaginationLink
-                      onClick={() => setCurrentPage(pageToShow)}
+                      href="#"
+                      onClick={(e) => { 
+                        e.preventDefault(); 
+                        setCurrentPage(pageToShow);
+                      }}
                       isActive={pageToShow === currentPage}
                     >
                       {pageToShow}
@@ -160,9 +170,15 @@ export function StakingTransactionHistory({ isLoading = false }: StakingTransact
               })}
               
               <PaginationItem>
-                <PaginationNext 
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  className={currentPage >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage < totalPages) {
+                      setCurrentPage(p => p + 1);
+                    }
+                  }}
+                  className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
                 />
               </PaginationItem>
             </PaginationContent>
