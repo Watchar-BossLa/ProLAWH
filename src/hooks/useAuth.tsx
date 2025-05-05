@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     getCurrentUser();
     
-    // Set up auth state change listener
+    // Set up auth state change listener - Fix: Remove the arguments
     const { data: { subscription } } = supabase.auth.onAuthStateChange();
     
     // Clean up subscription on unmount

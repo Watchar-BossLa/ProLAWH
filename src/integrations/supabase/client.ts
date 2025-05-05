@@ -60,6 +60,13 @@ export const supabase = {
           created_at: new Date().toISOString(),
           user_id: 'user-1',
           metadata: { path: '/dashboard' }
+        },
+        {
+          id: 'activity-2',
+          activity_type: 'skill_learned',
+          created_at: new Date().toISOString(),
+          user_id: 'user-1',
+          metadata: { skill_name: 'Carbon Analysis' }
         }
       ],
       'blockchain_credentials': [
@@ -68,6 +75,7 @@ export const supabase = {
           user_id: 'user-1',
           skill_id: 'skill-1',
           issued_at: new Date().toISOString(),
+          expires_at: null,
           is_verified: true,
           credential_type: 'solana',
           credential_hash: 'hash123',
@@ -118,6 +126,15 @@ export const supabase = {
     
     // Helper function to ensure data is always returned as an array
     const ensureArray = (data: any) => Array.isArray(data) ? data : [data];
+    
+    // Helper function to create mock query response
+    const createMockResponse = (data: any) => ({
+      data,
+      error: null,
+      // Add common methods to the response object
+      single: () => ({ data: Array.isArray(data) ? data[0] : data, error: null }),
+      maybeSingle: () => ({ data: Array.isArray(data) ? data[0] : data, error: null }),
+    });
 
     const response = {
       data: [...mockTableData],
@@ -320,7 +337,11 @@ export const supabase = {
         eq: (column: string, value: any) => ({
           select: () => ({
             data: mockTableData[0] || {},
-            error: null
+            error: null,
+            single: () => ({
+              data: mockTableData[0] || {},
+              error: null
+            })
           }),
           data: mockTableData[0] || {},
           error: null,
@@ -331,7 +352,11 @@ export const supabase = {
         }),
         match: (query: any) => ({
           data: mockTableData[0] || {},
-          error: null
+          error: null,
+          single: () => ({
+            data: mockTableData[0] || {},
+            error: null
+          })
         }),
         select: () => ({
           data: mockTableData[0] || {},
@@ -370,6 +395,15 @@ export const supabase = {
             ...response,
             data: [...mockTableData].slice(0, count),
             error: null
+          }),
+          filter: (column: string, operator: string, value: any) => ({
+            ...response,
+            data: [...mockTableData],
+            error: null
+          }),
+          single: () => ({
+            data: mockTableData[0] || {},
+            error: null
           })
         }),
         filter: (column: string, operator: string, value: any) => ({
@@ -403,6 +437,18 @@ export const supabase = {
           ...response,
           data: [...mockTableData].slice(0, count),
           error: null
+        }),
+        select: () => ({
+          data: [...mockTableData],
+          error: null,
+          single: () => ({
+            data: mockTableData[0] || {},
+            error: null
+          }),
+          maybeSingle: () => ({
+            data: mockTableData[0] || {},
+            error: null
+          })
         })
       }),
       or: (query: string) => ({

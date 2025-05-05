@@ -26,19 +26,22 @@ export function useBlockchainCredentials(userId?: string) {
 
         // Ensure we transform the mock data to match our expected types
         if (data && Array.isArray(data)) {
-          const typedCredentials: BlockchainCredential[] = data.map(item => ({
-            id: item.id || '',
-            user_id: item.user_id || userId,
-            skill_id: item.skill_id || '',
-            issued_at: item.issued_at || new Date().toISOString(),
-            expires_at: item.expires_at,
-            metadata: item.metadata || {},
-            is_verified: item.is_verified || false,
-            credential_type: item.credential_type || 'standard',
-            credential_hash: item.credential_hash || '',
-            transaction_id: item.transaction_id || '',
-            skills: item.skills || { name: 'Unknown Skill' }
-          }));
+          const typedCredentials: BlockchainCredential[] = data.map(item => {
+            // Handle typescript type safety by checking for properties
+            return {
+              id: item.id || '',
+              user_id: item.user_id || userId,
+              skill_id: item.skill_id || '',
+              issued_at: item.issued_at || new Date().toISOString(),
+              expires_at: item.expires_at,
+              metadata: item.metadata || {},
+              is_verified: item.is_verified || false,
+              credential_type: item.credential_type || 'standard',
+              credential_hash: item.credential_hash || '',
+              transaction_id: item.transaction_id || '',
+              skills: item.skills || { name: 'Unknown Skill' }
+            };
+          });
           setCredentials(typedCredentials);
         } else {
           setCredentials([]);

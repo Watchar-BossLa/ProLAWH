@@ -36,8 +36,19 @@ export function useCareerTwin() {
 
       if (error) throw error;
       
-      // Filter the results in memory since our mock client doesn't support filtering
-      let filteredData = data || [];
+      // Filter the results in memory and ensure they have required properties
+      let filteredData = data && Array.isArray(data) ? data.map(item => ({
+        id: item.id || '',
+        user_id: item.user_id || user.id,
+        type: item.type || 'skill_gap',
+        recommendation: item.recommendation || '',
+        relevance_score: item.relevance_score || 0,
+        status: item.status || 'pending',
+        created_at: item.created_at || new Date().toISOString(),
+        skills: item.skills || []
+      })) : [];
+      
+      // Apply additional filters if provided
       if (type) {
         filteredData = filteredData.filter(item => item.type === type);
       }
@@ -69,11 +80,11 @@ export function useCareerTwin() {
     setError(null);
     try {
       // Updated to work with the mock client
-      const { error } = await supabase
+      const response = await supabase
         .from('career_recommendations')
         .update({ status });
-
-      if (error) throw error;
+      
+      if (response.error) throw response.error;
       
       toast({
         title: 'Status Updated',
@@ -108,7 +119,7 @@ export function useCareerTwin() {
     setError(null);
     try {
       // Updated to work with the mock client
-      const { data, error } = await supabase
+      const response = await supabase
         .from('career_recommendations')
         .insert({
           user_id: userId,
@@ -117,9 +128,9 @@ export function useCareerTwin() {
           relevance_score,
           status: 'pending'
         });
-
-      if (error) throw error;
-      return data;
+      
+      if (response.error) throw response.error;
+      return response.data;
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Error adding recommendation'));
       console.error('Error adding career recommendation:', err);
