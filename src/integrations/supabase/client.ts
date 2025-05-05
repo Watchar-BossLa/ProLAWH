@@ -1,269 +1,313 @@
 
 // Mock Supabase client for integration
 
+interface MockData {
+  [key: string]: any;
+}
+
 export const supabase = {
   auth: {
     getSession: async () => ({ data: { session: null }, error: null }),
     getUser: async () => ({ data: { user: null }, error: null }),
     onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-    signOut: async () => ({})
+    signOut: async () => ({}),
+    signUp: async () => ({ data: { user: null, session: null }, error: null }),
+    signInWithPassword: async () => ({ data: { user: null, session: null }, error: null })
   },
-  from: (table: string) => ({
-    select: (columns?: string) => {
-      const response = {
-        data: [],
-        error: null,
-        // Chain methods
-        eq: (column: string, value: any) => ({
+  from: (table: string) => {
+    // Mock data based on table name - to be used in response
+    const mockDataMap: Record<string, MockData[]> = {
+      'course_progress': [
+        { 
+          id: 'mock-id',
+          completed_content_ids: ['content-1', 'content-2'],
+          overall_progress: 50,
+          completed_at: new Date().toISOString(),
+        }
+      ],
+      'profiles': [
+        {
+          id: 'mock-id',
+          full_name: 'Mock User',
+          bio: 'Mock bio',
+          avatar_url: 'https://example.com/avatar.png'
+        }
+      ],
+      'user_enrollments': [
+        {
+          id: 'mock-id',
+          progress_percentage: 50
+        }
+      ],
+      'mentorship_requests': [
+        {
+          id: 'mock-id',
+          mentor_id: 'mentor-id',
+          requester_id: 'requester-id',
+          focus_areas: ['area1', 'area2'],
+          goals: ['goal1', 'goal2']
+        }
+      ],
+      'challenge_attempts': [
+        {
+          id: 'mock-id'
+        }
+      ],
+      'user_activity_logs': [
+        {
+          id: 'activity-1',
+          activity_type: 'page_view',
+          created_at: new Date().toISOString(),
+          metadata: { path: '/dashboard' }
+        }
+      ]
+    };
+
+    const defaultMockData = [
+      { id: 'mock-id', name: 'Mock Item' }
+    ];
+
+    const mockTableData = mockDataMap[table] || defaultMockData;
+
+    const response = {
+      data: [...mockTableData],
+      error: null,
+      // Chain methods
+      select: (columns?: string) => {
+        return {
           ...response,
-          data: [], 
-          error: null,
-          // Additional methods for chaining
           order: (column: string, options?: { ascending?: boolean }) => ({
-            data: [],
-            error: null,
+            ...response,
             limit: (count: number) => ({
-              data: [],
-              error: null
+              ...response
             }),
             filter: (column: string, operator: string, value: any) => ({
-              data: [],
-              error: null
+              ...response
+            }),
+            eq: (column: string, value: any) => ({
+              ...response
             }),
             single: () => ({
-              data: {},
+              data: mockTableData[0] || {},
               error: null
             }),
             maybeSingle: () => ({
-              data: {},
+              data: mockTableData[0] || {},
               error: null
             }),
             match: (query: any) => ({
-              data: [],
-              error: null
+              ...response
             }),
             gte: (column: string, value: any) => ({
-              data: [],
-              error: null
+              ...response
             }),
             count: () => ({
-              data: 0,
+              data: mockTableData.length,
               error: null
             })
           }),
           filter: (column: string, operator: string, value: any) => ({
-            data: [],
-            error: null,
-            order: (column: string, options?: { ascending?: boolean }) => ({
-              data: [],
-              error: null,
+            ...response,
+            eq: (column: string, value: any) => ({
+              ...response,
               limit: (count: number) => ({
-                data: [],
-                error: null
+                ...response
+              })
+            }),
+            order: (column: string, options?: { ascending?: boolean }) => ({
+              ...response,
+              limit: (count: number) => ({
+                ...response
               })
             }),
             single: () => ({
-              data: {},
+              data: mockTableData[0] || {},
               error: null
             }),
             maybeSingle: () => ({
-              data: {},
+              data: mockTableData[0] || {},
+              error: null
+            })
+          }),
+          match: (query: any) => ({
+            ...response,
+            single: () => ({
+              data: mockTableData[0] || {},
+              error: null
+            }),
+            maybeSingle: () => ({
+              data: mockTableData[0] || {},
+              error: null
+            })
+          }),
+          gte: (column: string, value: any) => ({
+            ...response,
+            single: () => ({
+              data: mockTableData[0] || {},
+              error: null
+            }),
+            maybeSingle: () => ({
+              data: mockTableData[0] || {},
               error: null
             })
           }),
           single: () => ({
-            data: {},
+            data: mockTableData[0] || {},
             error: null
           }),
           maybeSingle: () => ({
-            data: {},
-            error: null
-          }),
-          gte: (column: string, value: any) => ({
-            data: [],
-            error: null,
-            order: (column: string, options?: { ascending?: boolean }) => ({
-              data: [],
-              error: null,
-              limit: (count: number) => ({
-                data: [],
-                error: null
-              })
-            })
-          }),
-          limit: (count: number) => ({
-            data: [],
-            error: null
-          })
-        }),
-        order: (column: string, options?: { ascending?: boolean }) => ({
-          data: [],
-          error: null,
-          limit: (count: number) => ({
-            data: [],
-            error: null
-          }),
-          filter: (column: string, operator: string, value: any) => ({
-            data: [],
-            error: null
-          }),
-          eq: (column: string, value: any) => ({
-            data: [],
-            error: null
-          }),
-          single: () => ({
-            data: {},
-            error: null
-          }),
-          maybeSingle: () => ({
-            data: {},
-            error: null
-          }),
-          match: (query: any) => ({
-            data: [],
-            error: null
-          }),
-          gte: (column: string, value: any) => ({
-            data: [],
+            data: mockTableData[0] || {},
             error: null
           }),
           count: () => ({
-            data: 0,
+            data: mockTableData.length,
+            error: null
+          }),
+          limit: (count: number) => ({
+            ...response
+          }),
+          eq: (column: string, value: any) => ({
+            ...response,
+            order: (column: string, options?: { ascending?: boolean }) => ({
+              ...response,
+              limit: (count: number) => ({
+                ...response
+              })
+            }),
+            filter: (column: string, operator: string, value: any) => ({
+              ...response
+            }),
+            single: () => ({
+              data: mockTableData[0] || {},
+              error: null
+            }),
+            maybeSingle: () => ({
+              data: mockTableData[0] || {},
+              error: null
+            }),
+            match: (query: any) => ({
+              ...response
+            }),
+            gte: (column: string, value: any) => ({
+              ...response
+            }),
+            count: () => ({
+              data: mockTableData.length,
+              error: null
+            }),
+            limit: (count: number) => ({
+              ...response
+            })
+          }),
+          or: (query: string) => ({
+            ...response
+          })
+        };
+      },
+      insert: (data: any) => ({ 
+        select: () => ({
+          data: mockTableData[0] || {},
+          error: null,
+          single: () => ({
+            data: mockTableData[0] || {},
             error: null
           })
         }),
-        filter: (column: string, operator: string, value: any) => ({
-          data: [],
-          error: null,
-          eq: (column: string, value: any) => ({
-            data: [],
-            error: null,
-            limit: (count: number) => ({
-              data: [],
-              error: null
-            })
-          }),
-          order: (column: string, options?: { ascending?: boolean }) => ({
-            data: [],
-            error: null,
-            limit: (count: number) => ({
-              data: [],
-              error: null
-            })
-          }),
-          single: () => ({
-            data: {},
+        single: () => ({
+          data: mockTableData[0] || {},
+          error: null
+        }),
+        error: null 
+      }),
+      update: (data: any) => ({
+        eq: (column: string, value: any) => ({
+          select: () => ({
+            data: mockTableData[0] || {},
             error: null
           }),
-          maybeSingle: () => ({
-            data: {},
+          data: mockTableData[0] || {},
+          error: null,
+          single: () => ({
+            data: mockTableData[0] || {},
             error: null
           })
         }),
         match: (query: any) => ({
-          data: [],
+          data: mockTableData[0] || {},
+          error: null
+        }),
+        select: () => ({
+          data: mockTableData[0] || {},
           error: null,
           single: () => ({
-            data: {},
-            error: null
-          }),
-          maybeSingle: () => ({
-            data: {},
+            data: mockTableData[0] || {},
             error: null
           })
         }),
-        gte: (column: string, value: any) => ({
+        error: null,
+        single: () => ({
+          data: mockTableData[0] || {},
+          error: null
+        })
+      }),
+      delete: () => ({
+        eq: (column: string, value: any) => ({
           data: [],
-          error: null,
-          single: () => ({
-            data: {},
-            error: null
-          }),
-          maybeSingle: () => ({
-            data: {},
-            error: null
+          error: null
+        }),
+        match: (query: any) => ({
+          data: [],
+          error: null
+        })
+      }),
+      eq: (column: string, value: any) => ({
+        ...response,
+        order: (column: string, options?: { ascending?: boolean }) => ({
+          ...response,
+          limit: (count: number) => ({
+            ...response
           })
+        }),
+        filter: (column: string, operator: string, value: any) => ({
+          ...response
         }),
         single: () => ({
-          data: {},
+          data: mockTableData[0] || {},
           error: null
         }),
         maybeSingle: () => ({
-          data: {},
+          data: mockTableData[0] || {},
           error: null
         }),
+        match: (query: any) => ({
+          ...response
+        }),
+        gte: (column: string, value: any) => ({
+          ...response
+        }),
         count: () => ({
-          data: 0,
+          data: mockTableData.length,
           error: null
         }),
         limit: (count: number) => ({
-          data: [],
-          error: null
-        })
-      };
-      return response;
-    },
-    insert: (data: any) => ({ 
-      select: () => ({
-        data: {},
-        error: null,
-        single: () => ({
-          data: {},
-          error: null
+          ...response
         })
       }),
-      single: () => ({
-        data: {},
-        error: null
+      or: (query: string) => ({
+        ...response
       }),
-      error: null 
-    }),
-    update: (data: any) => ({
-      eq: (column: string, value: any) => ({
-        select: () => ({
-          data: {},
-          error: null
-        }),
-        data: {},
-        error: null,
-        single: () => ({
-          data: {},
-          error: null
-        })
-      }),
-      match: (query: any) => ({
-        data: {},
-        error: null
-      }),
-      select: () => ({
-        data: {},
-        error: null,
-        single: () => ({
-          data: {},
-          error: null
-        })
-      }),
-      error: null,
-      single: () => ({
-        data: {},
-        error: null
+      limit: (count: number) => ({
+        ...response
       })
-    }),
-    delete: () => ({
-      eq: (column: string, value: any) => ({
-        data: [],
-        error: null
-      }),
-      match: (query: any) => ({
-        data: [],
-        error: null
-      })
-    })
-  }),
+    };
+    
+    return response;
+  },
   functions: {
     invoke: async (name: string, options?: any) => ({ 
       data: { 
         generated_text: "This is mock text generated by the API.",
+        audio: "base64encodedaudio", // Added audio property
         // Include common API response fields
         id: "mock-id",
         title: "Mock Title",
@@ -280,6 +324,12 @@ export const supabase = {
         last_content_id: "mock-content-id"
       },
       error: null 
+    })
+  },
+  storage: {
+    from: (bucket: string) => ({
+      upload: async (path: string, file: any) => ({ data: { path }, error: null }),
+      getPublicUrl: (path: string) => ({ data: { publicUrl: `https://example.com/${path}` } })
     })
   },
   removeChannel: (channel: any) => {},

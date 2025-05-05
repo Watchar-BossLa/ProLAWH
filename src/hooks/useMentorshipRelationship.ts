@@ -17,15 +17,16 @@ export function useMentorshipRelationship() {
     setLoading(true);
     setError(null);
     try {
+      // Use SELECT to build the query instead of OR
       let query = supabase
         .from('mentorship_relationships')
         .select(`
           *,
           mentor:mentor_id(id, profiles:id(full_name, avatar_url)),
           mentee:mentee_id(id, profiles:id(full_name, avatar_url))
-        `)
-        .or(`mentor_id.eq.${user.id},mentee_id.eq.${user.id}`);
+        `);
 
+      // Apply filters if status is provided
       if (status) {
         query = query.eq('status', status);
       }
@@ -33,7 +34,13 @@ export function useMentorshipRelationship() {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data;
+      
+      // Filter results in memory to simulate the behavior of OR
+      const filteredData = data ? data.filter(rel => 
+        rel.mentor_id === user.id || rel.mentee_id === user.id
+      ) : [];
+      
+      return filteredData;
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Error fetching mentorships'));
       console.error('Error fetching mentorship relationships:', err);

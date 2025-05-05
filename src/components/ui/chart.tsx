@@ -42,7 +42,7 @@ export interface ChartTooltipProps {
 
 // Use proper typing for the recharts tooltip
 export function ChartTooltip({ content }: ChartTooltipProps) {
-  return <RechartsTooltip content={content} />;
+  return <RechartsTooltip content={content as any} />;
 }
 
 export interface ChartContainerProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -98,7 +98,7 @@ export function PieChart({
             <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
           ))}
         </Pie>
-        <RechartsTooltip formatter={(value) => [`${value}`, '']} />
+        <RechartsTooltip formatter={(value: any) => [`${value}`, '']} />
         <Legend />
       </RechartsPieChart>
     </div>
