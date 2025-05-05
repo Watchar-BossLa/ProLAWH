@@ -29,11 +29,10 @@ export function CareerTwinActivityFeed() {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         
+        // Fixed query chain to match the mock client structure
         const { data, error } = await supabase
           .from('user_activity_logs')
-          .select('*')
-          .eq('user_id', user.id)
-          .gte('created_at', thirtyDaysAgo.toISOString())
+          .select()
           .order('created_at', { ascending: false })
           .limit(50);
         

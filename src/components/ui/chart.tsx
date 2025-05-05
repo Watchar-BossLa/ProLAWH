@@ -1,10 +1,75 @@
 
 import * as React from "react";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, Sector, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  Area, AreaChart, Bar, CartesianGrid, Cell,
+  Legend, Line, Tooltip as RechartsTooltip, 
+  ResponsiveContainer, Sector, XAxis, YAxis
+} from "recharts";
+import {
+  BarChart as RechartsBarChart,
+  LineChart as RechartsLineChart,
+  PieChart as RechartsPieChart,
+  Pie
+} from "recharts";
 
 // Type definitions
 type ValueType = string | number | Array<string | number>;
 type NameType = string | number;
+
+// Chart components for export
+export interface ChartTooltipContentProps {
+  children: React.ReactNode;
+}
+
+export function ChartTooltipContent({ children }: ChartTooltipContentProps) {
+  return (
+    <div className="rounded-md border bg-background p-2 shadow-md">
+      {children}
+    </div>
+  );
+}
+
+export interface ChartConfig {
+  [key: string]: {
+    label?: string;
+    color?: string;
+  };
+}
+
+export interface ChartTooltipProps {
+  content?: React.ReactNode | (({
+    active,
+    payload,
+    label,
+  }: {
+    active?: boolean;
+    payload?: any[];
+    label?: string;
+  }) => React.ReactNode);
+}
+
+export function ChartTooltip({ content }: ChartTooltipProps) {
+  return <RechartsTooltip content={content} />;
+}
+
+export interface ChartContainerProps extends React.HTMLAttributes<HTMLDivElement> {
+  config?: ChartConfig;
+  children: React.ReactNode;
+}
+
+export function ChartContainer({
+  config,
+  children,
+  ...props
+}: ChartContainerProps) {
+  return (
+    <div {...props}>
+      <ResponsiveContainer width="100%" height="100%">
+        {children}
+      </ResponsiveContainer>
+    </div>
+  );
+}
 
 // PieChart Component
 interface PieChartProps {
@@ -24,7 +89,7 @@ export function PieChart({
 }: PieChartProps) {
   return (
     <div className={`w-full h-[300px] flex justify-center ${className}`}>
-      <PieChart width={400} height={300}>
+      <RechartsPieChart width={400} height={300}>
         <Pie
           data={data}
           cx="50%"
@@ -40,9 +105,9 @@ export function PieChart({
             <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
           ))}
         </Pie>
-        <Tooltip formatter={(value) => [`${value}`, '']} />
+        <RechartsTooltip formatter={(value) => [`${value}`, '']} />
         <Legend />
-      </PieChart>
+      </RechartsPieChart>
     </div>
   );
 }
@@ -65,7 +130,7 @@ export function LineChart({
 }: LineChartProps) {
   return (
     <div className={`w-full h-[300px] ${className}`}>
-      <LineChart
+      <RechartsLineChart
         width={500}
         height={300}
         data={data}
@@ -79,7 +144,7 @@ export function LineChart({
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey={categoryKey} />
         <YAxis />
-        <Tooltip />
+        <RechartsTooltip />
         <Legend />
         <Line
           type="monotone"
@@ -87,7 +152,7 @@ export function LineChart({
           stroke={colors[0]}
           activeDot={{ r: 8 }}
         />
-      </LineChart>
+      </RechartsLineChart>
     </div>
   );
 }
@@ -110,7 +175,7 @@ export function BarChart({
 }: BarChartProps) {
   return (
     <div className={`w-full h-[300px] ${className}`}>
-      <BarChart
+      <RechartsBarChart
         width={500}
         height={300}
         data={data}
@@ -124,10 +189,10 @@ export function BarChart({
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey={categoryKey} />
         <YAxis />
-        <Tooltip />
+        <RechartsTooltip />
         <Legend />
         <Bar dataKey={valueKey} fill={colors[0]} />
-      </BarChart>
+      </RechartsBarChart>
     </div>
   );
 }

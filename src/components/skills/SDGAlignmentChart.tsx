@@ -2,12 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  ChartContainer,
-  ChartTooltip, 
-  ChartTooltipContent 
-} from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Cell, Tooltip } from 'recharts';
 
 interface SDGData {
   sdgNumber: number;
@@ -34,50 +29,41 @@ export function SDGAlignmentChart({ sdgData }: SDGAlignmentChartProps) {
       </CardHeader>
       <CardContent>
         <div className="h-[260px] mb-4">
-          <ChartContainer
-            config={{
-              sdg: {
-                label: 'SDG',
-                color: '#10b981',
-              },
-            }}
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={sdgData}>
-                <XAxis 
-                  dataKey="sdgNumber" 
-                  tick={{ fontSize: 10 }}
-                  tickFormatter={(value) => `${value}`}
-                />
-                <YAxis 
-                  tickFormatter={(value) => `${value}%`}
-                  domain={[0, 100]}
-                  tick={{ fontSize: 10 }}
-                />
-                <Bar dataKey="alignment">
-                  {sdgData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Bar>
-                <ChartTooltip 
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      const data = payload[0].payload as SDGData;
-                      return (
-                        <ChartTooltipContent>
-                          <div className="p-2">
-                            <div className="font-medium">SDG {data.sdgNumber}: {data.name}</div>
-                            <div className="text-sm text-muted-foreground">Alignment: {data.alignment}%</div>
-                          </div>
-                        </ChartTooltipContent>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={sdgData}>
+              <XAxis 
+                dataKey="sdgNumber" 
+                tick={{ fontSize: 10 }}
+                tickFormatter={(value) => `${value}`}
+              />
+              <YAxis 
+                tickFormatter={(value) => `${value}%`}
+                domain={[0, 100]}
+                tick={{ fontSize: 10 }}
+              />
+              <Bar dataKey="alignment">
+                {sdgData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
+              <Tooltip 
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload as SDGData;
+                    return (
+                      <div className="rounded-md border bg-background p-2 shadow-md">
+                        <div className="p-2">
+                          <div className="font-medium">SDG {data.sdgNumber}: {data.name}</div>
+                          <div className="text-sm text-muted-foreground">Alignment: {data.alignment}%</div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
         
         <ScrollArea className="h-[100px]">

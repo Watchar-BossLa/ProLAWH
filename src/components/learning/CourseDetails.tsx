@@ -74,6 +74,11 @@ export function CourseDetails({ courseId }: CourseDetailsProps) {
   const filteredNotes = selectedContentId
     ? notes.filter(note => note.content_id === selectedContentId)
     : notes;
+    
+  // Get the last content ID from the enrollment status if available
+  const lastContentId = enrollmentStatus && 'last_content_id' in enrollmentStatus 
+    ? enrollmentStatus.last_content_id 
+    : undefined;
 
   return (
     <div className="space-y-6">
@@ -91,7 +96,7 @@ export function CourseDetails({ courseId }: CourseDetailsProps) {
         onContinue={handleContinueLearning}
         onBookmark={handleBookmark}
         isEnrolling={isEnrolling || isWishlistPending}
-        lastContentId={enrollmentStatus?.last_content_id}
+        lastContentId={lastContentId}
       />
 
       {/* Course Content Tabs */}
