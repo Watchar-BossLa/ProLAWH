@@ -1,42 +1,35 @@
 
-import { FC } from 'react';
-import * as d3 from 'd3';
+import React from 'react';
 
-interface NetworkGraphLegendProps {
-  svgRef: React.RefObject<SVGSVGElement>;
+interface LegendItem {
+  type: string;
+  color: string;
+  label: string;
 }
 
-export const NetworkGraphLegend: FC<NetworkGraphLegendProps> = ({ svgRef }) => {
-  if (!svgRef.current) return null;
+interface NetworkGraphLegendProps {
+  items?: LegendItem[];
+}
 
-  const svg = d3.select(svgRef.current);
-  
-  // Add legend
-  const legend = svg.append('g')
-    .attr('transform', 'translate(10, 20)');
-    
-  const types = [
+export const NetworkGraphLegend: React.FC<NetworkGraphLegendProps> = ({ 
+  items = [
     { type: 'mentor', color: '#2563eb', label: 'Mentor' },
     { type: 'peer', color: '#10b981', label: 'Peer' },
     { type: 'colleague', color: '#f59e0b', label: 'Colleague' }
-  ];
-  
-  types.forEach((item, index) => {
-    const legendRow = legend.append('g')
-      .attr('transform', `translate(0, ${index * 20})`);
-      
-    legendRow.append('circle')
-      .attr('r', 6)
-      .attr('fill', item.color);
-      
-    legendRow.append('text')
-      .attr('x', 15)
-      .attr('y', 4)
-      .text(item.label)
-      .style('font-size', '10px');
-  });
-  
-  return null;
+  ] 
+}) => {
+  return (
+    <g transform="translate(10, 20)">
+      {items.map((item, index) => (
+        <g key={item.type} transform={`translate(0, ${index * 20})`}>
+          <circle r={6} fill={item.color} />
+          <text x={15} y={4} style={{ fontSize: '10px' }}>
+            {item.label}
+          </text>
+        </g>
+      ))}
+    </g>
+  );
 };
 
 export default NetworkGraphLegend;

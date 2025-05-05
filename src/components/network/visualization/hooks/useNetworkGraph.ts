@@ -11,8 +11,6 @@ export function useNetworkGraph(
   onConnectionSelect: (connectionId: string) => void,
   zoom: number = 1
 ) {
-  // Fix: moved optional parameter 'zoom' to the end of the parameter list
-
   useEffect(() => {
     if (!svgRef.current || connections.length === 0) return;
     
@@ -107,14 +105,14 @@ function createNodes(
   nodes: any[],
   onConnectionSelect: (connectionId: string) => void
 ) {
-  const node = g.append('g')
+  const nodeGroups = g.append('g')
     .attr('class', 'nodes')
     .selectAll('g')
     .data(nodes)
     .enter().append('g');
     
   // Add circles to nodes
-  node.append('circle')
+  nodeGroups.append('circle')
     .attr('r', 10)
     .attr('fill', (d) => {
       if (d.highlighted) return '#7c3aed';
@@ -132,14 +130,14 @@ function createNodes(
     });
     
   // Add text labels
-  node.append('text')
+  nodeGroups.append('text')
     .attr('dx', 12)
     .attr('dy', '.35em')
     .text((d) => d.name)
     .style('font-size', '10px')
     .style('fill', '#4b5563');
     
-  return node;
+  return nodeGroups;
 }
 
 function createLegend(svg: d3.Selection<SVGSVGElement, unknown, null, undefined>) {
