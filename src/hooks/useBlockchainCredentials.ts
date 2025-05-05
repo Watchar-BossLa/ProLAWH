@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { BlockchainCredential } from '@/types/blockchain';
+import { MockData } from '@/types/mocks';
 
 export function useBlockchainCredentials(userId?: string) {
   const [credentials, setCredentials] = useState<BlockchainCredential[]>([]);
@@ -26,7 +27,7 @@ export function useBlockchainCredentials(userId?: string) {
 
         // Ensure we transform the mock data to match our expected types
         if (data && Array.isArray(data)) {
-          const typedCredentials: BlockchainCredential[] = data.map(item => {
+          const typedCredentials: BlockchainCredential[] = data.map((item: MockData) => {
             // Handle typescript type safety by checking for properties
             return {
               id: item.id || '',

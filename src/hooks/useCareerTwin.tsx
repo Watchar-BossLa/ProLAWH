@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { MockData } from '@/types/mocks';
 
 export interface CareerRecommendation {
   id: string;
@@ -38,7 +39,22 @@ export function useCareerTwin() {
         .select("*");
 
       if (error) throw error;
-      return data as CareerRecommendation[];
+      
+      // Ensure we transform the mock data to match our expected types
+      if (data && Array.isArray(data)) {
+        return data.map((item: MockData) => ({
+          id: item.id,
+          user_id: item.user_id || user.id,
+          type: (item.type || 'skill_gap') as 'skill_gap' | 'job_match' | 'mentor_suggest',
+          recommendation: item.recommendation || 'Career recommendation',
+          relevance_score: item.relevance_score || 0,
+          status: (item.status || 'pending') as 'pending' | 'accepted' | 'rejected' | 'implemented',
+          created_at: item.created_at || new Date().toISOString(),
+          skills: item.skills ? (Array.isArray(item.skills) ? item.skills : []) : []
+        })) as CareerRecommendation[];
+      }
+      
+      return [] as CareerRecommendation[];
     },
     enabled: !!user
   });
@@ -82,7 +98,8 @@ export function useCareerTwin() {
       // Update to correctly use the mock Supabase client
       const { error } = await supabase
         .from("career_recommendations")
-        .update({ status });
+        .update({ status })
+        .eq("id", id);
       
       if (error) throw error;
     },

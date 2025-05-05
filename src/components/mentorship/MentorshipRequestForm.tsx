@@ -58,7 +58,7 @@ export function MentorshipRequestForm({
       
       // If we have a recommendation ID, use the Career Twin request method
       if (mentor.recommendationId) {
-        await requestMentorship.mutateAsync({
+        await requestMentorship.mutate({
           mentorId: mentor.id,
           message: values.message,
           focusAreas,

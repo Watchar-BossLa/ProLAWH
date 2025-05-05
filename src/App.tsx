@@ -7,7 +7,7 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, AuthProvider } from "@/hooks/useAuth";
 import { useActivityTracker } from "@/hooks/useActivityTracker";
 import CareerTwinPage from "@/pages/dashboard/CareerTwinPage";
 import SkillStakingPage from "@/pages/dashboard/SkillStakingPage";
@@ -32,11 +32,21 @@ const PrivacyPolicyPage = () => <div className="container mx-auto py-8">Privacy 
 function App() {
   return (
     <BrowserRouter>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
+
+function AppContent() {
+  return (
+    <>
       <ScrollToTop />
       <SiteHeader />
       <PageContent />
       <SiteFooter />
-    </BrowserRouter>
+    </>
   );
 }
 
@@ -48,7 +58,9 @@ function PageContent() {
 
   useEffect(() => {
     // Track page view when component mounts
-    trackActivity("page_view", { path: location.pathname });
+    if (trackActivity) {
+      trackActivity("page_view", { path: location.pathname });
+    }
   }, [trackActivity, location.pathname]);
 
   // Redirect to profile page if user is new
