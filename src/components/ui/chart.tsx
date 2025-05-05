@@ -37,17 +37,10 @@ export interface ChartConfig {
 }
 
 export interface ChartTooltipProps {
-  content?: React.ReactNode | (({
-    active,
-    payload,
-    label,
-  }: {
-    active?: boolean;
-    payload?: any[];
-    label?: string;
-  }) => React.ReactNode);
+  content?: (props: { active?: boolean; payload?: any[]; label?: string }) => React.ReactNode;
 }
 
+// Use proper typing for the recharts tooltip
 export function ChartTooltip({ content }: ChartTooltipProps) {
   return <RechartsTooltip content={content} />;
 }

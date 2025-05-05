@@ -29,7 +29,7 @@ export function CareerTwinActivityFeed() {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         
-        // Fixed query chain to match the mock client structure
+        // Use the mock client's methods correctly
         const { data, error } = await supabase
           .from('user_activity_logs')
           .select()

@@ -29,7 +29,7 @@ export function useCareerTwin() {
     setLoading(true);
     setError(null);
     try {
-      // Simplified query to match mock client capabilities
+      // Updated to work with the mock client
       const { data, error } = await supabase
         .from('career_recommendations')
         .select();
@@ -68,7 +68,7 @@ export function useCareerTwin() {
     setLoading(true);
     setError(null);
     try {
-      // Simplified update to match mock client
+      // Updated to work with the mock client
       const { error } = await supabase
         .from('career_recommendations')
         .update({ status });
@@ -107,7 +107,7 @@ export function useCareerTwin() {
     setLoading(true);
     setError(null);
     try {
-      // Simplified insert to match mock client
+      // Updated to work with the mock client
       const { data, error } = await supabase
         .from('career_recommendations')
         .insert({
@@ -116,8 +116,7 @@ export function useCareerTwin() {
           recommendation,
           relevance_score,
           status: 'pending'
-        })
-        .select();
+        });
 
       if (error) throw error;
       return data;

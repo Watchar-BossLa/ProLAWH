@@ -9,12 +9,105 @@ export const supabase = {
     signOut: async () => ({})
   },
   from: (table: string) => ({
-    select: (columns?: string) => ({
-      eq: (column: string, value: any) => ({
+    select: (columns?: string) => {
+      const response = {
+        data: [],
+        error: null,
+        // Chain methods
+        eq: (column: string, value: any) => ({
+          ...response,
+          data: [], 
+          error: null,
+          // Additional methods for chaining
+          order: (column: string, options?: { ascending?: boolean }) => ({
+            data: [],
+            error: null,
+            limit: (count: number) => ({
+              data: [],
+              error: null
+            }),
+            filter: (column: string, operator: string, value: any) => ({
+              data: [],
+              error: null
+            }),
+            single: () => ({
+              data: {},
+              error: null
+            }),
+            maybeSingle: () => ({
+              data: {},
+              error: null
+            }),
+            match: (query: any) => ({
+              data: [],
+              error: null
+            }),
+            gte: (column: string, value: any) => ({
+              data: [],
+              error: null
+            }),
+            count: () => ({
+              data: 0,
+              error: null
+            })
+          }),
+          filter: (column: string, operator: string, value: any) => ({
+            data: [],
+            error: null,
+            order: (column: string, options?: { ascending?: boolean }) => ({
+              data: [],
+              error: null,
+              limit: (count: number) => ({
+                data: [],
+                error: null
+              })
+            }),
+            single: () => ({
+              data: {},
+              error: null
+            }),
+            maybeSingle: () => ({
+              data: {},
+              error: null
+            })
+          }),
+          single: () => ({
+            data: {},
+            error: null
+          }),
+          maybeSingle: () => ({
+            data: {},
+            error: null
+          }),
+          gte: (column: string, value: any) => ({
+            data: [],
+            error: null,
+            order: (column: string, options?: { ascending?: boolean }) => ({
+              data: [],
+              error: null,
+              limit: (count: number) => ({
+                data: [],
+                error: null
+              })
+            })
+          }),
+          limit: (count: number) => ({
+            data: [],
+            error: null
+          })
+        }),
         order: (column: string, options?: { ascending?: boolean }) => ({
           data: [],
           error: null,
+          limit: (count: number) => ({
+            data: [],
+            error: null
+          }),
           filter: (column: string, operator: string, value: any) => ({
+            data: [],
+            error: null
+          }),
+          eq: (column: string, value: any) => ({
             data: [],
             error: null
           }),
@@ -42,10 +135,46 @@ export const supabase = {
         filter: (column: string, operator: string, value: any) => ({
           data: [],
           error: null,
+          eq: (column: string, value: any) => ({
+            data: [],
+            error: null,
+            limit: (count: number) => ({
+              data: [],
+              error: null
+            })
+          }),
           order: (column: string, options?: { ascending?: boolean }) => ({
             data: [],
+            error: null,
+            limit: (count: number) => ({
+              data: [],
+              error: null
+            })
+          }),
+          single: () => ({
+            data: {},
             error: null
           }),
+          maybeSingle: () => ({
+            data: {},
+            error: null
+          })
+        }),
+        match: (query: any) => ({
+          data: [],
+          error: null,
+          single: () => ({
+            data: {},
+            error: null
+          }),
+          maybeSingle: () => ({
+            data: {},
+            error: null
+          })
+        }),
+        gte: (column: string, value: any) => ({
+          data: [],
+          error: null,
           single: () => ({
             data: {},
             error: null
@@ -63,104 +192,17 @@ export const supabase = {
           data: {},
           error: null
         }),
-        gte: (column: string, value: any) => ({
-          data: [],
-          error: null,
-          order: (column: string, options?: { ascending?: boolean }) => ({
-            data: [],
-            error: null
-          })
-        })
-      }),
-      order: (column: string, options?: { ascending?: boolean }) => ({
-        data: [],
-        error: null,
-        filter: (column: string, operator: string, value: any) => ({
-          data: [],
-          error: null
-        }),
-        eq: (column: string, value: any) => ({
-          data: [],
-          error: null
-        }),
-        single: () => ({
-          data: {},
-          error: null
-        }),
-        maybeSingle: () => ({
-          data: {},
-          error: null
-        }),
-        match: (query: any) => ({
-          data: [],
-          error: null
-        }),
-        gte: (column: string, value: any) => ({
-          data: [],
-          error: null
-        }),
         count: () => ({
           data: 0,
           error: null
-        })
-      }),
-      filter: (column: string, operator: string, value: any) => ({
-        data: [],
-        error: null,
-        eq: (column: string, value: any) => ({
+        }),
+        limit: (count: number) => ({
           data: [],
           error: null
-        }),
-        order: (column: string, options?: { ascending?: boolean }) => ({
-          data: [],
-          error: null
-        }),
-        single: () => ({
-          data: {},
-          error: null
-        }),
-        maybeSingle: () => ({
-          data: {},
-          error: null
         })
-      }),
-      match: (query: any) => ({
-        data: [],
-        error: null,
-        single: () => ({
-          data: {},
-          error: null
-        }),
-        maybeSingle: () => ({
-          data: {},
-          error: null
-        })
-      }),
-      gte: (column: string, value: any) => ({
-        data: [],
-        error: null,
-        single: () => ({
-          data: {},
-          error: null
-        }),
-        maybeSingle: () => ({
-          data: {},
-          error: null
-        })
-      }),
-      single: () => ({
-        data: {},
-        error: null
-      }),
-      maybeSingle: () => ({
-        data: {},
-        error: null
-      }),
-      count: () => ({
-        data: 0,
-        error: null
-      })
-    }),
+      };
+      return response;
+    },
     insert: (data: any) => ({ 
       select: () => ({
         data: {},
@@ -222,7 +264,7 @@ export const supabase = {
     invoke: async (name: string, options?: any) => ({ 
       data: { 
         generated_text: "This is mock text generated by the API.",
-        // Include common API response fields that might be accessed
+        // Include common API response fields
         id: "mock-id",
         title: "Mock Title",
         description: "Mock Description", 
@@ -234,7 +276,8 @@ export const supabase = {
         time_limit: 30,
         full_name: "Mock User",
         bio: "Mock bio",
-        avatar_url: "https://example.com/avatar.png"
+        avatar_url: "https://example.com/avatar.png",
+        last_content_id: "mock-content-id"
       },
       error: null 
     })

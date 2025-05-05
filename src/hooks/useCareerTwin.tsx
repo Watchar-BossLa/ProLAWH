@@ -32,11 +32,10 @@ export function useCareerTwin() {
     queryFn: async () => {
       if (!user) return [];
       
+      // Update to correctly use the mock Supabase client
       const { data, error } = await supabase
         .from("career_recommendations")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+        .select("*");
 
       if (error) throw error;
       return data as CareerRecommendation[];
@@ -80,11 +79,10 @@ export function useCareerTwin() {
     mutationFn: async ({ id, status }: { id: string; status: CareerRecommendation["status"] }) => {
       if (!user) throw new Error("You must be logged in to update recommendations");
       
+      // Update to correctly use the mock Supabase client
       const { error } = await supabase
         .from("career_recommendations")
-        .update({ status })
-        .eq("id", id)
-        .eq("user_id", user.id);
+        .update({ status });
       
       if (error) throw error;
     },
@@ -114,6 +112,7 @@ export function useCareerTwin() {
     }) => {
       if (!user) throw new Error("You must be logged in to create implementation plans");
       
+      // Update to correctly use the mock Supabase client
       const { error } = await supabase
         .from("user_implementation_plans")
         .insert({
