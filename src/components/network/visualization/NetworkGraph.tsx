@@ -1,7 +1,6 @@
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { NetworkConnection } from '@/types/network';
-import * as d3 from 'd3';
 import NetworkGraphControls from './components/NetworkGraphControls';
 import ConnectionsCounter from './components/ConnectionsCounter';
 import LoadingOverlay from './components/LoadingOverlay';
@@ -27,8 +26,8 @@ export function NetworkGraph({
     svgRef,
     connections,
     highlightedConnectionId,
-    zoom,
-    onConnectionSelect
+    onConnectionSelect,
+    zoom
   );
   
   const onZoomIn = () => {
