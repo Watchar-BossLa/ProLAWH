@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Challenge, ChallengeValidationRules } from '@/types/arcade';
+import { Challenge, ChallengeValidationRules, Question } from '@/types/arcade';
 
 export function useChallenge(challengeId: string | undefined) {
   const [challenge, setChallenge] = useState<Challenge | null>(null);
@@ -18,14 +18,8 @@ export function useChallenge(challengeId: string | undefined) {
         .single();
 
       if (!error && data) {
-        // Ensure validation_rules is properly typed and has required_items
+        // Ensure validation_rules is properly typed
         const validationRules = data.validation_rules as any;
-        
-        // Check if validation_rules has the required structure
-        if (!validationRules.required_items) {
-          console.error('Invalid validation_rules structure:', validationRules);
-          return; // Don't set the challenge if validation rules are incorrect
-        }
         
         // Validate type and difficulty_level against allowed values
         const type = validateChallengeType(data.type);
@@ -34,6 +28,29 @@ export function useChallenge(challengeId: string | undefined) {
         if (!type || !difficultyLevel) {
           console.error('Invalid challenge type or difficulty level', { type: data.type, difficulty: data.difficulty_level });
           return; // Don't set the challenge if type/difficulty are incorrect
+        }
+
+        // Process questions if available
+        let questions: Question[] | undefined = undefined;
+        
+        if (data.type === 'quiz' && Array.isArray(data.questions)) {
+          questions = data.questions.map((q: any) => {
+            if (q.id && q.text && q.type) {
+              // Ensure type is one of the allowed values
+              const validatedType = validateQuestionType(q.type);
+              return {
+                id: q.id,
+                text: q.text,
+                type: validatedType,
+                options: Array.isArray(q.options) ? q.options : undefined
+              };
+            }
+            return null;
+          }).filter(Boolean) as Question[];
+          
+          if (questions.length === 0) {
+            questions = undefined;
+          }
         }
         
         // Create a properly typed Challenge object
@@ -46,7 +63,13 @@ export function useChallenge(challengeId: string | undefined) {
           points: data.points,
           time_limit: data.time_limit,
           instructions: data.instructions,
-          validation_rules: validationRules as ChallengeValidationRules
+          validation_rules: {
+            required_items: validationRules.required_items,
+            min_confidence: validationRules.min_confidence,
+            correct_answers: validationRules.correct_answers || {},
+            test_cases: validationRules.test_cases || [],
+          },
+          questions
         };
         
         setChallenge(typedChallenge);
@@ -75,4 +98,10 @@ function validateChallengeType(type: string): "ar" | "camera" | "code" | "quiz" 
 function validateDifficultyLevel(level: string): "beginner" | "intermediate" | "advanced" | undefined {
   const validLevels = ["beginner", "intermediate", "advanced"] as const;
   return validLevels.includes(level as any) ? level as "beginner" | "intermediate" | "advanced" : undefined;
+}
+
+// Helper function to validate question type
+function validateQuestionType(type: string): "multiple-choice" | "text" | "code" {
+  const validTypes = ["multiple-choice", "text", "code"] as const;
+  return validTypes.includes(type as any) ? type as "multiple-choice" | "text" | "code" : "multiple-choice";
 }

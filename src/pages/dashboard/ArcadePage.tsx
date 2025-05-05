@@ -16,6 +16,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import { Challenge, Question } from "@/types/arcade"; // Import the Question type
 
 export default function ArcadePage() {
   const { data: challenges, isLoading, error } = useArcadeChallenges();
@@ -25,15 +26,15 @@ export default function ArcadePage() {
   const [filterDifficulty, setFilterDifficulty] = useState<string>("all");
 
   // Mock challenges data for testing
-  const mockChallenges = [
+  const mockChallenges: Challenge[] = [
     {
       id: "1",
       title: "Python Data Structures",
       description: "Demonstrate basic Python data structure knowledge",
-      difficulty_level: "beginner" as const,
+      difficulty_level: "beginner",
       points: 50,
       time_limit: 60,
-      type: "camera" as const,
+      type: "camera",
       instructions: "Show code examples of Python lists, dictionaries, and tuples",
       validation_rules: {
         required_items: ["python", "list", "dictionary"]
@@ -43,10 +44,10 @@ export default function ArcadePage() {
       id: "2",
       title: "Kubernetes Architecture",
       description: "Identify key components in Kubernetes architecture",
-      difficulty_level: "intermediate" as const,
+      difficulty_level: "intermediate",
       points: 100,
       time_limit: 60,
-      type: "camera" as const,
+      type: "camera",
       instructions: "Show a diagram or representation of Kubernetes pods, services, and deployments",
       validation_rules: {
         required_items: ["kubernetes", "pod", "service", "deployment"]
@@ -56,10 +57,10 @@ export default function ArcadePage() {
       id: "3",
       title: "Rust Memory Safety",
       description: "Explain Rust's ownership and borrowing system",
-      difficulty_level: "advanced" as const,
+      difficulty_level: "advanced",
       points: 150,
       time_limit: 60,
-      type: "camera" as const,
+      type: "camera",
       instructions: "Show and explain code examples demonstrating ownership, borrowing and lifetimes in Rust",
       validation_rules: {
         required_items: ["rust", "ownership", "borrowing"]
@@ -69,10 +70,10 @@ export default function ArcadePage() {
       id: "4",
       title: "Cloud Computing Basics",
       description: "Test your knowledge of cloud computing fundamentals",
-      difficulty_level: "beginner" as const,
+      difficulty_level: "beginner",
       points: 75,
       time_limit: 120,
-      type: "quiz" as const,
+      type: "quiz",
       instructions: "Answer questions about basic cloud computing concepts",
       validation_rules: {
         correct_answers: {
@@ -96,7 +97,7 @@ export default function ArcadePage() {
         {
           id: "q2",
           text: "Which of the following are common cloud deployment models?",
-          type: "multiple-choice",
+          type: "multiple-choice", 
           options: [
             "Public Cloud",
             "Private Cloud",
@@ -121,10 +122,10 @@ export default function ArcadePage() {
       id: "5",
       title: "JavaScript Array Challenge",
       description: "Implement array manipulation functions",
-      difficulty_level: "intermediate" as const,
+      difficulty_level: "intermediate",
       points: 100,
       time_limit: 300,
-      type: "code" as const,
+      type: "code",
       instructions: "Write a function that finds the sum of all numbers in an array",
       validation_rules: {
         test_cases: [
