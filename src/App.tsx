@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import {
   Routes,
@@ -114,10 +115,14 @@ function PageContent() {
               </ProtectedRoute>
             }
           />
-          {
-            path: "/dashboard/skill-staking",
-            element: <SkillStakingPage />
-          },
+          <Route
+            path="/dashboard/skill-staking"
+            element={
+              <ProtectedRoute>
+                <SkillStakingPage />
+              </ProtectedRoute>
+            }
+          />
 
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
