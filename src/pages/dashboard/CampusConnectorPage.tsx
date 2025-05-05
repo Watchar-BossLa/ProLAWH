@@ -3,9 +3,8 @@ import { useState } from "react";
 import { CampusConnectorOverview } from "@/components/campus/CampusConnectorOverview";
 import { CampusConnections } from "@/components/campus/CampusConnections";
 import { CampusLTISetup } from "@/components/campus/CampusLTISetup";
-import { CampusStats } from "@/components/campus/CampusStats";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Graduation, School, Settings } from "lucide-react";
+import { GraduationCap, School, Settings } from "lucide-react";
 import { pageTransitions } from "@/lib/transitions";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,7 +29,7 @@ export default function CampusConnectorPage() {
   return (
     <div className={`container mx-auto py-8 space-y-6 ${pageTransitions.initial}`}>
       <div className="flex items-center gap-3 mb-8">
-        <Graduation className="h-8 w-8 text-primary" />
+        <GraduationCap className="h-8 w-8 text-primary" />
         <div>
           <h1 className="text-3xl font-bold">Campus Connector</h1>
           <p className="text-muted-foreground">Seamlessly integrate with educational institutions</p>
@@ -44,7 +43,7 @@ export default function CampusConnectorPage() {
             <span>Overview</span>
           </TabsTrigger>
           <TabsTrigger value="connections" className="flex items-center gap-2">
-            <Graduation className="h-4 w-4" />
+            <GraduationCap className="h-4 w-4" />
             <span>Active Connections</span>
           </TabsTrigger>
           <TabsTrigger value="setup" className="flex items-center gap-2">
