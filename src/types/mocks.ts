@@ -12,7 +12,7 @@ export interface MockData {
   credential_type?: string;
   credential_hash?: string;
   transaction_id?: string;
-  skills?: { name: string };
+  skills?: { name: string } | string[];
   activity_type?: string;
   created_at?: string;
   type?: 'skill_gap' | 'job_match' | 'mentor_suggest';
@@ -27,5 +27,41 @@ export interface MockData {
   is_accepting_mentees?: boolean;
   completed_content_ids?: string[];
   completed_at?: string | null;
-  // Add other properties as needed
+  courses?: any[];
+  mentorId?: string;
+  mentorName?: string;
+  mentorExpertise?: string[];
+  matchReason?: string;
+  recommendationId?: string;
+  reason?: string;
+  score?: number;
+  progress_percentage?: number;
+  content_type?: string;
+  course_id?: string;
+  order?: number;
+  module_id?: string;
+  content?: string;
+  description?: string;
+  title?: string;
+  updated_at?: string;
+}
+
+// Define an interface for mentor recommendation data structure
+export interface MentorRecommendation {
+  id: string;
+  mentorId: string;
+  mentorName: string;
+  mentorExpertise: string[];
+  matchReason: string;
+  relevanceScore: number;
+  recommendationId?: string;
+}
+
+// Define an interface for activity logs
+export interface ActivityLog {
+  id: string;
+  activity_type: string;
+  created_at: string;
+  user_id: string;
+  metadata?: Record<string, any>;
 }

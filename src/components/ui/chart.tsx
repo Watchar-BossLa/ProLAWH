@@ -35,12 +35,12 @@ export interface ChartConfig {
 }
 
 export interface ChartTooltipProps {
-  content?: (props: { active?: boolean; payload?: any[]; label?: string }) => React.ReactNode;
+  content?: (props: { active?: boolean; payload?: any[]; label?: string }) => React.ReactElement | null;
 }
 
 // Fix the typing for the recharts tooltip
 export function ChartTooltip({ content }: ChartTooltipProps) {
-  return <RechartsTooltip content={content as any} />;
+  return <RechartsTooltip content={content} />;
 }
 
 export interface ChartContainerProps extends React.HTMLAttributes<HTMLDivElement> {

@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
-import { MockData } from '@/types/mocks';
+import { MockData, MentorRecommendation } from '@/types/mocks';
 
 interface MentorDetails {
   id: string;

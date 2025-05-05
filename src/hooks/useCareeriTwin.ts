@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
+import { MockData } from '@/types/mocks';
 
 export interface CareerRecommendation {
   id: string;
@@ -12,6 +13,7 @@ export interface CareerRecommendation {
   relevance_score: number;
   status: 'pending' | 'accepted' | 'rejected' | 'implemented';
   created_at: string;
+  skills?: string[];
 }
 
 export function useCareerTwin() {
@@ -37,15 +39,15 @@ export function useCareerTwin() {
       if (error) throw error;
       
       // Filter the results in memory and ensure they have required properties
-      let filteredData = data && Array.isArray(data) ? data.map(item => ({
-        id: item.id || '',
+      let filteredData = data && Array.isArray(data) ? data.map((item: MockData) => ({
+        id: item.id,
         user_id: item.user_id || user.id,
-        type: item.type || 'skill_gap',
+        type: (item.type as 'skill_gap' | 'job_match' | 'mentor_suggest') || 'skill_gap',
         recommendation: item.recommendation || '',
         relevance_score: item.relevance_score || 0,
         status: item.status || 'pending',
         created_at: item.created_at || new Date().toISOString(),
-        skills: item.skills || []
+        skills: item.skills ? (Array.isArray(item.skills) ? item.skills : [typeof item.skills === 'object' ? item.skills.name : '']) : []
       })) : [];
       
       // Apply additional filters if provided

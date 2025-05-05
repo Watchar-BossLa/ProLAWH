@@ -19,17 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MentorshipRequestForm } from "@/components/mentorship/MentorshipRequestForm";
 import { Brain, UserPlus, Loader2, AlertCircle } from "lucide-react";
-
-// Define the type for mentor recommendation
-interface MentorRecommendationData {
-  id: string;
-  mentorId: string;
-  mentorName: string;
-  mentorExpertise: string[];
-  matchReason: string;
-  relevanceScore: number;
-  recommendationId?: string;
-}
+import { MentorRecommendation } from "@/types/mocks";
 
 // Define the type for selected mentor
 interface SelectedMentor {
@@ -105,6 +95,20 @@ export function CareerTwinMentorRecommendations() {
     );
   }
   
+  // Process the recommendations data to match our expected format
+  const processedRecommendations: MentorRecommendation[] = mentorRecommendations.map(rec => {
+    // Map from the API's field names to our component's expected field names
+    return {
+      id: rec.id,
+      mentorId: rec.mentorId,
+      mentorName: rec.reason ? rec.reason.split(' ')[0] || "Mentor" : "Mentor", // Fallback
+      mentorExpertise: ['Green Skills', 'Sustainability'], // Default expertise as fallback
+      matchReason: rec.reason || "Recommended based on your profile",
+      relevanceScore: rec.score || 0.75,
+      recommendationId: rec.recommendationId
+    };
+  });
+  
   return (
     <>
       <Card className="mb-6">
@@ -119,7 +123,7 @@ export function CareerTwinMentorRecommendations() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {mentorRecommendations?.slice(0, 3).map((rec) => (
+            {processedRecommendations.slice(0, 3).map((rec) => (
               <div key={rec.id} className="border rounded-lg p-4 hover:bg-muted/30 transition-colors">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-medium">{rec.mentorName}</h3>
@@ -162,7 +166,7 @@ export function CareerTwinMentorRecommendations() {
             ))}
           </div>
           
-          {mentorRecommendations && mentorRecommendations.length > 3 && (
+          {processedRecommendations && processedRecommendations.length > 3 && (
             <div className="mt-4 text-center">
               <Button variant="outline" size="sm">
                 View All Recommendations

@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Activity, Clock, FileText } from 'lucide-react';
-import { ActivityLog } from '@/types/activities';
+import { ActivityLog, MockData } from '@/types/mocks';
 
 export function CareerTwinActivityFeed() {
   const { user } = useAuth();
@@ -32,8 +32,8 @@ export function CareerTwinActivityFeed() {
         // Ensure we're setting properly typed activities
         if (data && Array.isArray(data)) {
           // Transform mock data to ensure it matches ActivityLog type
-          const typedActivities: ActivityLog[] = data.map(item => ({
-            id: item.id || 'unknown-id',
+          const typedActivities: ActivityLog[] = data.map((item: MockData) => ({
+            id: item.id,
             activity_type: item.activity_type || 'unknown-type',
             created_at: item.created_at || new Date().toISOString(),
             user_id: item.user_id || user.id,
