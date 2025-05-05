@@ -33,7 +33,7 @@ export function useChallenge(challengeId: string | undefined) {
         // Process questions if available
         let questions: Question[] | undefined = undefined;
         
-        if (data.type === 'quiz' && Array.isArray(data.questions)) {
+        if (data.type === 'quiz' && data.questions && Array.isArray(data.questions)) {
           questions = data.questions.map((q: any) => {
             if (q.id && q.text && q.type) {
               // Ensure type is one of the allowed values
@@ -64,7 +64,7 @@ export function useChallenge(challengeId: string | undefined) {
           time_limit: data.time_limit,
           instructions: data.instructions,
           validation_rules: {
-            required_items: validationRules.required_items,
+            required_items: validationRules.required_items || [],
             min_confidence: validationRules.min_confidence,
             correct_answers: validationRules.correct_answers || {},
             test_cases: validationRules.test_cases || [],

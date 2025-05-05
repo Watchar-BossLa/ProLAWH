@@ -4,10 +4,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { ChallengeDifficultyBadge } from "./ChallengeDifficultyBadge";
 import { Clock, Trophy, Camera, Code, FileQuestion, Gamepad } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { ArcadeChallenge } from "@/hooks/useArcadeChallenges";
+import type { Challenge } from "@/types/arcade";
 
 interface ChallengeCardProps {
-  challenge: ArcadeChallenge;
+  challenge: Challenge;
 }
 
 export function ChallengeCard({ challenge }: ChallengeCardProps) {

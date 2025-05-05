@@ -22,7 +22,7 @@ export function useArcadeChallenges() {
         // Process questions if available
         let questions: Question[] | undefined = undefined;
         
-        if (challenge.type === 'quiz' && Array.isArray(challenge.questions)) {
+        if (challenge.type === 'quiz' && challenge.questions && Array.isArray(challenge.questions)) {
           questions = challenge.questions.map((q: any) => {
             if (q.id && q.text && q.type) {
               // Ensure type is one of the allowed values
@@ -52,7 +52,7 @@ export function useArcadeChallenges() {
           type: validateChallengeType(challenge.type) || 'camera',
           instructions: challenge.instructions || 'Complete the challenge',
           validation_rules: {
-            required_items: validationRules.required_items,
+            required_items: validationRules.required_items || [],
             min_confidence: validationRules.min_confidence,
             correct_answers: validationRules.correct_answers || {},
             test_cases: validationRules.test_cases || [],
