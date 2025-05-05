@@ -1,102 +1,98 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "@/components/theme/theme-provider";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import AuthPage from "./pages/auth/AuthPage";
-import ProfilePage from "./pages/profile/ProfilePage";
-import { DashboardLayout } from "./components/dashboard/DashboardLayout";
-import { DashboardHome } from "./components/dashboard/DashboardHome";
-import DashboardPlaceholder from "./pages/dashboard/DashboardPlaceholder";
-import CareerTwinPage from "./pages/dashboard/CareerTwinPage";
-import ArcadePage from "./pages/dashboard/ArcadePage";
-import ChallengePage from "./pages/dashboard/ChallengePage";
-import SkillStakingPage from "./pages/dashboard/SkillStakingPage";
-import GreenSkillsPage from "./pages/dashboard/GreenSkillsPage";
-import StudyBeePage from "./pages/dashboard/StudyBeePage";
-import OpportunityMarketplace from "./pages/dashboard/OpportunityMarketplace";
-import NetworkDashboard from "./pages/dashboard/NetworkDashboard";
-import NetworkConnectionProfile from "./pages/dashboard/NetworkConnectionProfile";
-import { AuthProvider } from "./hooks/useAuth";
-import LearningDashboard from "./pages/dashboard/LearningDashboard";
-import CourseDetailsPage from "./pages/dashboard/CourseDetailsPage";
-import SkillsAndBadgesPage from "./pages/dashboard/SkillsAndBadgesPage";
-import { AdminLayout } from "@/components/admin/AdminLayout";
-import AdminDashboard from "@/pages/admin/AdminDashboard";
-import UsersPage from "./pages/admin/UsersPage";
-import AnalyticsPage from "./pages/admin/AnalyticsPage";
-import PaymentsPage from "./pages/admin/PaymentsPage";
-import SettingsPage from "./pages/admin/SettingsPage";
-import MentorshipDashboard from "./pages/dashboard/MentorshipDashboard";
-import MentorshipDetailPage from "./pages/dashboard/MentorshipDetailPage";
-import { QuorumForgeProvider } from "./hooks/useQuorumForge";
-import QuorumForgeDashboard from "./pages/dashboard/QuorumForgeDashboard";
-import VeriSkillNetworkPage from "./pages/dashboard/VeriSkillNetworkPage";
-import CampusConnectorPage from "./pages/dashboard/CampusConnectorPage";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './hooks/useAuth';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from './components/theme/theme-provider';
+import { Toaster } from './components/ui/toaster';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-    },
-  },
-});
+// Pages
+import HomePage from './pages/Index';
+import DashboardPage from './pages/dashboard/DashboardPage';
+import ProfilePage from './pages/profile/ProfilePage';
+import NotFound from './pages/NotFound';
+import ArcadePage from './pages/dashboard/ArcadePage';
+import ChallengePage from './pages/dashboard/ChallengePage';
+import NetworkDashboard from './pages/dashboard/NetworkDashboard';
+import CourseDetailsPage from './pages/dashboard/CourseDetailsPage';
+import MentorshipDashboard from './pages/dashboard/MentorshipDashboard';
+import GreenSkillsPage from './pages/dashboard/GreenSkillsPage';
+import LearningDashboard from './pages/dashboard/LearningDashboard';
+import CareerTwinPage from './pages/dashboard/CareerTwinPage';
+import SkillsAndBadgesPage from './pages/dashboard/SkillsAndBadgesPage';
+import SkillStakingPage from './pages/dashboard/SkillStakingPage';
+import OpportunityMarketplace from './pages/dashboard/OpportunityMarketplace';
+import MentorshipDetailPage from './pages/dashboard/MentorshipDetailPage';
+import NetworkConnectionProfile from './pages/dashboard/NetworkConnectionProfile';
+import CampusConnectorPage from './pages/dashboard/CampusConnectorPage';
+import StudyBeePage from './pages/dashboard/StudyBeePage';
+import QuorumForgeDashboard from './pages/dashboard/QuorumForgeDashboard';
+import VeriSkillNetworkPage from './pages/dashboard/VeriSkillNetworkPage';
 
-const App = () => (
-  <ThemeProvider>
+// Admin Pages
+import AdminDashboard from './pages/admin/AdminDashboard';
+import UsersPage from './pages/admin/UsersPage';
+import AnalyticsPage from './pages/admin/AnalyticsPage';
+import SettingsPage from './pages/admin/SettingsPage';
+import PaymentsPage from './pages/admin/PaymentsPage';
+
+// Layouts
+import { AppLayout } from './components/dashboard/AppLayout';
+import { AdminLayout } from './components/admin/AdminLayout';
+import AuthPage from './pages/auth/AuthPage';
+
+const queryClient = new QueryClient();
+
+function App() {
+  return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <QuorumForgeProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<AuthPage />} />
-                
-                <Route path="/dashboard" element={<DashboardLayout />}>
-                  <Route index element={<DashboardHome />} />
-                  <Route path="learning" element={<LearningDashboard />} />
-                  <Route path="learning/course/:courseId" element={<CourseDetailsPage />} />
-                  <Route path="skills" element={<SkillsAndBadgesPage />} />
-                  <Route path="mentorship" element={<MentorshipDashboard />} />
-                  <Route path="mentorship/:mentorshipId" element={<MentorshipDetailPage />} />
-                  <Route path="opportunities" element={<OpportunityMarketplace />} />
-                  <Route path="arcade" element={<ArcadePage />} />
-                  <Route path="arcade/challenge/:challengeId" element={<ChallengePage />} />
-                  <Route path="career-twin" element={<CareerTwinPage />} />
-                  <Route path="green-skills" element={<GreenSkillsPage />} />
-                  <Route path="staking" element={<SkillStakingPage />} />
-                  <Route path="study-bee" element={<StudyBeePage />} />
-                  <Route path="network" element={<NetworkDashboard />} />
-                  <Route path="network/:connectionId" element={<NetworkConnectionProfile />} />
-                  <Route path="quorumforge" element={<QuorumForgeDashboard />} />
-                  <Route path="veriskill" element={<VeriSkillNetworkPage />} />
-                  <Route path="campus" element={<CampusConnectorPage />} />
-                </Route>
-                
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/admin" element={<AdminLayout />}>
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="users" element={<UsersPage />} />
-                  <Route path="analytics" element={<AnalyticsPage />} />
-                  <Route path="payments" element={<PaymentsPage />} />
-                  <Route path="settings" element={<SettingsPage />} />
-                </Route>
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </QuorumForgeProvider>
-      </AuthProvider>
+      <ThemeProvider defaultTheme="system" storageKey="ui-theme">
+        <AuthProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              
+              {/* Dashboard Routes */}
+              <Route path="/dashboard" element={<AppLayout />}>
+                <Route index element={<DashboardPage />} />
+                <Route path="learning" element={<LearningDashboard />} />
+                <Route path="learning/:courseId" element={<CourseDetailsPage />} />
+                <Route path="network" element={<NetworkDashboard />} />
+                <Route path="network/connections/:connectionId" element={<NetworkConnectionProfile />} />
+                <Route path="mentorship" element={<MentorshipDashboard />} />
+                <Route path="mentorship/:mentorshipId" element={<MentorshipDetailPage />} />
+                <Route path="opportunities" element={<OpportunityMarketplace />} />
+                <Route path="skills" element={<SkillsAndBadgesPage />} />
+                <Route path="staking" element={<SkillStakingPage />} />
+                <Route path="arcade" element={<ArcadePage />} />
+                <Route path="arcade/challenge/:challengeId" element={<ChallengePage />} />
+                <Route path="green-skills" element={<GreenSkillsPage />} />
+                <Route path="career-twin" element={<CareerTwinPage />} />
+                <Route path="campus" element={<CampusConnectorPage />} />
+                <Route path="study-bee" element={<StudyBeePage />} />
+                <Route path="quorumforge" element={<QuorumForgeDashboard />} />
+                <Route path="veriskill" element={<VeriSkillNetworkPage />} />
+              </Route>
+              
+              {/* Admin Routes */}
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="users" element={<UsersPage />} />
+                <Route path="analytics" element={<AnalyticsPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+                <Route path="payments" element={<PaymentsPage />} />
+              </Route>
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Router>
+          <Toaster />
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
-  </ThemeProvider>
-)
+  );
+}
 
-export default App
+export default App;

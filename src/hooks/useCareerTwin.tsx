@@ -49,19 +49,15 @@ export function useCareerTwin() {
     mutationFn: async () => {
       if (!user) throw new Error("You must be logged in to generate recommendations");
       
-      const response = await fetch("/api/career-twin", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-        }
+      const response = await supabase.functions.invoke('career-twin', {
+        body: { requestType: 'generate' }
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate recommendation");
+      if (response.error) {
+        throw new Error(response.error.message || "Failed to generate recommendation");
       }
       
-      return response.json();
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["career-recommendations"] });

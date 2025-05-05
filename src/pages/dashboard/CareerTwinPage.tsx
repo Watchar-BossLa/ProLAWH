@@ -2,11 +2,11 @@
 import { useEffect } from "react";
 import { useCareerTwin, CareerRecommendation } from "@/hooks/useCareerTwin";
 import { CareerTwinRecommendationCard } from "@/components/career/CareerTwinRecommendationCard";
+import { CareerTwinActivityFeed } from "@/components/career/CareerTwinActivityFeed";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "@/hooks/use-toast";
-import { Brain, Lightbulb, BarChart2, PlusCircle } from "lucide-react";
+import { Brain, Lightbulb, BarChart2, PlusCircle, Activity } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { pageTransitions } from "@/lib/transitions";
 import { CareerTwinInsightsDashboard } from "@/components/career/CareerTwinInsightsDashboard";
@@ -29,8 +29,9 @@ export default function CareerTwinPage() {
     if (user) {
       // Track page view when component mounts
       trackActivity("page_view");
+      trackActivity("career_twin_page_viewed");
     }
-  }, [user]);
+  }, [user, trackActivity]);
 
   const handleGenerate = async () => {
     try {
@@ -129,6 +130,10 @@ export default function CareerTwinPage() {
             <Users className="h-4 w-4" />
             Mentors
             {mentorRecs.length > 0 && <span className="ml-1 bg-primary/10 text-xs px-1.5 rounded-full">{mentorRecs.length}</span>}
+          </TabsTrigger>
+          <TabsTrigger value="activity" className="flex items-center gap-1">
+            <Activity className="h-4 w-4" />
+            Activity
           </TabsTrigger>
           <TabsTrigger value="insights">
             <BarChart2 className="h-4 w-4 mr-1" />
@@ -245,6 +250,10 @@ export default function CareerTwinPage() {
               ))
             )}
           </div>
+        </TabsContent>
+        
+        <TabsContent value="activity">
+          <CareerTwinActivityFeed />
         </TabsContent>
         
         <TabsContent value="insights">

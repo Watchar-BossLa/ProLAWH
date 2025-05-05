@@ -58,11 +58,11 @@ export function DashboardSidebar() {
     { icon: Users, label: "Mentorship", href: "/dashboard/mentorship" },
     { icon: Briefcase, label: "Opportunities", href: "/dashboard/opportunities" },
     { icon: Trophy, label: "Nano-Arcade", href: "/dashboard/arcade" },
-    { icon: BarChart, label: "Career Twin", href: "/dashboard/career-twin" },
+    { icon: Brain, label: "AI Career Twin", href: "/dashboard/career-twin" },
     { icon: Leaf, label: "Green Skills", href: "/dashboard/green-skills" },
     { icon: School, label: "Campus Connector", href: "/dashboard/campus" },
     { icon: Book, label: "Study Bee", href: "/dashboard/study-bee" },
-    { icon: Brain, label: "QuorumForge OS", href: "/dashboard/quorumforge" },
+    { icon: BarChart, label: "QuorumForge OS", href: "/dashboard/quorumforge" },
     { icon: Wallet, label: "VeriSkill Network", href: "/dashboard/veriskill" },
     { icon: Settings, label: "Settings", href: "/profile" }
   ];

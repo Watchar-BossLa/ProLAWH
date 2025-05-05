@@ -1,232 +1,226 @@
 
-import { useMemo } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { CareerRecommendation } from "@/hooks/useCareerTwin";
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Lightbulb, BarChart2, CheckCircle2, Clock } from "lucide-react";
+import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CareerRecommendation } from '@/hooks/useCareerTwin';
+import { Grid } from '@/components/ui/grid';
+import { BarChart3, PieChart as PieChartIcon, ThumbsUp, UserCheck } from 'lucide-react';
 
 interface CareerTwinInsightsDashboardProps {
   recommendations: CareerRecommendation[];
 }
 
 export function CareerTwinInsightsDashboard({ recommendations }: CareerTwinInsightsDashboardProps) {
-  // Calculate overall statistics
-  const stats = useMemo(() => {
-    const total = recommendations.length;
-    const implemented = recommendations.filter(r => r.status === 'implemented').length;
-    const pending = recommendations.filter(r => r.status === 'pending').length;
-    const accepted = recommendations.filter(r => r.status === 'accepted').length;
-    const rejected = recommendations.filter(r => r.status === 'rejected').length;
-    
-    const implementationRate = total > 0 ? Math.round((implemented / total) * 100) : 0;
-    const acceptanceRate = total > 0 ? Math.round(((accepted + implemented) / total) * 100) : 0;
-    
-    return {
-      total,
-      implemented,
-      pending,
-      accepted,
-      rejected,
-      implementationRate,
-      acceptanceRate
-    };
-  }, [recommendations]);
+  // Calculate metrics for the dashboard
+  const totalRecommendations = recommendations.length;
+  const implementedCount = recommendations.filter(r => r.status === 'implemented').length;
+  const acceptedCount = recommendations.filter(r => r.status === 'accepted').length;
+  const pendingCount = recommendations.filter(r => r.status === 'pending').length;
+  const rejectedCount = recommendations.filter(r => r.status === 'rejected').length;
   
-  // Type distribution data
-  const typeData = useMemo(() => {
-    const types = recommendations.reduce((acc, rec) => {
-      acc[rec.type] = (acc[rec.type] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+  // Calculate implementation rate
+  const implementationRate = totalRecommendations > 0
+    ? Math.round((implementedCount / totalRecommendations) * 100)
+    : 0;
     
-    return Object.entries(types).map(([name, value]) => {
-      let displayName;
-      
-      switch (name) {
-        case 'skill_gap':
-          displayName = 'Skill Development';
-          break;
-        case 'job_match':
-          displayName = 'Job Opportunities';
-          break;
-        case 'mentor_suggest':
-          displayName = 'Mentorship';
-          break;
-        default:
-          displayName = name;
-      }
-      
-      return { name: displayName, value };
-    });
-  }, [recommendations]);
+  // Calculate acceptance rate
+  const acceptanceRate = totalRecommendations > 0
+    ? Math.round(((implementedCount + acceptedCount) / totalRecommendations) * 100)
+    : 0;
   
-  // Status distribution data for pie chart
-  const statusData = useMemo(() => {
-    return [
-      { name: 'Implemented', value: stats.implemented, color: '#10b981' },
-      { name: 'Accepted', value: stats.accepted, color: '#3b82f6' },
-      { name: 'Pending', value: stats.pending, color: '#f59e0b' },
-      { name: 'Rejected', value: stats.rejected, color: '#ef4444' }
-    ].filter(item => item.value > 0);
-  }, [stats]);
-
-  // If no data, show empty state
-  if (recommendations.length === 0) {
-    return (
-      <div className="text-center py-12 border rounded-lg">
-        <BarChart2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <h3 className="text-lg font-semibold mb-2">No Analytics Available</h3>
-        <p className="text-muted-foreground">
-          Generate career insights first to view analytics and progress metrics.
-        </p>
-      </div>
-    );
-  }
+  // Recommendation types breakdown
+  const typeCount = recommendations.reduce((acc, recommendation) => {
+    const type = recommendation.type || 'unknown';
+    acc[type] = (acc[type] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  
+  const typeData = Object.entries(typeCount).map(([name, value]) => ({
+    name: name === 'skill_gap' 
+      ? 'Skill Development' 
+      : name === 'job_match' 
+        ? 'Career Opportunities' 
+        : name === 'mentor_suggest' 
+          ? 'Mentorship' 
+          : name,
+    value
+  }));
+  
+  // Status breakdown
+  const statusData = [
+    { name: 'Implemented', value: implementedCount, color: '#22c55e' },
+    { name: 'Accepted', value: acceptedCount, color: '#3b82f6' },
+    { name: 'Pending', value: pendingCount, color: '#eab308' },
+    { name: 'Rejected', value: rejectedCount, color: '#ef4444' }
+  ].filter(item => item.value > 0);
+  
+  // Recommendation timeline
+  const timelineData = recommendations.reduce((acc, recommendation) => {
+    // Get month and year from created_at
+    const date = new Date(recommendation.created_at);
+    const month = date.toLocaleString('default', { month: 'short' });
+    const key = `${month} ${date.getFullYear()}`;
+    
+    if (!acc[key]) {
+      acc[key] = { name: key, count: 0 };
+    }
+    
+    acc[key].count++;
+    return acc;
+  }, {} as Record<string, { name: string, count: number }>);
+  
+  const timelineChartData = Object.values(timelineData).sort((a, b) => {
+    // Sort by date
+    const aDate = new Date(a.name);
+    const bDate = new Date(b.name);
+    return aDate.getTime() - bDate.getTime();
+  });
   
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* Key metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Insights</CardTitle>
-            <CardDescription>All generated recommendations</CardDescription>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Recommendations
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">
-              {recommendations.length > 0 
-                ? `Last generated on ${new Date(recommendations[0].created_at).toLocaleDateString()}` 
-                : 'No insights generated yet'}
-            </p>
+            <div className="text-3xl font-bold">{totalRecommendations}</div>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Implementation Rate</CardTitle>
-            <CardDescription>Recommendations you've implemented</CardDescription>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Implementation Rate
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">{stats.implementationRate}%</div>
-              <CheckCircle2 className={`h-5 w-5 ${stats.implementationRate > 50 ? 'text-green-500' : 'text-amber-500'}`} />
-            </div>
-            <Progress value={stats.implementationRate} className="h-2 mt-2 mb-1" />
-            <p className="text-xs text-muted-foreground">{stats.implemented} of {stats.total} recommendations implemented</p>
+            <div className="text-3xl font-bold">{implementationRate}%</div>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Acceptance Rate</CardTitle>
-            <CardDescription>Recommendations you've accepted</CardDescription>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Acceptance Rate
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">{stats.acceptanceRate}%</div>
-              <Lightbulb className={`h-5 w-5 ${stats.acceptanceRate > 50 ? 'text-emerald-500' : 'text-amber-500'}`} />
-            </div>
-            <Progress value={stats.acceptanceRate} className="h-2 mt-2 mb-1" />
-            <p className="text-xs text-muted-foreground">
-              {stats.accepted + stats.implemented} of {stats.total} recommendations accepted
-            </p>
+            <div className="text-3xl font-bold">{acceptanceRate}%</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Pending Recommendations
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{pendingCount}</div>
           </CardContent>
         </Card>
       </div>
       
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="md:col-span-1">
+      {/* Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
           <CardHeader>
-            <CardTitle>Recommendation Status</CardTitle>
-            <CardDescription>Distribution of your recommendations by status</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <PieChartIcon className="h-5 w-5 text-primary" />
+              Recommendation Status
+            </CardTitle>
           </CardHeader>
-          <CardContent className="flex justify-center">
-            <div style={{ width: '100%', height: 250 }}>
-              {statusData.length > 0 ? (
-                <ResponsiveContainer>
+          <CardContent>
+            {statusData.length > 0 ? (
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={statusData}
                       cx="50%"
                       cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      innerRadius={60}
                       outerRadius={80}
                       fill="#8884d8"
+                      paddingAngle={5}
                       dataKey="value"
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     >
                       {statusData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => [`${value} recommendations`, 'Count']} />
+                    <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
-              ) : (
-                <div className="h-full flex items-center justify-center">
-                  <p className="text-muted-foreground">No data available</p>
-                </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="h-[300px] w-full flex items-center justify-center text-muted-foreground">
+                No data available
+              </div>
+            )}
           </CardContent>
         </Card>
         
-        <Card className="md:col-span-1">
+        <Card>
           <CardHeader>
-            <CardTitle>Recommendation Types</CardTitle>
-            <CardDescription>Distribution by recommendation category</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              Recommendation Types
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div style={{ width: '100%', height: 250 }}>
-              {typeData.length > 0 ? (
-                <ResponsiveContainer>
+            {typeData.length > 0 ? (
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={typeData}>
-                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
                     <YAxis allowDecimals={false} />
-                    <Tooltip formatter={(value) => [`${value} recommendations`, 'Count']} />
-                    <Bar dataKey="value" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                    <Tooltip />
+                    <Bar dataKey="value" fill="#8884d8" />
                   </BarChart>
                 </ResponsiveContainer>
-              ) : (
-                <div className="h-full flex items-center justify-center">
-                  <p className="text-muted-foreground">No data available</p>
-                </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="h-[300px] w-full flex items-center justify-center text-muted-foreground">
+                No data available
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              Recommendations Timeline
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {timelineChartData.length > 0 ? (
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={timelineChartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#3b82f6" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-[300px] w-full flex items-center justify-center text-muted-foreground">
+                No timeline data available
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-          <CardDescription>Latest actions on your career recommendations</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {recommendations.slice(0, 3).map(rec => (
-              <div key={rec.id} className="flex items-center gap-3 pb-3 border-b last:border-0">
-                {rec.status === 'implemented' && <CheckCircle2 className="h-5 w-5 text-green-500" />}
-                {rec.status === 'accepted' && <Lightbulb className="h-5 w-5 text-blue-500" />}
-                {rec.status === 'pending' && <Clock className="h-5 w-5 text-amber-500" />}
-                {rec.status === 'rejected' && <XCircle className="h-5 w-5 text-red-500" />}
-                <div>
-                  <p className="font-medium text-sm">{rec.type === 'skill_gap' ? 'Skill Development' : rec.type === 'job_match' ? 'Career Opportunity' : 'Mentorship'}</p>
-                  <p className="text-xs text-muted-foreground">{rec.recommendation.substring(0, 60)}...</p>
-                </div>
-              </div>
-            ))}
-            
-            {recommendations.length === 0 && (
-              <p className="text-center text-muted-foreground py-4">No recent activity</p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
-
-// Import missing icons
-import { XCircle } from 'lucide-react';
