@@ -19,11 +19,11 @@ export function useArcadeChallenges() {
         // Ensure validation_rules has the required structure
         const validationRules = challenge.validation_rules || {};
         
-        // Process questions if available
+        // Process questions if available - questions are stored within validation_rules for quiz type challenges
         let questions: Question[] | undefined = undefined;
         
-        if (challenge.type === 'quiz' && challenge.questions && Array.isArray(challenge.questions)) {
-          questions = challenge.questions.map((q: any) => {
+        if (challenge.type === 'quiz' && validationRules.questions && Array.isArray(validationRules.questions)) {
+          questions = validationRules.questions.map((q: any) => {
             if (q.id && q.text && q.type) {
               // Ensure type is one of the allowed values
               const validatedType = validateQuestionType(q.type);

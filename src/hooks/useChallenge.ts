@@ -30,11 +30,11 @@ export function useChallenge(challengeId: string | undefined) {
           return; // Don't set the challenge if type/difficulty are incorrect
         }
 
-        // Process questions if available
+        // Process questions if available - questions are stored within validation_rules for quiz type challenges
         let questions: Question[] | undefined = undefined;
         
-        if (data.type === 'quiz' && data.questions && Array.isArray(data.questions)) {
-          questions = data.questions.map((q: any) => {
+        if (data.type === 'quiz' && validationRules && validationRules.questions && Array.isArray(validationRules.questions)) {
+          questions = validationRules.questions.map((q: any) => {
             if (q.id && q.text && q.type) {
               // Ensure type is one of the allowed values
               const validatedType = validateQuestionType(q.type);

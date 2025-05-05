@@ -1,10 +1,8 @@
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useArcadeChallenges } from "@/hooks/useArcadeChallenges";
 import { ChallengeCard } from "@/components/arcade/ChallengeCard";
 import { ArcadeIntro } from "@/components/arcade/ArcadeIntro";
-import { toast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
 import { Gamepad2, Filter } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { pageTransitions } from "@/lib/transitions";
@@ -16,12 +14,11 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { Challenge, Question } from "@/types/arcade"; // Import the Question type
+import { Challenge } from "@/types/arcade";
 
 export default function ArcadePage() {
   const { data: challenges, isLoading, error } = useArcadeChallenges();
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [filterType, setFilterType] = useState<string>("all");
   const [filterDifficulty, setFilterDifficulty] = useState<string>("all");
 
@@ -221,6 +218,7 @@ export default function ArcadePage() {
         </div>
       </div>
 
+      {/* Challenge Cards */}
       {isLoading ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
