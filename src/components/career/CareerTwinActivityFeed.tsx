@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,14 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Activity, Clock, FileText } from 'lucide-react';
-
-interface ActivityLog {
-  id: string;
-  activity_type: string;
-  created_at: string;
-  user_id: string;
-  metadata: any; // Changed from Record<string, any> to any to accept Json type from Supabase
-}
+import { ActivityLog } from '@/types/activities';
 
 export function CareerTwinActivityFeed() {
   const { user } = useAuth();
@@ -32,13 +24,24 @@ export function CareerTwinActivityFeed() {
         // Use the mock client's methods correctly
         const { data, error } = await supabase
           .from('user_activity_logs')
-          .select()
-          .order('created_at', { ascending: false })
-          .limit(50);
+          .select();
         
         if (error) throw error;
         
-        setActivities(data || []);
+        // Ensure we're setting properly typed activities
+        if (data && Array.isArray(data)) {
+          // Transform mock data to ensure it matches ActivityLog type
+          const typedActivities: ActivityLog[] = data.map(item => ({
+            id: item.id || 'unknown-id',
+            activity_type: item.activity_type || 'unknown-type',
+            created_at: item.created_at || new Date().toISOString(),
+            user_id: item.user_id || user.id,
+            metadata: item.metadata || {}
+          }));
+          setActivities(typedActivities);
+        } else {
+          setActivities([]);
+        }
       } catch (error) {
         console.error('Error fetching activity logs:', error);
       } finally {

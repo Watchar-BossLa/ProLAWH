@@ -14,12 +14,12 @@ export default function ChallengePage() {
   const [challenge, setChallenge] = useState<any>(null);
   
   useEffect(() => {
-    if (challengeId) {
+    if (challengeId && user) {
       getChallenge(challengeId).then(data => {
         setChallenge(data);
       });
     }
-  }, [challengeId, getChallenge]);
+  }, [challengeId, getChallenge, user]);
 
   const returnToArcade = () => {
     navigate("/dashboard/arcade");

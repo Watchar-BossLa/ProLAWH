@@ -3,9 +3,7 @@ import * as React from "react";
 import {
   Area, AreaChart, Bar, CartesianGrid, Cell,
   Legend, Line, Tooltip as RechartsTooltip, 
-  ResponsiveContainer, Sector, XAxis, YAxis
-} from "recharts";
-import {
+  ResponsiveContainer, Sector, XAxis, YAxis,
   BarChart as RechartsBarChart,
   LineChart as RechartsLineChart,
   PieChart as RechartsPieChart,
@@ -40,7 +38,7 @@ export interface ChartTooltipProps {
   content?: (props: { active?: boolean; payload?: any[]; label?: string }) => React.ReactNode;
 }
 
-// Use proper typing for the recharts tooltip
+// Fix the typing for the recharts tooltip
 export function ChartTooltip({ content }: ChartTooltipProps) {
   return <RechartsTooltip content={content as any} />;
 }

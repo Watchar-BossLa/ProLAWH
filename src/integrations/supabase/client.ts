@@ -1,4 +1,3 @@
-
 // Mock Supabase client for integration
 
 interface MockData {
@@ -58,7 +57,42 @@ export const supabase = {
           id: 'activity-1',
           activity_type: 'page_view',
           created_at: new Date().toISOString(),
+          user_id: 'user-1',
           metadata: { path: '/dashboard' }
+        }
+      ],
+      'blockchain_credentials': [
+        {
+          id: 'cred-1',
+          user_id: 'user-1',
+          skill_id: 'skill-1',
+          issued_at: new Date().toISOString(),
+          is_verified: true,
+          credential_type: 'solana',
+          credential_hash: 'hash123',
+          transaction_id: 'tx123',
+          metadata: { verification_method: 'challenge' },
+          skills: { name: 'Carbon Footprint Analysis' }
+        }
+      ],
+      'arcade_challenges': [
+        {
+          id: 'challenge-1',
+          title: 'Challenge Title',
+          description: 'Challenge Description',
+          type: 'quiz',
+          difficulty_level: 'beginner',
+          points: 100,
+          time_limit: 300,
+          instructions: 'Challenge Instructions',
+          validation_rules: {}
+        }
+      ],
+      'mentors': [
+        {
+          id: 'mentor-1',
+          expertise: ['Green Energy', 'Sustainability'],
+          profiles: { full_name: 'Expert Mentor', avatar_url: '/avatar.png' }
         }
       ]
     };

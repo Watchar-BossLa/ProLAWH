@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { useSkillVerification } from "@/hooks/useSkillVerification";
+import { useSkillVerification, VerificationMethod } from "@/hooks/useSkillVerification";
 import { useGreenSkills } from "@/hooks/useGreenSkills";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,7 +46,7 @@ export function VerificationForm({ selectedMethod, onCancel }: VerificationFormP
   const onSubmit = (values: FormValues) => {
     verifySkill.mutate({
       skillId: values.skillId,
-      method: values.method as any,
+      method: values.method as VerificationMethod,
       evidence: file || values.evidence
     });
   };

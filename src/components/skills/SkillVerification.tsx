@@ -6,7 +6,7 @@ import { Shield, CheckCircle, Upload } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { VerificationMethodCard } from "./verification/VerificationMethodCard";
 import { VerificationForm } from "./verification/VerificationForm";
-import type { VerificationMethod } from "@/hooks/useSkillVerification";
+import { VerificationMethod } from "@/hooks/useSkillVerification";
 
 interface VerificationMethodInfo {
   id: VerificationMethod;

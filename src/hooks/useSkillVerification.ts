@@ -3,7 +3,9 @@ import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import type { VerificationMethod } from '@/types/skills';
+import { VerificationMethod } from '@/types/skills';
+import { useMutation } from '@tanstack/react-query';
+import { toast } from '@/hooks/use-toast';
 
 export function useSkillVerification() {
   const { user } = useAuth();
@@ -59,10 +61,63 @@ export function useSkillVerification() {
     }
   };
 
+  // Add the missing verifySkill mutation
+  const verifySkill = useMutation({
+    mutationFn: async ({ 
+      skillId, 
+      method, 
+      evidence 
+    }: { 
+      skillId: string, 
+      method: VerificationMethod, 
+      evidence: File | string | null 
+    }) => {
+      if (!user) {
+        throw new Error('You must be logged in to verify skills');
+      }
+      
+      let evidenceUrl = null;
+      
+      if (evidence instanceof File) {
+        evidenceUrl = await uploadVerificationEvidence(evidence, skillId, method);
+      } else if (typeof evidence === 'string') {
+        evidenceUrl = evidence;
+      }
+      
+      // In a real implementation, we would save to the database
+      // For now, just return a mock result
+      return {
+        id: uuidv4(),
+        skillId,
+        method,
+        status: 'pending',
+        evidenceUrl
+      };
+    },
+    onSuccess: () => {
+      toast({
+        title: "Verification submitted",
+        description: "Your skill verification has been submitted for review.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Verification failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
   return {
     uploadVerificationEvidence,
     isUploading,
     uploadError,
-    uploadProgress
+    uploadProgress,
+    verifySkill,
+    isVerifying: verifySkill.isPending
   };
 }
+
+// Re-export the VerificationMethod type for convenience
+export type { VerificationMethod };
