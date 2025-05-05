@@ -1,6 +1,6 @@
 
 export interface ChallengeValidationRules {
-  required_items: string[];
+  required_items?: string[];
   min_confidence?: number;
   correct_answers?: Record<string, string | string[]>;
   test_cases?: TestCase[];
