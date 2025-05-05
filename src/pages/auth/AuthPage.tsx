@@ -6,12 +6,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, LogIn, UserPlus } from "lucide-react";
+import { Loader2, LogIn, UserPlus, AlertTriangle } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface LocationState {
   returnUrl?: string;
 }
+
+// Development flag to bypass authentication
+const BYPASS_AUTH = true;
 
 export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -67,6 +71,10 @@ export default function AuthPage() {
     }
   };
 
+  const handleBypassAuth = () => {
+    navigate(returnUrl);
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/50 to-background py-12 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-500">
       <Card className="w-full max-w-md shadow-lg">
@@ -85,7 +93,24 @@ export default function AuthPage() {
             </div>
           )}
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {BYPASS_AUTH && (
+            <Alert variant="warning" className="mb-4 bg-amber-100 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800">
+              <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <AlertDescription className="text-amber-800 dark:text-amber-300">
+                Authentication is currently bypassed for development. 
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="ml-2 bg-amber-200 hover:bg-amber-300 dark:bg-amber-800 dark:hover:bg-amber-700 border-amber-300"
+                  onClick={handleBypassAuth}
+                >
+                  Continue to {returnUrl.replace("/dashboard/", "") || "Dashboard"}
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <form onSubmit={handleAuth} className="space-y-4">
             {isSignUp && (
               <div className="space-y-2">

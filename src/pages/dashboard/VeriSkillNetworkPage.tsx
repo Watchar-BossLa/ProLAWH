@@ -10,6 +10,9 @@ import { VeriSkillOverview } from "@/components/veriskill/VeriSkillOverview";
 import { VeriSkillEmbed } from "@/components/veriskill/VeriSkillEmbed";
 import { useNavigate } from "react-router-dom";
 
+// Development flag to bypass authentication
+const BYPASS_AUTH = true;
+
 const VeriSkillNetworkPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -19,7 +22,7 @@ const VeriSkillNetworkPage: React.FC = () => {
   useEffect(() => {
     // Simulate connection to VeriSkill platform
     const timer = setTimeout(() => {
-      setConnectionStatus(user ? 'connected' : 'error');
+      setConnectionStatus(BYPASS_AUTH || user ? 'connected' : 'error');
     }, 1500);
     
     return () => clearTimeout(timer);
@@ -29,7 +32,8 @@ const VeriSkillNetworkPage: React.FC = () => {
     navigate('/auth', { state: { returnUrl: '/dashboard/veriskill' } });
   };
 
-  if (!user) {
+  // During development, bypass authentication check
+  if (!BYPASS_AUTH && !user) {
     return (
       <div className="container mx-auto p-6">
         <Card className="w-full overflow-hidden">
@@ -107,7 +111,7 @@ const VeriSkillNetworkPage: React.FC = () => {
           
           <TabsContent value="platform" className="pt-6">
             {connectionStatus === 'connected' ? (
-              <VeriSkillEmbed userId={user.id} />
+              <VeriSkillEmbed userId={user?.id || 'development-user'} />
             ) : (
               <Card>
                 <CardHeader>

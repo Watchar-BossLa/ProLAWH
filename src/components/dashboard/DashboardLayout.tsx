@@ -10,19 +10,22 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
+// Development flag to bypass authentication
+const BYPASS_AUTH = true;
+
 export function DashboardLayout() {
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!BYPASS_AUTH && !isLoading && !user) {
       // Redirect to auth page with return URL
       navigate('/auth', { state: { returnUrl: location.pathname } });
     }
   }, [user, isLoading, navigate, location.pathname]);
 
-  if (isLoading) {
+  if (isLoading && !BYPASS_AUTH) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -33,7 +36,10 @@ export function DashboardLayout() {
     );
   }
 
-  if (!user) {
+  // Allow access even without authentication during development
+  const showContent = BYPASS_AUTH || user;
+
+  if (!showContent) {
     return null; // Will be redirected by the useEffect
   }
 
