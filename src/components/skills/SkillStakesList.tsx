@@ -26,47 +26,14 @@ interface SkillStake {
   polygon_contract_address?: string;
 }
 
-export function SkillStakesList() {
-  const [stakes, setStakes] = useState<SkillStake[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+interface SkillStakesListProps {
+  isLoading?: boolean;
+  stakes: SkillStake[];
+}
 
-  useEffect(() => {
-    const fetchStakes = async () => {
-      const { data, error } = await supabase
-        .from("active_stakes")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Error fetching stakes:", error);
-        return;
-      }
-
-      setStakes(data);
-      setIsLoading(false);
-    };
-
-    fetchStakes();
-
-    // Subscribe to changes
-    const channel = supabase
-      .channel("table-db-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "skill_stakes",
-        },
-        () => fetchStakes()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
+export function SkillStakesList({ isLoading = false, stakes = [] }: SkillStakesListProps) {
+  // Remove the useState and useEffect since stakes are now passed as props
+  
   const getTransactionUrl = (txHash: string, contractAddress: string) => {
     // For now, default to Mumbai testnet
     return `https://mumbai.polygonscan.com/tx/${txHash}`;

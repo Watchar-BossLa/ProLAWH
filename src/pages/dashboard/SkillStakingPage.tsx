@@ -25,3 +25,6 @@ export default function SkillStakingPage() {
     </div>
   );
 }
+
+// Just for backwards compatibility in case someone still imports it with named import
+export { SkillStakingPage };

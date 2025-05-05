@@ -5,37 +5,44 @@ import { StakingContract } from "@/types/staking";
 
 export function useStakingContracts() {
   const [stakingContracts, setStakingContracts] = useState<StakingContract[]>([]);
-  const [selectedContract, setSelectedContract] = useState<string>("");
+  const [selectedContract, setSelectedContract] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchContracts = async () => {
       try {
-        const { data, error } = await supabase.rpc('get_active_staking_contracts');
+        // Mock data for now - in real app would fetch from Supabase
+        const mockContracts: StakingContract[] = [
+          {
+            id: "contract1",
+            contract_address: "0x1234567890abcdef1234567890abcdef12345678",
+            network: "Polygon Mumbai",
+          },
+          {
+            id: "contract2",
+            contract_address: "0xabcdef1234567890abcdef1234567890abcdef12",
+            network: "Polygon Mainnet",
+          },
+        ];
 
-        if (error) throw error;
-
-        if (data && data.length > 0) {
-          setStakingContracts(data);
-          setSelectedContract(data[0].id);
+        setStakingContracts(mockContracts);
+        if (mockContracts.length > 0 && !selectedContract) {
+          setSelectedContract(mockContracts[0].id);
         }
-      } catch (err) {
-        console.error("Error fetching staking contracts:", err);
-        setError(err instanceof Error ? err.message : "Failed to fetch contracts");
+      } catch (error) {
+        console.error("Error fetching staking contracts:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchContracts();
-  }, []);
+  }, [selectedContract]);
 
   return {
     stakingContracts,
     selectedContract,
     setSelectedContract,
     isLoading,
-    error
   };
 }

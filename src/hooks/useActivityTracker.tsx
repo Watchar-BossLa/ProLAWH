@@ -1,73 +1,56 @@
 
-import { useEffect, useCallback } from 'react';
-import { useAuth } from './useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { useCallback } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
-type ActivityType = 
-  | 'page_view' 
-  | 'learning_content_engagement'
-  | 'skill_development'
-  | 'mentorship_interaction'
-  | 'network_connection'
-  | 'opportunity_interest'
-  | 'challenge_completion'
-  | 'career_twin_interaction';
-
-interface ActivityMetadata {
-  [key: string]: any;
-}
+// Define the ActivityType enum
+export type ActivityType = 
+  | "page_view" 
+  | "button_click" 
+  | "form_submit" 
+  | "sign_in" 
+  | "sign_out" 
+  | "skill_staking_page_viewed" // Add the new activity type
+  | "profile_update" 
+  | "content_view" 
+  | "resource_download" 
+  | "search" 
+  | "filter_change" 
+  | "tab_switch" 
+  | "modal_open" 
+  | "modal_close";
 
 export function useActivityTracker() {
   const { user } = useAuth();
-  
-  const trackActivity = useCallback(async (
-    activityType: ActivityType, 
-    metadata: ActivityMetadata = {}
-  ) => {
-    if (!user) return;
-    
-    try {
-      await supabase
-        .from('user_activity_logs')
-        .insert({
+
+  const trackActivity = useCallback(
+    async (
+      type: ActivityType,
+      details: Record<string, any> = {}
+    ): Promise<void> => {
+      if (!user) return;
+
+      try {
+        const { error } = await supabase.from("user_activity_logs").insert({
           user_id: user.id,
-          activity_type: activityType,
-          metadata
+          activity_type: type,
+          metadata: {
+            ...details,
+            url: window.location.href,
+            referrer: document.referrer || null,
+            user_agent: navigator.userAgent,
+          },
         });
-      
-      // In debug mode, log the activity
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`Activity tracked: ${activityType}`, metadata);
+
+        if (error) {
+          console.error("Error tracking activity:", error);
+        }
+      } catch (err) {
+        console.error("Failed to track user activity:", err);
       }
-    } catch (error) {
-      console.error('Error tracking activity:', error);
-    }
-  }, [user]);
+    },
+    [user]
+  );
 
-  // Track page views automatically
-  const trackPageView = useCallback(() => {
-    if (!user) return;
-    
-    const path = window.location.pathname;
-    trackActivity('page_view', { path });
-  }, [user, trackActivity]);
-  
-  // Track initial page view on mount
-  useEffect(() => {
-    if (user) {
-      trackPageView();
-    }
-  }, [user, trackPageView]);
-  
-  // Listen for router changes to track page views
-  useEffect(() => {
-    // This would normally use a router event listener
-    // For React Router: history.listen(trackPageView);
-    // We'll leave this as a placeholder since the implementation
-    // depends on the specific router being used
-  }, [trackPageView]);
-
-  return {
-    trackActivity,
-  };
+  return { trackActivity };
 }

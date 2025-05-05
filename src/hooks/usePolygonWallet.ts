@@ -8,6 +8,9 @@ export function usePolygonWallet() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
 
+  // Add a wallet property to match the usage in useSkillStaking.ts
+  const wallet = address ? { address } : null;
+
   // Connect to wallet
   const connect = useCallback(async () => {
     setIsConnecting(true);
@@ -31,6 +34,9 @@ export function usePolygonWallet() {
       setIsConnecting(false);
     }
   }, []);
+
+  // Add connectWallet function as an alias to connect for compatibility
+  const connectWallet = connect;
 
   // Check if wallet is already connected on mount
   useEffect(() => {
@@ -82,5 +88,7 @@ export function usePolygonWallet() {
     isConnected,
     isConnecting,
     connect,
+    connectWallet,
+    wallet
   };
 }

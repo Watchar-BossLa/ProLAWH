@@ -36,6 +36,19 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<any, any>) => {
   return null;
 };
 
+// Add missing chart components
+export const ChartContainer = ({ children, config }: { children: React.ReactNode; config?: Record<string, any> }) => {
+  return <div className="chart-container">{children}</div>;
+};
+
+export const ChartTooltip = ({ content, children }: { content: any; children?: React.ReactNode }) => {
+  return <Tooltip content={content}>{children}</Tooltip>;
+};
+
+export const ChartTooltipContent = ({ children }: { children: React.ReactNode }) => {
+  return <div className="chart-tooltip-content bg-background border rounded p-2 shadow-md">{children}</div>;
+};
+
 // Bar Chart Component
 interface BarChartProps {
   data: any[];

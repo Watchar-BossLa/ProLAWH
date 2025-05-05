@@ -129,8 +129,6 @@ export function StakingTransactionHistory({ isLoading = false }: StakingTransact
               <PaginationItem>
                 <PaginationPrevious 
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage <= 1}
-                  aria-disabled={currentPage <= 1}
                   className={currentPage <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                 />
               </PaginationItem>
@@ -164,8 +162,6 @@ export function StakingTransactionHistory({ isLoading = false }: StakingTransact
               <PaginationItem>
                 <PaginationNext 
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage >= totalPages}
-                  aria-disabled={currentPage >= totalPages}
                   className={currentPage >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
                 />
               </PaginationItem>
