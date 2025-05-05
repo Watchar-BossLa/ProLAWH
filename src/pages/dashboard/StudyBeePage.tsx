@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ExternalLink, GraduationCap, Book } from "lucide-react";
+import { ExternalLink, GraduationCap, Book, BookOpen, NotebookPen, Users } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { pageTransitions } from "@/lib/transitions";
@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { StudyBeeOverview } from "@/components/studybee/StudyBeeOverview";
 import { StudyBeeEmbed } from "@/components/studybee/StudyBeeEmbed";
+import { StudyBeeFeatures } from "@/components/studybee/StudyBeeFeatures";
+import { StudyBeeRecords } from "@/components/studybee/StudyBeeRecords";
 
 const StudyBeePage: React.FC = () => {
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'error'>('connecting');
@@ -23,7 +25,7 @@ const StudyBeePage: React.FC = () => {
   }, []);
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className={`container mx-auto py-6 space-y-6 ${pageTransitions.initial}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <GraduationCap className="h-8 w-8 text-primary" />
@@ -47,12 +49,34 @@ const StudyBeePage: React.FC = () => {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList>
-          <TabsTrigger value="overview">Platform Overview</TabsTrigger>
-          <TabsTrigger value="platform">Study Bee Platform</TabsTrigger>
+          <TabsTrigger value="overview" className="flex items-center gap-1">
+            <BookOpen className="h-4 w-4" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="features" className="flex items-center gap-1">
+            <NotebookPen className="h-4 w-4" />
+            Features
+          </TabsTrigger>
+          <TabsTrigger value="records" className="flex items-center gap-1">
+            <Users className="h-4 w-4" />
+            Study Records
+          </TabsTrigger>
+          <TabsTrigger value="platform" className="flex items-center gap-1">
+            <ExternalLink className="h-4 w-4" />
+            Launch Platform
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview" className="pt-6">
           <StudyBeeOverview />
+        </TabsContent>
+        
+        <TabsContent value="features" className="pt-6">
+          <StudyBeeFeatures />
+        </TabsContent>
+        
+        <TabsContent value="records" className="pt-6">
+          <StudyBeeRecords />
         </TabsContent>
         
         <TabsContent value="platform" className="pt-6">

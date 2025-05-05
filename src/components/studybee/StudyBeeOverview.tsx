@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GraduationCap, Book, PenTool, Brain, Users } from "lucide-react";
+import { GraduationCap, Book, PenTool, Brain, Users, Star } from "lucide-react";
 
 export const StudyBeeOverview: React.FC = () => {
   return (
@@ -19,6 +19,12 @@ export const StudyBeeOverview: React.FC = () => {
             With personalized learning paths, interactive quizzes, and collaborative study sessions,
             Study Bee transforms how you learn and retain knowledge.
           </p>
+          <div className="mt-4 p-3 bg-primary/10 rounded-md">
+            <p className="text-sm font-medium">
+              Study Bee is fully integrated with ProLawh, allowing you to connect your 
+              study progress with your career development and skills acquisition.
+            </p>
+          </div>
         </CardContent>
       </Card>
       
@@ -42,6 +48,10 @@ export const StudyBeeOverview: React.FC = () => {
             <li className="flex items-start gap-2">
               <Users className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
               <span>Collaborative study rooms with real-time sharing</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <Star className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+              <span>Performance tracking and progress analytics</span>
             </li>
           </ul>
         </CardContent>
