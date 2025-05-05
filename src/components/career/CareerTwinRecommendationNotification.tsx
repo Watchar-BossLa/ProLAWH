@@ -71,17 +71,16 @@ export function CareerTwinRecommendationNotification({
         </p>
         
         <div className="flex justify-end">
-          <Button 
-            size="sm" 
-            variant="default" 
-            as={Link}
-            to="/dashboard/career-twin"
-            onClick={handleViewDetails}
-            className="text-xs flex items-center"
-          >
-            View Details
-            <ArrowRight className="h-3.5 w-3.5 ml-1" />
-          </Button>
+          <Link to="/dashboard/career-twin" onClick={handleViewDetails}>
+            <Button 
+              size="sm" 
+              variant="default" 
+              className="text-xs flex items-center"
+            >
+              View Details
+              <ArrowRight className="h-3.5 w-3.5 ml-1" />
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

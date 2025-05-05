@@ -1,8 +1,6 @@
-
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CareerRecommendation } from '@/hooks/useCareerTwin';
-import { Grid } from '@/components/ui/grid';
 import { BarChart3, PieChart as PieChartIcon, ThumbsUp, UserCheck } from 'lucide-react';
 
 interface CareerTwinInsightsDashboardProps {

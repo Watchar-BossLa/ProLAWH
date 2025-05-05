@@ -11,7 +11,8 @@ interface ActivityLog {
   id: string;
   activity_type: string;
   created_at: string;
-  metadata: Record<string, any>;
+  user_id: string;
+  metadata: any; // Changed from Record<string, any> to any to accept Json type from Supabase
 }
 
 export function CareerTwinActivityFeed() {
