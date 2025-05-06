@@ -1,84 +1,76 @@
 
-import { useState, useEffect } from "react";
-import { useMentorship } from "@/hooks/useMentorship";
-import { MentorshipCard } from "@/components/mentorship/MentorshipCard";
-import { MentorshipFilters } from "@/components/mentorship/MentorshipFilters";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2 } from "lucide-react";
+import { useEffect, useState } from 'react';
+import { useMentorship } from '@/hooks/useMentorship';
+import { MentorshipCard } from './MentorshipCard';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 
-export function MentorshipList() {
-  const [activeTab, setActiveTab] = useState<string>("active");
-  const [mentorships, setMentorships] = useState<any[]>([]);
-  const { user } = useAuth();
+interface MentorshipListProps {
+  filter?: string;
+}
+
+export function MentorshipList({ filter = 'all' }: MentorshipListProps) {
   const { getMentorshipRelationships, loading, error } = useMentorship();
+  const [mentorships, setMentorships] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadMentorships();
-  }, [activeTab, user]);
+    const fetchMentorships = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getMentorshipRelationships();
+        setMentorships(data);
+      } catch (err) {
+        console.error('Error fetching mentorships:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const loadMentorships = async () => {
-    if (!user) return;
-    
-    const data = await getMentorshipRelationships(activeTab);
-    if (data) {
-      setMentorships(data);
-    }
-  };
+    fetchMentorships();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-destructive mb-4">Error loading mentorships</p>
+        <Button variant="outline" onClick={() => window.location.reload()}>
+          Try Again
+        </Button>
+      </div>
+    );
+  }
+
+  if (mentorships.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <h3 className="text-lg font-medium mb-2">No mentorships found</h3>
+        <p className="text-muted-foreground mb-6">
+          You don't have any active mentorship relationships yet.
+        </p>
+        <Button>Find a Mentor</Button>
+      </div>
+    );
+  }
+
+  // Filter mentorships based on filter prop
+  const filteredMentorships = filter === 'all' 
+    ? mentorships 
+    : mentorships.filter(m => m.status === filter);
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Your Mentorships</h2>
-        <Button variant="outline" onClick={loadMentorships}>
-          Refresh
-        </Button>
-      </div>
-
-      <Tabs defaultValue="active" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="active">Active</TabsTrigger>
-          <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="completed">Completed</TabsTrigger>
-        </TabsList>
-        
-        <MentorshipFilters />
-        
-        <TabsContent value={activeTab} className="pt-4">
-          {loading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : error ? (
-            <div className="text-center py-8 text-destructive">
-              Error loading mentorships. Please try again.
-            </div>
-          ) : mentorships.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {mentorships.map((mentorship) => (
-                <MentorshipCard 
-                  key={mentorship.id} 
-                  mentorship={mentorship} 
-                  isMentor={user?.id === mentorship.mentor_id} 
-                  onUpdate={loadMentorships}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              No {activeTab} mentorships found. 
-              {activeTab === 'active' && (
-                <div className="mt-2">
-                  <Button variant="outline" onClick={() => setActiveTab("pending")}>
-                    Check pending requests
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+      {filteredMentorships.map((mentorship) => (
+        <MentorshipCard key={mentorship.id} mentorship={mentorship} />
+      ))}
     </div>
   );
 }

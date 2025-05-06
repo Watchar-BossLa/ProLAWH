@@ -40,7 +40,8 @@ export function useBlockchainCredentials(userId?: string) {
               credential_type: item.credential_type || 'standard',
               credential_hash: item.credential_hash || '',
               transaction_id: item.transaction_id || '',
-              skills: item.skills || { name: 'Unknown Skill' }
+              skills: item.skills && typeof item.skills === 'object' && 'name' in item.skills ? 
+                item.skills : { name: 'Unknown Skill' }
             };
           });
           setCredentials(typedCredentials);

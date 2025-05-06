@@ -36,11 +36,11 @@ export function useCourseProgress(courseId: string) {
         const mockCompletedIds = mockExistingProgress.completed_content_ids || [];
         
         // Don't add if already completed
-        if (mockCompletedIds.includes(contentId)) {
+        if (Array.isArray(mockCompletedIds) && mockCompletedIds.includes(contentId)) {
           return mockExistingProgress;
         }
         
-        const updatedContentIds = [...mockCompletedIds, contentId];
+        const updatedContentIds = Array.isArray(mockCompletedIds) ? [...mockCompletedIds, contentId] : [contentId];
         const overallProgress = Math.round((updatedContentIds.length / totalContentCount) * 100);
         
         // Update existing progress

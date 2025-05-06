@@ -101,7 +101,7 @@ export function CareerTwinMentorRecommendations() {
     return {
       id: rec.id,
       mentorId: rec.mentorId,
-      mentorName: rec.mentorName || (rec.reason ? rec.reason.split(' ')[0] || "Mentor" : "Mentor"),
+      mentorName: rec.mentorName || rec.reason || "Mentor",
       mentorExpertise: rec.mentorExpertise || ['Green Skills', 'Sustainability'],
       matchReason: rec.matchReason || rec.reason || "Recommended based on your profile",
       relevanceScore: rec.relevanceScore || rec.score || 0.75,
