@@ -50,6 +50,12 @@ export function MentorshipSessionCard({ session, isMentor, onUpdate }: Mentorshi
     onUpdate();
   };
   
+  // Function to update status without feedback
+  const handleUpdateStatus = async (status: string) => {
+    await updateSessionFeedback(session.id, status, isMentor);
+    onUpdate();
+  };
+  
   return (
     <>
       <Card className="hover:shadow-sm transition-shadow">
@@ -126,7 +132,7 @@ export function MentorshipSessionCard({ session, isMentor, onUpdate }: Mentorshi
               <Button 
                 variant="outline" 
                 className="flex-1"
-                onClick={() => updateSessionFeedback(session.id, 'cancelled', isMentor)}
+                onClick={() => handleUpdateStatus('cancelled')}
               >
                 <XIcon className="h-4 w-4 mr-2" />
                 Cancel

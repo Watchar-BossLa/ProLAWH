@@ -97,14 +97,14 @@ export function CareerTwinMentorRecommendations() {
   
   // Process the recommendations data to match our expected format
   const processedRecommendations: MentorRecommendation[] = mentorRecommendations.map(rec => {
-    // Map from the API's field names to our component's expected field names
+    // Transform the API response to match our MentorRecommendation interface
     return {
       id: rec.id,
       mentorId: rec.mentorId,
-      mentorName: rec.reason ? rec.reason.split(' ')[0] || "Mentor" : "Mentor", // Fallback
-      mentorExpertise: ['Green Skills', 'Sustainability'], // Default expertise as fallback
-      matchReason: rec.reason || "Recommended based on your profile",
-      relevanceScore: rec.score || 0.75,
+      mentorName: rec.mentorName || (rec.reason ? rec.reason.split(' ')[0] || "Mentor" : "Mentor"),
+      mentorExpertise: rec.mentorExpertise || ['Green Skills', 'Sustainability'],
+      matchReason: rec.matchReason || rec.reason || "Recommended based on your profile",
+      relevanceScore: rec.relevanceScore || rec.score || 0.75,
       recommendationId: rec.recommendationId
     };
   });
@@ -137,12 +137,12 @@ export function CareerTwinMentorRecommendations() {
                 </p>
                 
                 <div className="flex flex-wrap gap-1 mb-3">
-                  {rec.mentorExpertise.slice(0, 3).map((skill, i) => (
+                  {rec.mentorExpertise && rec.mentorExpertise.slice(0, 3).map((skill, i) => (
                     <Badge key={i} variant="secondary" className="text-xs">
                       {skill}
                     </Badge>
                   ))}
-                  {rec.mentorExpertise.length > 3 && (
+                  {rec.mentorExpertise && rec.mentorExpertise.length > 3 && (
                     <Badge variant="outline" className="text-xs">
                       +{rec.mentorExpertise.length - 3} more
                     </Badge>
