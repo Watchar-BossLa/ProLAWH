@@ -50,6 +50,12 @@ export interface MockData {
   goals?: string[] | string;
   metric_name?: string;
   metric_value?: number;
+  role?: string;
+  full_name?: string;
+  location?: string;
+  payment_method?: string;
+  payment_date?: string;
+  amount?: number;
 }
 
 // Define an interface for mentor recommendation data structure

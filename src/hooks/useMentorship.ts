@@ -214,13 +214,26 @@ export function useMentorship() {
     }
   };
 
-  // Get mentors (mock)
+  // Get mentorships (mock)
   const getMentors = async () => {
     return [];
   };
 
   // Get mentorship relationships (mock)
   const getMentorshipRelationships = async () => {
+    // Mock implementation that returns an empty array
+    return [];
+  };
+
+  // Get mentorship sessions (mock)
+  const getMentorshipSessions = async (relationshipId: string) => {
+    // Mock implementation that returns an empty array
+    return [];
+  };
+
+  // Get mentorship resources (mock)
+  const getMentorshipResources = async (mentorshipId: string) => {
+    // Mock implementation that returns an empty array
     return [];
   };
 
@@ -232,6 +245,8 @@ export function useMentorship() {
     updateSessionFeedback,
     scheduleMentorshipSession,
     getMentors,
-    getMentorshipRelationships
+    getMentorshipRelationships,
+    getMentorshipSessions,
+    getMentorshipResources
   };
 }

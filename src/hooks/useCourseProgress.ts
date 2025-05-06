@@ -32,7 +32,7 @@ export function useCourseProgress(courseId: string) {
       const totalContentCount = 10; // Mock value for total contents
       
       if (mockExistingProgress) {
-        // Simulate a mock response with the right properties
+        // Safely access completed_content_ids with type checking
         const mockCompletedIds = mockExistingProgress.completed_content_ids || [];
         
         // Don't add if already completed

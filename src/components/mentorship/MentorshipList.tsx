@@ -19,7 +19,7 @@ export function MentorshipList({ filter = 'all' }: MentorshipListProps) {
       setIsLoading(true);
       try {
         const data = await getMentorshipRelationships();
-        setMentorships(data);
+        setMentorships(data || []);
       } catch (err) {
         console.error('Error fetching mentorships:', err);
       } finally {
@@ -28,7 +28,7 @@ export function MentorshipList({ filter = 'all' }: MentorshipListProps) {
     };
 
     fetchMentorships();
-  }, []);
+  }, [getMentorshipRelationships]);
 
   if (isLoading) {
     return (
@@ -69,7 +69,12 @@ export function MentorshipList({ filter = 'all' }: MentorshipListProps) {
   return (
     <div className="space-y-4">
       {filteredMentorships.map((mentorship) => (
-        <MentorshipCard key={mentorship.id} mentorship={mentorship} />
+        <MentorshipCard 
+          key={mentorship.id} 
+          mentorship={mentorship} 
+          isMentor={false} 
+          onUpdate={() => {}} 
+        />
       ))}
     </div>
   );
