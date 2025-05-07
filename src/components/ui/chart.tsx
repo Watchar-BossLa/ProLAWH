@@ -1,4 +1,3 @@
-
 import * as React from "react";
 import {
   Area, AreaChart, Bar, CartesianGrid, Cell,
@@ -35,12 +34,11 @@ export interface ChartConfig {
 }
 
 export interface ChartTooltipProps {
-  content?: (props: { active?: boolean; payload?: any[]; label?: string }) => React.ReactElement<any, any> | null;
+  content?: (props: { active?: boolean; payload?: any[]; label?: string }) => React.ReactElement | null;
 }
 
 // Fix the typing for the recharts tooltip
 export function ChartTooltip({ content }: ChartTooltipProps) {
-  // Cast the content function to the expected type to avoid the ReactNode vs ReactElement error
   return <RechartsTooltip content={content} />;
 }
 

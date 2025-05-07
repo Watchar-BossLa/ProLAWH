@@ -62,6 +62,11 @@ export interface MockData {
   expected_duration?: string;
   createdAt?: string;
   focusAreas?: string[];
+  // Additional fields for LearningPath compatibility
+  cover_image?: string;
+  created_by?: string;
+  estimated_duration?: string;
+  is_published?: boolean;
 }
 
 // Define an interface for mentor recommendation data structure

@@ -4,6 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 
+interface CourseProgress {
+  id: string;
+  completed_content_ids?: string[];
+  completed_at?: string | null;
+  overall_progress?: number;
+}
+
 export function useCourseProgress(courseId: string) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -25,7 +32,7 @@ export function useCourseProgress(courseId: string) {
       
       // Use mock data for our response since real API would return data
       const mockExistingProgress = existingProgress && existingProgress.length > 0 
-        ? existingProgress[0] 
+        ? existingProgress[0] as CourseProgress
         : null;
 
       // Get total content count for percentage calculation

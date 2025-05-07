@@ -10,7 +10,7 @@ import { LucideSchool, AlertCircle } from "lucide-react";
 
 export default function LearningDashboard() {
   const { user } = useAuth();
-  const { courses, learningPaths, isLoading } = useLearningData();
+  const { featuredCourses, learningPaths, isLoading } = useLearningData();
 
   if (!user) {
     return (
@@ -70,11 +70,11 @@ export default function LearningDashboard() {
                 <Skeleton key={i} className="h-[300px] rounded-lg" />
               ))
             ) : (
-              courses?.map((course) => (
+              featuredCourses?.map((course) => (
                 <CourseCard key={course.id} course={course} />
               ))
             )}
-            {!isLoading && courses?.length === 0 && (
+            {!isLoading && featuredCourses?.length === 0 && (
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>No courses available</AlertTitle>

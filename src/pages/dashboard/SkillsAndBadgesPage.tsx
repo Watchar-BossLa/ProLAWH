@@ -3,7 +3,7 @@ import { useSkillBadges } from "@/hooks/useSkillBadges";
 import { MockData } from "@/types/mocks";
 
 export default function SkillsAndBadgesPage() {
-  const { badges, loading } = useSkillBadges();
+  const { data: badges, isLoading: loading } = useSkillBadges();
   
   if (loading) {
     return <div>Loading badges...</div>;
