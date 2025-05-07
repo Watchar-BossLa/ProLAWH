@@ -15,6 +15,7 @@ export interface MockData {
   skills?: { name: string } | string[];
   activity_type?: string;
   created_at?: string;
+  updated_at?: string;
   type?: 'skill_gap' | 'job_match' | 'mentor_suggest';
   recommendation?: string;
   relevance_score?: number;
@@ -43,7 +44,6 @@ export interface MockData {
   content?: string;
   description?: string;
   title?: string;
-  updated_at?: string;
   mentor_id?: string;
   mentee_id?: string;
   focus_areas?: string[];
@@ -56,6 +56,8 @@ export interface MockData {
   payment_method?: string;
   payment_date?: string;
   amount?: number;
+  badge_id?: string;
+  requester_id?: string;
 }
 
 // Define an interface for mentor recommendation data structure
@@ -67,6 +69,8 @@ export interface MentorRecommendation {
   matchReason: string;
   relevanceScore: number;
   recommendationId?: string;
+  reason?: string;
+  score?: number;
 }
 
 // Define an interface for activity logs

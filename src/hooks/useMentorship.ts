@@ -1,240 +1,221 @@
 
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from '@/hooks/use-toast';
-
-export interface MentorshipRequest {
-  mentor_id: string;
-  message: string;
-  focus_areas?: string[];
-  industry?: string;
-  expected_duration?: string;
-  goals?: string[];
-}
+import { useAuth } from './useAuth';
+import { MentorshipRequest } from '@/types/network';
 
 export function useMentorship() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  // Send a mentorship request
+  const getMentorshipRelationships = async () => {
+    if (!user) {
+      setError(new Error('You must be logged in to view mentorships'));
+      return [];
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      // Mock data for mentorship relationships
+      return [
+        {
+          id: "mock-rel-1",
+          mentor_id: "mock-mentor-1",
+          mentee_id: user.id,
+          status: "active",
+          focus_areas: ["Web Development", "Career Growth"],
+          goals: "Learn React, Get promoted",
+          meeting_frequency: "weekly",
+          mentor: {
+            id: "mock-mentor-1",
+            profiles: {
+              full_name: "Jane Mentor",
+              avatar_url: "/assets/mentor1.jpg"
+            }
+          }
+        }
+      ];
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Error fetching mentorships'));
+      console.error('Error fetching mentorship relationships:', err);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const sendMentorshipRequest = async (request: MentorshipRequest): Promise<boolean> => {
     if (!user) {
-      setError(new Error('You must be logged in to send mentorship requests'));
+      setError(new Error('You must be logged in to send a mentorship request'));
       return false;
     }
 
     setLoading(true);
     setError(null);
     try {
-      const { error } = await supabase.from('mentorship_requests').insert({
-        requester_id: user.id,
-        mentor_id: request.mentor_id,
-        message: request.message,
-        focus_areas: request.focus_areas || [],
-        industry: request.industry || "",
-        expected_duration: request.expected_duration,
-        status: 'pending',
-        goals: request.goals || []
-      });
-
-      if (error) throw error;
-      
-      toast({
-        title: 'Request Sent',
-        description: 'Your mentorship request has been sent successfully.',
-      });
-      
+      // Mock implementation
+      console.log('Sending mentorship request:', request);
       return true;
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Error sending mentorship request'));
       console.error('Error sending mentorship request:', err);
-      
-      toast({
-        title: 'Request Failed',
-        description: 'There was an error sending your mentorship request. Please try again.',
-        variant: 'destructive',
-      });
-      
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  // Add mentorship resource
   const addMentorshipResource = async (
-    mentorshipId: string,
-    title: string,
-    type: string,
-    url?: string,
+    mentorshipId: string, 
+    title: string, 
+    type: string, 
+    url?: string, 
     description?: string
   ): Promise<boolean> => {
     if (!user) {
-      setError(new Error('You must be logged in to add resources'));
+      setError(new Error('You must be logged in to add a resource'));
       return false;
     }
 
     setLoading(true);
     setError(null);
     try {
-      const { error } = await supabase.from('mentorship_resources').insert({
-        mentorship_id: mentorshipId,
-        added_by: user.id,
-        title,
-        type,
-        url: url || null,
-        description: description || null
-      });
-
-      if (error) throw error;
-      
-      toast({
-        title: 'Resource Added',
-        description: 'The mentorship resource has been added successfully.',
-      });
-      
+      // Mock implementation
+      console.log('Adding mentorship resource:', { mentorshipId, title, type, url, description });
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Error adding mentorship resource'));
+      setError(err instanceof Error ? err : new Error('Error adding resource'));
       console.error('Error adding mentorship resource:', err);
-      
-      toast({
-        title: 'Failed to Add Resource',
-        description: 'There was an error adding the resource. Please try again.',
-        variant: 'destructive',
-      });
-      
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  // Update session feedback
   const updateSessionFeedback = async (
     sessionId: string,
     status: string,
-    isMentor: boolean = false,
+    isMentor = false,
     feedback?: string,
     rating?: number
   ): Promise<boolean> => {
     if (!user) {
-      setError(new Error('You must be logged in to provide feedback'));
+      setError(new Error('You must be logged in to update session feedback'));
       return false;
     }
 
     setLoading(true);
     setError(null);
     try {
-      const updateData: Record<string, any> = { status };
-      
-      if (feedback) {
-        updateData[isMentor ? 'mentor_feedback' : 'mentee_feedback'] = feedback;
-      }
-      
-      if (rating) {
-        updateData[isMentor ? 'mentor_rating' : 'mentee_rating'] = rating;
-      }
-      
-      const { error } = await supabase
-        .from('mentorship_sessions')
-        .update(updateData)
-        .eq('id', sessionId);
-
-      if (error) throw error;
-      
-      toast({
-        title: status === 'completed' ? 'Session Completed' : 'Status Updated',
-        description: status === 'completed' ? 'Session marked as completed with your feedback.' : `Session status updated to ${status}.`,
-      });
-      
+      // Mock implementation
+      console.log('Updating session feedback:', { sessionId, status, isMentor, feedback, rating });
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Error updating session'));
-      console.error('Error updating session:', err);
-      
-      toast({
-        title: 'Update Failed',
-        description: 'There was an error updating the session. Please try again.',
-        variant: 'destructive',
-      });
-      
+      setError(err instanceof Error ? err : new Error('Error updating session feedback'));
+      console.error('Error updating session feedback:', err);
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  // Schedule mentorship session
-  const scheduleMentorshipSession = async (
-    relationshipId: string,
-    scheduledFor: Date,
-    durationMinutes: number,
-    notes?: string
-  ): Promise<boolean> => {
+  const getMentorshipSessions = async (mentorshipId: string) => {
     if (!user) {
-      setError(new Error('You must be logged in to schedule sessions'));
-      return false;
+      setError(new Error('You must be logged in to view sessions'));
+      return [];
     }
 
     setLoading(true);
     setError(null);
     try {
-      const { error } = await supabase.from('mentorship_sessions').insert({
-        relationship_id: relationshipId,
-        scheduled_for: scheduledFor.toISOString(),
-        duration_minutes: durationMinutes,
-        status: 'scheduled',
-        notes: notes || null
-      });
-
-      if (error) throw error;
-      
-      toast({
-        title: 'Session Scheduled',
-        description: 'Mentorship session has been scheduled successfully.',
-      });
-      
-      return true;
+      // Mock data for mentorship sessions
+      return [
+        {
+          id: "mock-session-1",
+          relationship_id: mentorshipId,
+          scheduled_for: new Date().toISOString(),
+          status: "scheduled",
+          notes: "Initial session to discuss goals",
+          duration_minutes: 30
+        }
+      ];
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Error scheduling session'));
-      console.error('Error scheduling session:', err);
-      
-      toast({
-        title: 'Scheduling Failed',
-        description: 'There was an error scheduling the session. Please try again.',
-        variant: 'destructive',
-      });
-      
-      return false;
+      setError(err instanceof Error ? err : new Error('Error fetching mentorship sessions'));
+      console.error('Error fetching mentorship sessions:', err);
+      return [];
     } finally {
       setLoading(false);
     }
   };
 
-  // Get mentorships (mock)
-  const getMentors = async () => {
-    return [];
-  };
-
-  // Get mentorship relationships (mock)
-  const getMentorshipRelationships = async () => {
-    // Mock implementation that returns an empty array
-    return [];
-  };
-
-  // Get mentorship sessions (mock)
-  const getMentorshipSessions = async (relationshipId: string) => {
-    // Mock implementation that returns an empty array
-    return [];
-  };
-
-  // Get mentorship resources (mock)
   const getMentorshipResources = async (mentorshipId: string) => {
-    // Mock implementation that returns an empty array
-    return [];
+    if (!user) {
+      setError(new Error('You must be logged in to view resources'));
+      return [];
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      // Mock data for mentorship resources
+      return [
+        {
+          id: "mock-resource-1",
+          mentorship_id: mentorshipId,
+          title: "React Documentation",
+          type: "article",
+          url: "https://reactjs.org/docs/getting-started.html",
+          description: "Official React documentation",
+          added_by: user.id,
+          added_at: new Date().toISOString(),
+          completed: false
+        }
+      ];
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Error fetching mentorship resources'));
+      console.error('Error fetching mentorship resources:', err);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getMentorshipProgress = async (mentorshipId: string) => {
+    if (!user) {
+      setError(new Error('You must be logged in to view progress'));
+      return [];
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      // Mock data for mentorship progress
+      return [
+        {
+          id: "mock-progress-1",
+          mentorship_id: mentorshipId,
+          milestone: "Set up development environment",
+          completed: true,
+          date: new Date().toISOString(),
+          notes: "Installed VS Code and necessary extensions"
+        },
+        {
+          id: "mock-progress-2",
+          mentorship_id: mentorshipId,
+          milestone: "Complete React basics tutorial",
+          completed: false,
+          date: new Date().toISOString(),
+          notes: "In progress"
+        }
+      ];
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Error fetching mentorship progress'));
+      console.error('Error fetching mentorship progress:', err);
+      return [];
+    } finally {
+      setLoading(false);
+    }
   };
 
   return {
@@ -243,10 +224,9 @@ export function useMentorship() {
     sendMentorshipRequest,
     addMentorshipResource,
     updateSessionFeedback,
-    scheduleMentorshipSession,
-    getMentors,
     getMentorshipRelationships,
     getMentorshipSessions,
-    getMentorshipResources
+    getMentorshipResources,
+    getMentorshipProgress
   };
 }

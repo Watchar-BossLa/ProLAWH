@@ -6,7 +6,7 @@ interface VeriSkillContextType {
   isConnected: boolean;
   isLoading: boolean;
   error: Error | null;
-  connectWallet: () => Promise<void>;
+  connectWallet: () => Promise<void>; // Updated to match implementation below
   disconnectWallet: () => void;
   verifySkill: (skillId: string) => Promise<boolean>;
   walletAddress: string | null;
@@ -31,11 +31,9 @@ export function VeriSkillProvider({ children }: { children: React.ReactNode }) {
       const mockAddress = "0x" + Math.random().toString(16).slice(2, 12);
       setWalletAddress(mockAddress);
       setIsConnected(true);
-      return mockAddress;
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to connect wallet'));
       console.error('Wallet connection error:', err);
-      return null;
     } finally {
       setIsLoading(false);
     }
@@ -68,7 +66,7 @@ export function VeriSkillProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const value = {
+  const value: VeriSkillContextType = {
     isConnected,
     isLoading,
     error,

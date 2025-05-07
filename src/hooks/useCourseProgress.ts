@@ -32,15 +32,17 @@ export function useCourseProgress(courseId: string) {
       const totalContentCount = 10; // Mock value for total contents
       
       if (mockExistingProgress) {
-        // Safely access completed_content_ids with type checking
-        const mockCompletedIds = mockExistingProgress.completed_content_ids || [];
+        // Type guard to ensure completed_content_ids exists and is an array
+        const mockCompletedIds = Array.isArray(mockExistingProgress.completed_content_ids) 
+          ? mockExistingProgress.completed_content_ids 
+          : [];
         
         // Don't add if already completed
-        if (Array.isArray(mockCompletedIds) && mockCompletedIds.includes(contentId)) {
+        if (mockCompletedIds.includes(contentId)) {
           return mockExistingProgress;
         }
         
-        const updatedContentIds = Array.isArray(mockCompletedIds) ? [...mockCompletedIds, contentId] : [contentId];
+        const updatedContentIds = [...mockCompletedIds, contentId];
         const overallProgress = Math.round((updatedContentIds.length / totalContentCount) * 100);
         
         // Update existing progress
@@ -50,7 +52,7 @@ export function useCourseProgress(courseId: string) {
             completed_content_ids: updatedContentIds,
             overall_progress: overallProgress,
             last_accessed_at: new Date().toISOString(),
-            completed_at: overallProgress === 100 ? new Date().toISOString() : mockExistingProgress.completed_at,
+            completed_at: overallProgress === 100 ? new Date().toISOString() : mockExistingProgress.completed_at || null,
           });
 
         if (error) throw error;

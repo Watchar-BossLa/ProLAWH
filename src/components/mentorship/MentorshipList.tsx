@@ -18,6 +18,7 @@ export function MentorshipList({ filter = 'all' }: MentorshipListProps) {
     const fetchMentorships = async () => {
       setIsLoading(true);
       try {
+        // Fixed by removing argument
         const data = await getMentorshipRelationships();
         setMentorships(data || []);
       } catch (err) {

@@ -8,7 +8,7 @@ export function useMentorshipRelationship() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const getMentorshipRelationships = async (status?: string) => {
+  const getMentorshipRelationships = async () => {
     if (!user) {
       setError(new Error('You must be logged in to view mentorships'));
       return [];
@@ -17,7 +17,7 @@ export function useMentorshipRelationship() {
     setLoading(true);
     setError(null);
     try {
-      // Return mock data
+      // Return mock data with proper type annotations
       return [
         {
           id: "mock-rel-1",

@@ -96,18 +96,17 @@ export function CareerTwinMentorRecommendations() {
   }
   
   // Process the recommendations data to match our expected format
-  const processedRecommendations: MentorRecommendation[] = mentorRecommendations.map(rec => {
-    // Transform the API response to match our MentorRecommendation interface
-    return {
-      id: rec.id,
-      mentorId: rec.mentorId,
-      mentorName: rec.mentorName || rec.reason || "Mentor",
-      mentorExpertise: rec.mentorExpertise || ['Green Skills', 'Sustainability'],
-      matchReason: rec.matchReason || rec.reason || "Recommended based on your profile",
-      relevanceScore: rec.relevanceScore || rec.score || 0.75,
-      recommendationId: rec.recommendationId
-    };
-  });
+  const processedRecommendations: MentorRecommendation[] = mentorRecommendations.map(rec => ({
+    id: rec.id,
+    mentorId: rec.mentorId,
+    mentorName: rec.mentorName || rec.reason || "Mentor",
+    mentorExpertise: rec.mentorExpertise || ['Green Skills', 'Sustainability'],
+    matchReason: rec.matchReason || rec.reason || "Recommended based on your profile",
+    relevanceScore: rec.relevanceScore || rec.score || 0.75,
+    recommendationId: rec.recommendationId,
+    reason: rec.reason,
+    score: rec.score
+  }));
   
   return (
     <>

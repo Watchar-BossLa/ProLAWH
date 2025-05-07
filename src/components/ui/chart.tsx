@@ -40,8 +40,8 @@ export interface ChartTooltipProps {
 
 // Fix the typing for the recharts tooltip
 export function ChartTooltip({ content }: ChartTooltipProps) {
-  // The component expects content to be a function that returns a React element or null
-  return <RechartsTooltip content={content ? content : undefined} />;
+  // The content is a function that returns a React element or null, not directly a React node
+  return <RechartsTooltip content={content || undefined} />;
 }
 
 export interface ChartContainerProps extends React.HTMLAttributes<HTMLDivElement> {
