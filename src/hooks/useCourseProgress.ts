@@ -33,7 +33,7 @@ export function useCourseProgress(courseId: string) {
       
       if (mockExistingProgress) {
         // Safely access completed_content_ids with proper type checking
-        const completedContentIdsRaw = mockExistingProgress.completed_content_ids;
+        const completedContentIdsRaw = mockExistingProgress.completed_content_ids || [];
         // Ensure it's an array
         const mockCompletedIds = Array.isArray(completedContentIdsRaw) 
           ? completedContentIdsRaw 

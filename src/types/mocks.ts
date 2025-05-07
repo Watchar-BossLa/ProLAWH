@@ -98,6 +98,7 @@ export interface MentorshipRequest {
   expectedDuration?: string;
   goals?: string[];
   createdAt: string;
+  // For backward compatibility - avoid using these in new code
   mentor_id?: string;
   requester_id?: string;
   focus_areas?: string[];

@@ -31,11 +31,11 @@ export function MentorshipRequestForm({
       // Transform form data to match MentorshipRequest interface
       const focusAreas = typeof formData.focusAreas === 'string' 
         ? formData.focusAreas.split(',').map(area => area.trim())
-        : formData.focusAreas;
+        : (formData.focusAreas as string[] || []);
         
       const goals = formData.goals && typeof formData.goals === 'string'
         ? formData.goals.split(',').map(goal => goal.trim())
-        : formData.goals;
+        : (formData.goals as string[] || []);
         
       const request: MentorshipRequest = {
         id: uuidv4(),
@@ -48,7 +48,7 @@ export function MentorshipRequestForm({
         expectedDuration: formData.expectedDuration,
         goals: goals,
         createdAt: new Date().toISOString(),
-        // For backward compatibility
+        // Legacy fields for backward compatibility
         mentor_id: connection.id,
         requester_id: "currentUser",
         focus_areas: focusAreas

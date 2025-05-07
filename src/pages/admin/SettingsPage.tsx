@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
+import { MockData } from "@/types/mocks";
 
 export default function SettingsPage() {
   const { data: adminUsers, isLoading } = useQuery({
@@ -24,11 +25,11 @@ export default function SettingsPage() {
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">Admin Users</h3>
           <div className="space-y-2">
-            {adminUsers?.map((admin) => (
+            {adminUsers?.map((admin: MockData) => (
               <div key={admin.id} className="flex items-center justify-between p-2 bg-secondary rounded">
                 <span>{admin.id}</span>
                 <span className="px-2 py-1 bg-primary text-primary-foreground rounded text-sm">
-                  {admin.role}
+                  {admin.role || "Admin"}
                 </span>
               </div>
             ))}
