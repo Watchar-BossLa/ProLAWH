@@ -1,12 +1,32 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/useAuth";
 import { CourseInstructor, CourseModule, CoursePrerequisite, CourseReview, CourseContent, EnrollmentStatus, ContentType } from "@/types/learning";
 
-type Course = Database["public"]["Tables"]["courses"]["Row"];
-type CourseContentFromDB = Database["public"]["Tables"]["course_contents"]["Row"];
+// Define minimal types for the database entities we're dealing with
+interface Course {
+  id: string;
+  title: string;
+  description?: string;
+  difficulty_level: string;
+  estimated_duration?: string;
+  created_by?: string;
+  [key: string]: any;
+}
+
+interface CourseContentData {
+  id: string;
+  course_id: string;
+  title: string;
+  content_type: ContentType;
+  content: string;
+  order: number;
+  module_id?: string;
+  description?: string;
+  created_at?: string;
+  updated_at?: string;
+}
 
 export function useCourseDetails(courseId: string) {
   const { user } = useAuth();
@@ -41,7 +61,7 @@ export function useCourseDetails(courseId: string) {
       if (error) throw error;
       
       // Mock data if empty
-      const mockContents = data && data.length > 0 ? data : [
+      const mockContents: CourseContentData[] = data && data.length > 0 ? data : [
         {
           id: "content-1",
           course_id: courseId,
@@ -49,7 +69,10 @@ export function useCourseDetails(courseId: string) {
           content_type: "video" as ContentType,
           content: "https://example.com/video.mp4",
           order: 1,
-          module_id: "module-1"
+          module_id: "module-1",
+          description: "Introduction to the course",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         },
         {
           id: "content-2",
@@ -58,15 +81,21 @@ export function useCourseDetails(courseId: string) {
           content_type: "text" as ContentType,
           content: "This is lesson 1 content",
           order: 2,
-          module_id: "module-1"
+          module_id: "module-1",
+          description: "First lesson content",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         }
       ];
       
       // Transform data to ensure it has all required properties
-      return mockContents.map((content: CourseContentFromDB & { module_id?: string }) => ({
+      return mockContents.map((content) => ({
         ...content,
         content_type: content.content_type as ContentType,
-        module_id: content.module_id || "default" // Ensure module_id exists with a default value
+        module_id: content.module_id || "default", // Ensure module_id exists with a default value
+        description: content.description || null,
+        created_at: content.created_at || new Date().toISOString(),
+        updated_at: content.updated_at || new Date().toISOString()
       })) as CourseContent[];
     },
     enabled: !!courseId,

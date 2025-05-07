@@ -47,6 +47,7 @@ export function useCourseProgress(courseId: string) {
         const updatedContentIds = [...mockCompletedIds, contentId];
         const overallProgress = Math.round((updatedContentIds.length / totalContentCount) * 100);
         
+        // Safely access completed_at with proper type checking
         const completedAt = mockExistingProgress.completed_at || null;
         const newCompletedAt = overallProgress === 100 ? new Date().toISOString() : completedAt;
         

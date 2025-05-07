@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -56,7 +57,10 @@ export function MentorshipRequestForm({
     setSubmitError(null);
     
     try {
-      const focusAreas = values.focusAreas.split(',').map(area => area.trim());
+      // Ensure focusAreas is a string before attempting to split
+      const focusAreas = typeof values.focusAreas === 'string' 
+        ? values.focusAreas.split(',').map(area => area.trim())
+        : Array.isArray(values.focusAreas) ? values.focusAreas : [];
       
       // If we have a recommendation ID, use the Career Twin request method
       if (mentor.recommendationId) {
@@ -78,11 +82,14 @@ export function MentorshipRequestForm({
           focusAreas: focusAreas,
           industry: values.industry,
           expectedDuration: values.expectedDuration,
-          goals: values.goals ? values.goals.split('\n').map(goal => goal.trim()) : undefined,
+          goals: typeof values.goals === 'string' 
+            ? values.goals.split('\n').map(goal => goal.trim())
+            : Array.isArray(values.goals) ? values.goals : [],
           createdAt: new Date().toISOString(),
-          mentor_id: mentor.id, // For backward compatibility
-          requester_id: "currentUser", // For backward compatibility
-          focus_areas: focusAreas // For backward compatibility
+          // For backward compatibility
+          mentor_id: mentor.id,
+          requester_id: "currentUser",
+          focus_areas: focusAreas
         };
         
         await sendMentorshipRequest(request);
