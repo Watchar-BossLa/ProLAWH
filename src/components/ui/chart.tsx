@@ -1,4 +1,3 @@
-
 import * as React from "react";
 import {
   Area, AreaChart, Bar, CartesianGrid, Cell,
@@ -35,7 +34,6 @@ export interface ChartConfig {
 }
 
 export interface ChartTooltipProps {
-  // Here's the fix: make content take a function that returns a React element or null, not React.ReactNode
   content?: (props: { active?: boolean; payload?: any[]; label?: string }) => React.ReactElement | null;
 }
 

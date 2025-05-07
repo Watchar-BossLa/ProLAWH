@@ -103,7 +103,7 @@ export function CareerTwinMentorRecommendations() {
     mentorExpertise: rec.mentorExpertise || ['Green Skills', 'Sustainability'],
     matchReason: rec.matchReason || rec.reason || "Recommended based on your profile",
     relevanceScore: rec.relevanceScore || rec.score || 0.75,
-    recommendationId: rec.recommendationId,
+    recommendationId: rec.recommendationId || rec.id,
     reason: rec.reason,
     score: rec.score
   }));

@@ -33,10 +33,10 @@ export function useCourseProgress(courseId: string) {
       
       if (mockExistingProgress) {
         // Safely access completed_content_ids with proper type checking
-        const completedContentIds = mockExistingProgress.completed_content_ids || [];
+        const completedContentIdsRaw = mockExistingProgress.completed_content_ids;
         // Ensure it's an array
-        const mockCompletedIds = Array.isArray(completedContentIds) 
-          ? completedContentIds 
+        const mockCompletedIds = Array.isArray(completedContentIdsRaw) 
+          ? completedContentIdsRaw 
           : [];
         
         // Don't add if already completed
@@ -47,6 +47,9 @@ export function useCourseProgress(courseId: string) {
         const updatedContentIds = [...mockCompletedIds, contentId];
         const overallProgress = Math.round((updatedContentIds.length / totalContentCount) * 100);
         
+        const completedAt = mockExistingProgress.completed_at || null;
+        const newCompletedAt = overallProgress === 100 ? new Date().toISOString() : completedAt;
+        
         // Update existing progress
         const { data, error } = await supabase
           .from("course_progress")
@@ -54,7 +57,7 @@ export function useCourseProgress(courseId: string) {
             completed_content_ids: updatedContentIds,
             overall_progress: overallProgress,
             last_accessed_at: new Date().toISOString(),
-            completed_at: overallProgress === 100 ? new Date().toISOString() : mockExistingProgress.completed_at || null,
+            completed_at: newCompletedAt,
           });
 
         if (error) throw error;
@@ -64,7 +67,7 @@ export function useCourseProgress(courseId: string) {
           id: 'mock-id',
           completed_content_ids: updatedContentIds,
           overall_progress: overallProgress,
-          completed_at: overallProgress === 100 ? new Date().toISOString() : null
+          completed_at: newCompletedAt
         };
       } else {
         // Create new progress entry with mock data

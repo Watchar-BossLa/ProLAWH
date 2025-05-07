@@ -3,13 +3,13 @@ import { Form } from "@/components/ui/form";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { NetworkConnection, MentorshipRequest } from "@/types/network";
 import { useMentorshipForm } from "@/hooks/useMentorshipForm";
-import { MentorshipRequestHeader } from "./MentorshipRequestHeader";
-import { MentorshipMessageField } from "./MentorshipMessageField";
-import { MentorshipIndustryField } from "./MentorshipIndustryField";
-import { MentorshipFocusAreasField } from "./fields/MentorshipFocusAreasField";
-import { MentorshipDurationField } from "./fields/MentorshipDurationField";
-import { MentorshipGoalsField } from "./fields/MentorshipGoalsField";
-import { MentorshipRequestFooter } from "./MentorshipRequestFooter";
+import { MentorshipRequestHeader } from "@/components/network/mentorship/form/MentorshipRequestHeader";
+import { MentorshipMessageField } from "@/components/network/mentorship/form/MentorshipMessageField";
+import { MentorshipIndustryField } from "@/components/network/mentorship/form/MentorshipIndustryField";
+import { MentorshipFocusAreasField } from "@/components/network/mentorship/form/fields/MentorshipFocusAreasField";
+import { MentorshipDurationField } from "@/components/network/mentorship/form/fields/MentorshipDurationField";
+import { MentorshipGoalsField } from "@/components/network/mentorship/form/fields/MentorshipGoalsField";
+import { MentorshipRequestFooter } from "@/components/network/mentorship/form/MentorshipRequestFooter";
 import { v4 as uuidv4 } from 'uuid';
 
 interface MentorshipRequestFormProps {
@@ -29,21 +29,29 @@ export function MentorshipRequestForm({
     connection,
     onSubmit: (formData) => {
       // Transform form data to match MentorshipRequest interface
+      const focusAreas = typeof formData.focusAreas === 'string' 
+        ? formData.focusAreas.split(',').map(area => area.trim())
+        : formData.focusAreas;
+        
+      const goals = formData.goals && typeof formData.goals === 'string'
+        ? formData.goals.split(',').map(goal => goal.trim())
+        : formData.goals;
+        
       const request: MentorshipRequest = {
         id: uuidv4(),
         mentorId: connection.id,
         requesterId: "currentUser", // This will be replaced with actual user ID in a real implementation
         message: formData.message,
         status: "pending",
-        focusAreas: formData.focusAreas.split(',').map(area => area.trim()),
+        focusAreas: focusAreas,
         industry: formData.industry,
         expectedDuration: formData.expectedDuration,
-        goals: formData.goals ? formData.goals.split(',').map(goal => goal.trim()) : undefined,
+        goals: goals,
         createdAt: new Date().toISOString(),
         // For backward compatibility
         mentor_id: connection.id,
         requester_id: "currentUser",
-        focus_areas: formData.focusAreas.split(',').map(area => area.trim())
+        focus_areas: focusAreas
       };
       onSubmit(request);
     },
