@@ -61,7 +61,7 @@ export function useCourseDetails(courseId: string) {
       
       if (error) throw error;
       
-      // Mock data if empty
+      // Mock data if empty - ensure types are correct
       const mockContents: CourseContentData[] = data && data.length > 0 ? data : [
         {
           id: "content-1",
