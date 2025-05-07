@@ -62,9 +62,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     getCurrentUser();
     
-    // Set up auth state change listener - fix by removing arguments
+    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      // Fixed: Remove event argument that's causing TS error
       (_event, session) => {
         if (session) {
           setUser({
@@ -101,7 +100,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: data.user.email,
           user_metadata: data.user.user_metadata
         });
-        // Fixed: Call navigate without the event argument
         navigate('/dashboard');
       }
     } catch (err) {
@@ -135,7 +133,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await supabase.auth.signOut();
       setUser(null);
-      // Fixed: Call navigate without the event argument
       navigate('/');
     } catch (err) {
       console.error('Sign out error:', err);
