@@ -49,6 +49,7 @@ export interface MentorshipRequest {
 export interface NetworkMessage extends Message {
   read?: boolean;
   attachments?: string[];
+  receiverId?: string;
 }
 
 export interface NetworkStats {
@@ -65,6 +66,11 @@ export interface NetworkStats {
     skill: string;
     count: number;
   }[];
+  // Additional properties needed by the components
+  mentors: number;
+  peers: number;
+  colleagues: number;
+  pendingRequests: number;
 }
 
 export interface MentorshipResource {

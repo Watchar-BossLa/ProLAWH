@@ -4,11 +4,16 @@ import { Slot } from "@radix-ui/react-slot";
 import {
   CartesianGrid,
   Line,
-  LineChart,
+  LineChart as RechartsLineChart,
   ResponsiveContainer,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   XAxis,
   YAxis,
+  BarChart as RechartsBarChart, 
+  Bar,
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell
 } from "recharts";
 
 import { cn } from "@/lib/utils";
@@ -33,21 +38,20 @@ const Chart = React.forwardRef<HTMLDivElement, ChartProps>(
 );
 Chart.displayName = "Chart";
 
-interface ChartTooltipProps extends React.ComponentPropsWithoutRef<typeof Tooltip> {
+interface ChartTooltipProps {
   className?: string;
-  // Fixed type issue: ChartTooltipProps now properly extends Tooltip props
   content?: React.ReactElement | ((props: any) => React.ReactNode);
 }
 
 const ChartTooltip = React.forwardRef<
-  React.ElementRef<typeof Tooltip>,
+  React.ElementRef<typeof RechartsTooltip>,
   ChartTooltipProps
->(({ className, ...props }, ref) => (
-  <Tooltip
+>(({ className, content, ...props }, ref) => (
+  <RechartsTooltip
     ref={ref}
-    content={<CustomTooltip />}
+    content={content || <CustomTooltip />}
     cursor={false}
-    className={cn(className)}
+    wrapperClassName={cn(className)}
     {...props}
   />
 ));
@@ -80,7 +84,100 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+// PieChart Component
+interface PieChartProps {
+  data: Array<any>;
+  valueKey: string;
+  categoryKey: string;
+  colors?: string[];
+}
+
+const PieChart = ({
+  data,
+  valueKey,
+  categoryKey,
+  colors = ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"]
+}: PieChartProps) => {
+  return (
+    <RechartsPieChart width={400} height={300}>
+      <Pie
+        data={data}
+        cx="50%"
+        cy="50%"
+        labelLine={false}
+        outerRadius={100}
+        fill="#8884d8"
+        dataKey={valueKey}
+        nameKey={categoryKey}
+      >
+        {data.map((entry, index) => (
+          <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+        ))}
+      </Pie>
+      <ChartTooltip />
+    </RechartsPieChart>
+  );
+};
+
+// LineChart Component
+interface LineChartProps {
+  data: Array<any>;
+  valueKey: string;
+  categoryKey: string;
+  colors?: string[];
+}
+
+const LineChart = ({
+  data,
+  valueKey,
+  categoryKey,
+  colors = ["#2563eb"]
+}: LineChartProps) => {
+  return (
+    <RechartsLineChart data={data}>
+      <XAxis dataKey={categoryKey} stroke="#888888" />
+      <YAxis stroke="#888888" />
+      <CartesianGrid strokeDasharray="3 3" />
+      <Line
+        type="monotone"
+        dataKey={valueKey}
+        stroke={colors[0]}
+        activeDot={{ r: 8 }}
+      />
+      <ChartTooltip />
+    </RechartsLineChart>
+  );
+};
+
+// BarChart Component
+interface BarChartProps {
+  data: Array<any>;
+  valueKey: string;
+  categoryKey: string;
+  colors?: string[];
+}
+
+const BarChart = ({
+  data,
+  valueKey,
+  categoryKey,
+  colors = ["#2563eb"]
+}: BarChartProps) => {
+  return (
+    <RechartsBarChart data={data}>
+      <XAxis dataKey={categoryKey} stroke="#888888" />
+      <YAxis stroke="#888888" />
+      <CartesianGrid strokeDasharray="3 3" />
+      <Bar dataKey={valueKey} fill={colors[0]} radius={[4, 4, 0, 0]} />
+      <ChartTooltip />
+    </RechartsBarChart>
+  );
+};
+
 export {
   Chart,
-  ChartTooltip
+  ChartTooltip,
+  PieChart,
+  LineChart,
+  BarChart
 };

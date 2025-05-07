@@ -4,10 +4,28 @@ import { NetworkConnection, NetworkStats } from "@/types/network";
 // Mock data - Replace with actual data from your backend
 export const mockStats: NetworkStats = {
   totalConnections: 142,
+  newConnectionsThisMonth: 23,
+  activeEngagements: 45,
   mentors: 12,
   peers: 89,
   colleagues: 41,
-  pendingRequests: 5
+  pendingRequests: 5,
+  connectionsByIndustry: {
+    "Technology": 67,
+    "Finance": 24,
+    "Healthcare": 18,
+    "Marketing": 33
+  },
+  mentorshipStats: {
+    active: 8,
+    completed: 15,
+    pending: 3
+  },
+  skillMatches: [
+    { skill: "React", count: 45 },
+    { skill: "TypeScript", count: 38 },
+    { skill: "Product Management", count: 22 }
+  ]
 };
 
 // Mock user skills

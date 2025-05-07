@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -190,7 +191,7 @@ export function useCourseDetails(courseId: string) {
 
   // Calculate average rating
   const averageRating = reviews?.length 
-    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+    ? reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / reviews.length
     : 0;
 
   return {

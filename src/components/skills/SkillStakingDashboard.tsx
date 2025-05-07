@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { BarChart, LineChart, PieChart } from '@/components/ui/chart';
+import { Chart, PieChart, LineChart, BarChart } from '@/components/ui/chart';
 import { useSkillStaking } from '@/hooks/useSkillStaking';
 import { AlertCircle, BarChart2, Clock, CreditCard, LineChart as LineChartIcon, PieChart as PieChartIcon, Plus } from 'lucide-react';
 import { SkillStakesList } from './SkillStakesList';
@@ -180,12 +180,14 @@ export function SkillStakingDashboard() {
                     <Skeleton className="h-[250px] w-full" />
                   </div>
                 ) : (
-                  <PieChart
-                    data={stakedSkillsData || []}
-                    valueKey="amount"
-                    categoryKey="category"
-                    colors={["#2563eb", "#d97706", "#059669", "#7c3aed", "#e11d48"]}
-                  />
+                  <Chart>
+                    <PieChart
+                      data={stakedSkillsData || []}
+                      valueKey="amount"
+                      categoryKey="category"
+                      colors={["#2563eb", "#d97706", "#059669", "#7c3aed", "#e11d48"]}
+                    />
+                  </Chart>
                 )}
               </CardContent>
             </Card>
@@ -201,12 +203,14 @@ export function SkillStakingDashboard() {
                     <Skeleton className="h-[250px] w-full" />
                   </div>
                 ) : (
-                  <LineChart
-                    data={stakingHistoryData || []}
-                    valueKey="earnings"
-                    categoryKey="date"
-                    colors={["#2563eb"]}
-                  />
+                  <Chart>
+                    <LineChart
+                      data={stakingHistoryData || []}
+                      valueKey="earnings"
+                      categoryKey="date"
+                      colors={["#2563eb"]}
+                    />
+                  </Chart>
                 )}
               </CardContent>
             </Card>
