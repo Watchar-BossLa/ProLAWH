@@ -32,9 +32,11 @@ export function useCourseProgress(courseId: string) {
       const totalContentCount = 10; // Mock value for total contents
       
       if (mockExistingProgress) {
-        // Type guard to ensure completed_content_ids exists and is an array
-        const mockCompletedIds = Array.isArray(mockExistingProgress.completed_content_ids) 
-          ? mockExistingProgress.completed_content_ids 
+        // Safely access completed_content_ids with proper type checking
+        const completedContentIds = mockExistingProgress.completed_content_ids || [];
+        // Ensure it's an array
+        const mockCompletedIds = Array.isArray(completedContentIds) 
+          ? completedContentIds 
           : [];
         
         // Don't add if already completed

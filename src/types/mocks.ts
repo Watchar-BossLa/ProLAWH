@@ -58,6 +58,10 @@ export interface MockData {
   amount?: number;
   badge_id?: string;
   requester_id?: string;
+  industry?: string;
+  expected_duration?: string;
+  createdAt?: string;
+  focusAreas?: string[];
 }
 
 // Define an interface for mentor recommendation data structure
@@ -80,4 +84,21 @@ export interface ActivityLog {
   created_at: string;
   user_id: string;
   metadata?: Record<string, any>;
+}
+
+// Define an interface for mentorship requests
+export interface MentorshipRequest {
+  id: string;
+  mentorId: string;
+  requesterId: string;
+  message: string;
+  status: string;
+  focusAreas: string[];
+  industry?: string;
+  expectedDuration?: string;
+  goals?: string[];
+  createdAt: string;
+  mentor_id?: string;
+  requester_id?: string;
+  focus_areas?: string[];
 }

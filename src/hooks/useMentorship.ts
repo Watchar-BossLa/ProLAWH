@@ -1,12 +1,70 @@
 
 import { useState } from 'react';
 import { useAuth } from './useAuth';
-import { MentorshipRequest } from '@/types/network';
+import { MentorshipRequest } from '@/types/mocks';
 
 export function useMentorship() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+
+  const getMentors = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Return mock data for mentors
+      return [
+        {
+          id: "mock-mentor-1",
+          profiles: {
+            full_name: "Jane Mentor",
+            avatar_url: "/assets/mentor1.jpg",
+            role: "Senior Developer",
+            company: "Tech Corp"
+          },
+          expertise: ["React", "TypeScript", "Node.js"],
+          years_of_experience: 8,
+          bio: "Experienced frontend developer specializing in React applications.",
+          is_accepting_mentees: true,
+          industry: "technology"
+        },
+        {
+          id: "mock-mentor-2",
+          profiles: {
+            full_name: "John Expert",
+            avatar_url: "/assets/mentor2.jpg",
+            role: "Lead Engineer",
+            company: "Innovation Inc"
+          },
+          expertise: ["Python", "Machine Learning", "AWS"],
+          years_of_experience: 10,
+          bio: "ML specialist with focus on cloud deployments.",
+          is_accepting_mentees: true,
+          industry: "technology"
+        },
+        {
+          id: "mock-mentor-3",
+          profiles: {
+            full_name: "Sarah Guide",
+            avatar_url: "/assets/mentor3.jpg",
+            role: "Product Manager",
+            company: "Growth Startup"
+          },
+          expertise: ["Product Strategy", "UX Design", "Agile"],
+          years_of_experience: 6,
+          bio: "Helping technically-minded people transition to product roles.",
+          is_accepting_mentees: false,
+          industry: "education"
+        }
+      ];
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Error fetching mentors'));
+      console.error('Error fetching mentors:', err);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getMentorshipRelationships = async () => {
     if (!user) {
@@ -61,6 +119,43 @@ export function useMentorship() {
       setError(err instanceof Error ? err : new Error('Error sending mentorship request'));
       console.error('Error sending mentorship request:', err);
       return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const scheduleMentorshipSession = async (
+    relationshipId: string, 
+    scheduledFor: Date, 
+    durationMinutes: number, 
+    notes?: string
+  ) => {
+    if (!user) {
+      setError(new Error('You must be logged in to schedule sessions'));
+      return null;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const session = {
+        relationship_id: relationshipId,
+        scheduled_for: scheduledFor.toISOString(),
+        duration_minutes: durationMinutes,
+        notes,
+      };
+
+      // Mock implementation
+      console.log('Scheduling mentorship session:', session);
+      return {
+        id: "mock-session-" + Date.now(),
+        ...session,
+        status: "scheduled"
+      };
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Error scheduling session'));
+      console.error('Error scheduling mentorship session:', err);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -221,12 +316,14 @@ export function useMentorship() {
   return {
     loading,
     error,
+    getMentors,
     sendMentorshipRequest,
     addMentorshipResource,
     updateSessionFeedback,
     getMentorshipRelationships,
     getMentorshipSessions,
     getMentorshipResources,
-    getMentorshipProgress
+    getMentorshipProgress,
+    scheduleMentorshipSession
   };
 }

@@ -6,7 +6,7 @@ interface VeriSkillContextType {
   isConnected: boolean;
   isLoading: boolean;
   error: Error | null;
-  connectWallet: () => Promise<void>; // Updated to match implementation below
+  connectWallet: () => Promise<void>; // Ensure this returns Promise<void> to match the interface
   disconnectWallet: () => void;
   verifySkill: (skillId: string) => Promise<boolean>;
   walletAddress: string | null;
@@ -21,7 +21,7 @@ export function VeriSkillProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<Error | null>(null);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
-  const connectWallet = async () => {
+  const connectWallet = async (): Promise<void> => {
     setIsLoading(true);
     setError(null);
     try {

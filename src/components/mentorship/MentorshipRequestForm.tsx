@@ -13,6 +13,8 @@ import { GoalsField } from "./form/fields/GoalsField";
 import { MentorshipFormActions } from "./form/MentorshipFormActions";
 import { formSchema, type FormData } from "./form/schema";
 import { useMentorship } from "@/hooks/useMentorship";
+import { v4 as uuidv4 } from 'uuid';
+import { MentorshipRequest } from "@/types/mocks";
 
 interface MentorshipRequestFormProps {
   isOpen: boolean;
@@ -58,7 +60,7 @@ export function MentorshipRequestForm({
       
       // If we have a recommendation ID, use the Career Twin request method
       if (mentor.recommendationId) {
-        await requestMentorship.mutate({
+        await requestMentorship.mutateAsync({
           mentorId: mentor.id,
           message: values.message,
           focusAreas,
@@ -66,14 +68,21 @@ export function MentorshipRequestForm({
           recommendationId: mentor.recommendationId
         });
       } else {
-        // Otherwise use the standard mentorship request
-        const request = {
-          mentor_id: mentor.id,
+        // Otherwise use the standard mentorship request with proper typing
+        const request: MentorshipRequest = {
+          id: uuidv4(),
+          mentorId: mentor.id,
+          requesterId: "currentUser", // This will be replaced with actual user ID in a real implementation
           message: values.message,
-          focus_areas: focusAreas,
+          status: "pending",
+          focusAreas: focusAreas,
           industry: values.industry,
-          expected_duration: values.expectedDuration,
+          expectedDuration: values.expectedDuration,
           goals: values.goals ? values.goals.split('\n').map(goal => goal.trim()) : undefined,
+          createdAt: new Date().toISOString(),
+          mentor_id: mentor.id, // For backward compatibility
+          requester_id: "currentUser", // For backward compatibility
+          focus_areas: focusAreas // For backward compatibility
         };
         
         await sendMentorshipRequest(request);

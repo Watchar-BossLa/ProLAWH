@@ -35,13 +35,13 @@ export interface ChartConfig {
 }
 
 export interface ChartTooltipProps {
+  // Here's the fix: make content take a function that returns a React element or null, not React.ReactNode
   content?: (props: { active?: boolean; payload?: any[]; label?: string }) => React.ReactElement | null;
 }
 
 // Fix the typing for the recharts tooltip
 export function ChartTooltip({ content }: ChartTooltipProps) {
-  // The content is a function that returns a React element or null, not directly a React node
-  return <RechartsTooltip content={content || undefined} />;
+  return <RechartsTooltip content={content} />;
 }
 
 export interface ChartContainerProps extends React.HTMLAttributes<HTMLDivElement> {

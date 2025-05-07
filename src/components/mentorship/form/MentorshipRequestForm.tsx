@@ -1,115 +1,69 @@
 
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { useState } from "react";
-import { useCareerTwinMentorship } from "@/hooks/useCareerTwinMentorship";
-import { MentorshipFormHeader } from "./MentorshipFormHeader";
-import { MessageField } from "./fields/MessageField";
-import { FocusAreasField } from "./fields/FocusAreasField";
-import { IndustryField } from "./fields/IndustryField";
-import { DurationField } from "./fields/DurationField";
-import { GoalsField } from "./fields/GoalsField";
-import { MentorshipFormActions } from "./MentorshipFormActions";
-import { formSchema, type FormData } from "./schema";
-import { useMentorship } from "@/hooks/useMentorship";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { NetworkConnection, MentorshipRequest } from "@/types/network";
+import { useMentorshipForm } from "@/hooks/useMentorshipForm";
+import { MentorshipRequestHeader } from "./MentorshipRequestHeader";
+import { MentorshipMessageField } from "./MentorshipMessageField";
+import { MentorshipIndustryField } from "./MentorshipIndustryField";
+import { MentorshipFocusAreasField } from "./fields/MentorshipFocusAreasField";
+import { MentorshipDurationField } from "./fields/MentorshipDurationField";
+import { MentorshipGoalsField } from "./fields/MentorshipGoalsField";
+import { MentorshipRequestFooter } from "./MentorshipRequestFooter";
+import { v4 as uuidv4 } from 'uuid';
 
 interface MentorshipRequestFormProps {
+  connection: NetworkConnection;
   isOpen: boolean;
   onClose: () => void;
-  mentor: {
-    id: string;
-    name: string;
-    avatar?: string;
-    expertise?: string[];
-    recommendationId?: string; // Add this property to match the usage in CareerTwinMentorRecommendations
-  };
-  onSuccess?: () => void;
+  onSubmit: (data: MentorshipRequest) => void;
 }
 
-export function MentorshipRequestForm({ 
-  isOpen, 
-  onClose, 
-  mentor, 
-  onSuccess 
+export function MentorshipRequestForm({
+  connection,
+  isOpen,
+  onClose,
+  onSubmit,
 }: MentorshipRequestFormProps) {
-  const { sendMentorshipRequest, loading: mentorshipLoading } = useMentorship();
-  const { requestMentorship } = useCareerTwinMentorship();
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      message: "",
-      focusAreas: mentor.expertise ? mentor.expertise.join(", ") : "",
-      industry: "",
-      expectedDuration: "",
-      goals: ""
+  const { form, isSubmitting, handleSubmit } = useMentorshipForm({
+    connection,
+    onSubmit: (formData) => {
+      // Transform form data to match MentorshipRequest interface
+      const request: MentorshipRequest = {
+        id: uuidv4(),
+        mentorId: connection.id,
+        requesterId: "currentUser", // This will be replaced with actual user ID in a real implementation
+        message: formData.message,
+        status: "pending",
+        focusAreas: formData.focusAreas.split(',').map(area => area.trim()),
+        industry: formData.industry,
+        expectedDuration: formData.expectedDuration,
+        goals: formData.goals ? formData.goals.split(',').map(goal => goal.trim()) : undefined,
+        createdAt: new Date().toISOString(),
+        // For backward compatibility
+        mentor_id: connection.id,
+        requester_id: "currentUser",
+        focus_areas: formData.focusAreas.split(',').map(area => area.trim())
+      };
+      onSubmit(request);
     },
+    onClose,
   });
-
-  async function onSubmit(values: FormData) {
-    setIsSubmitting(true);
-    setSubmitError(null);
-    
-    try {
-      const focusAreas = values.focusAreas.split(',').map(area => area.trim());
-      
-      // If we have a recommendation ID, use the Career Twin request method
-      if (mentor.recommendationId) {
-        await requestMentorship.mutateAsync({
-          mentorId: mentor.id,
-          message: values.message,
-          focusAreas,
-          industry: values.industry,
-          recommendationId: mentor.recommendationId
-        });
-      } else {
-        // Otherwise use the standard mentorship request
-        const request = {
-          mentor_id: mentor.id,
-          message: values.message,
-          focus_areas: focusAreas,
-          industry: values.industry,
-          expected_duration: values.expectedDuration,
-          goals: values.goals ? values.goals.split('\n').map(goal => goal.trim()) : undefined,
-        };
-        
-        await sendMentorshipRequest(request);
-      }
-      
-      form.reset();
-      if (onSuccess) onSuccess();
-      onClose();
-    } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : "Failed to send request. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
-        <MentorshipFormHeader 
-          mentor={mentor} 
-          isCareerTwinRecommended={!!mentor.recommendationId} 
-        />
-        
+        <MentorshipRequestHeader connection={connection} />
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <MessageField form={form} />
-            <FocusAreasField form={form} />
-            <IndustryField form={form} />
-            <DurationField form={form} />
-            <GoalsField form={form} />
-            
-            <MentorshipFormActions 
-              isSubmitting={isSubmitting || mentorshipLoading}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <MentorshipMessageField form={form} />
+            <MentorshipFocusAreasField form={form} />
+            <MentorshipIndustryField form={form} />
+            <MentorshipDurationField form={form} />
+            <MentorshipGoalsField form={form} />
+            <MentorshipRequestFooter 
+              isSubmitting={isSubmitting}
               onCancel={onClose}
-              submitError={submitError}
             />
           </form>
         </Form>
