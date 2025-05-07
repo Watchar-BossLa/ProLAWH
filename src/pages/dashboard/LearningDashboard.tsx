@@ -7,6 +7,33 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { LucideSchool, AlertCircle } from "lucide-react";
+import { MockData } from "@/types/mocks";
+
+// Helper type for LearningPath
+interface LearningPath {
+  id: string;
+  title?: string;
+  description?: string;
+  cover_image?: string;
+  created_by?: string;
+  created_at?: string;
+  updated_at?: string;
+  estimated_duration?: string;
+  is_published?: boolean;
+  difficulty_level?: string;
+  [key: string]: any; // Allow for other properties
+}
+
+// Helper type for Course
+interface Course {
+  id: string;
+  title?: string;
+  description?: string;
+  cover_image?: string;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: any; // Allow for other properties
+}
 
 export default function LearningDashboard() {
   const { user } = useAuth();
@@ -21,6 +48,15 @@ export default function LearningDashboard() {
       </Alert>
     );
   }
+
+  // Cast the learning paths and courses to proper types
+  const typedLearningPaths = learningPaths?.map((path: MockData | { id: string; name: string }) => {
+    return path as unknown as LearningPath;
+  });
+
+  const typedFeaturedCourses = featuredCourses?.map((course: MockData | { id: string; name: string }) => {
+    return course as unknown as Course;
+  });
 
   return (
     <div className="container mx-auto p-6">
@@ -47,10 +83,10 @@ export default function LearningDashboard() {
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {learningPaths?.map((path) => (
-                <LearningPathDetails key={path.id} path={path} />
+              {typedLearningPaths?.map((path) => (
+                <LearningPathDetails key={path.id} path={path as any} />
               ))}
-              {learningPaths?.length === 0 && (
+              {typedLearningPaths?.length === 0 && (
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>No learning paths available</AlertTitle>
@@ -70,11 +106,11 @@ export default function LearningDashboard() {
                 <Skeleton key={i} className="h-[300px] rounded-lg" />
               ))
             ) : (
-              featuredCourses?.map((course) => (
-                <CourseCard key={course.id} course={course} />
+              typedFeaturedCourses?.map((course) => (
+                <CourseCard key={course.id} course={course as any} />
               ))
             )}
-            {!isLoading && featuredCourses?.length === 0 && (
+            {!isLoading && typedFeaturedCourses?.length === 0 && (
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>No courses available</AlertTitle>

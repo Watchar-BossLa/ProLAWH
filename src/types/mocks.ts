@@ -67,6 +67,9 @@ export interface MockData {
   created_by?: string;
   estimated_duration?: string;
   is_published?: boolean;
+  difficulty_level?: string; // Added to support LearningDashboard
+  // Additional fields for CourseContentData compatibility
+  course_id?: string;
 }
 
 // Define an interface for mentor recommendation data structure

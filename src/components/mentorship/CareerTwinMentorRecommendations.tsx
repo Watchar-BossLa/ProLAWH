@@ -95,19 +95,7 @@ export function CareerTwinMentorRecommendations() {
     );
   }
   
-  // Process the recommendations data to match our expected format
-  const processedRecommendations: MentorRecommendation[] = mentorRecommendations.map(rec => ({
-    id: rec.id,
-    mentorId: rec.mentorId || rec.id,
-    mentorName: rec.mentorName || rec.reason || "Mentor",
-    mentorExpertise: rec.mentorExpertise || ['Green Skills', 'Sustainability'],
-    matchReason: rec.matchReason || rec.reason || "Recommended based on your profile",
-    relevanceScore: rec.relevanceScore || rec.score || 0.75,
-    recommendationId: rec.recommendationId || rec.id,
-    reason: rec.reason,
-    score: rec.score
-  }));
-  
+  // Now mentorRecommendations is already properly typed from useCareerTwinMentorship
   return (
     <>
       <Card className="mb-6">
@@ -122,7 +110,7 @@ export function CareerTwinMentorRecommendations() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {processedRecommendations.slice(0, 3).map((rec) => (
+            {mentorRecommendations.slice(0, 3).map((rec) => (
               <div key={rec.id} className="border rounded-lg p-4 hover:bg-muted/30 transition-colors">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-medium">{rec.mentorName}</h3>
@@ -165,7 +153,7 @@ export function CareerTwinMentorRecommendations() {
             ))}
           </div>
           
-          {processedRecommendations && processedRecommendations.length > 3 && (
+          {mentorRecommendations && mentorRecommendations.length > 3 && (
             <div className="mt-4 text-center">
               <Button variant="outline" size="sm">
                 View All Recommendations

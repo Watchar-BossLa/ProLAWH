@@ -1,3 +1,4 @@
+
 import * as React from "react";
 import {
   Area, AreaChart, Bar, CartesianGrid, Cell,
@@ -39,7 +40,7 @@ export interface ChartTooltipProps {
 
 // Fix the typing for the recharts tooltip
 export function ChartTooltip({ content }: ChartTooltipProps) {
-  return <RechartsTooltip content={content} />;
+  return <RechartsTooltip content={content || undefined} />;
 }
 
 export interface ChartContainerProps extends React.HTMLAttributes<HTMLDivElement> {

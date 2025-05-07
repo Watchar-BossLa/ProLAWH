@@ -33,18 +33,26 @@ export function useCareerTwinMentorship() {
         {
           id: '1',
           mentorId: 'mentor-1',
-          reason: 'Based on your career goals in sustainability',
+          mentorName: 'Environmental Specialist',
+          mentorExpertise: ['Sustainability', 'Green Energy'],
+          matchReason: 'Based on your career goals in sustainability',
+          relevanceScore: 0.95,
           recommendationId: 'rec-123',
+          reason: 'Matches your sustainability interests',
           score: 0.95,
         },
         {
           id: '2',
           mentorId: 'mentor-2',
-          reason: 'Matches your interest in green technologies',
+          mentorName: 'Clean Tech Engineer',
+          mentorExpertise: ['Green Technologies', 'Renewable Energy'],
+          matchReason: 'Matches your interest in green technologies',
+          relevanceScore: 0.87,
           recommendationId: 'rec-456',
+          reason: 'Aligns with your technical background',
           score: 0.87,
         }
-      ];
+      ] as MentorRecommendation[];
     },
     enabled: !!user
   });

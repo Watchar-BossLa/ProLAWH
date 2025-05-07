@@ -3,9 +3,10 @@ import { useSkillBadges } from "@/hooks/useSkillBadges";
 import { MockData } from "@/types/mocks";
 
 export default function SkillsAndBadgesPage() {
-  const { data: badges, isLoading: loading } = useSkillBadges();
+  const { data: badgeData, isLoading } = useSkillBadges();
+  const badges = badgeData || [];
   
-  if (loading) {
+  if (isLoading) {
     return <div>Loading badges...</div>;
   }
   
@@ -14,7 +15,7 @@ export default function SkillsAndBadgesPage() {
       <h1 className="text-3xl font-bold mb-6">Your Skills & Badges</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {badges?.map((badge: MockData) => (
+        {badges.map((badge: MockData) => (
           <div key={badge.id || badge.badge_id || `badge-${Math.random()}`} className="border rounded-lg p-4 flex flex-col items-center">
             <div className="w-24 h-24 bg-secondary rounded-full flex items-center justify-center mb-3">
               <span className="text-4xl">🏆</span>

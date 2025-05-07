@@ -1,20 +1,38 @@
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Form } from "@/components/ui/form";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { useCareerTwinMentorship } from "@/hooks/useCareerTwinMentorship";
-import { MentorshipFormHeader } from "./form/MentorshipFormHeader";
-import { MessageField } from "./form/fields/MessageField";
-import { FocusAreasField } from "./form/fields/FocusAreasField";
-import { IndustryField } from "./form/fields/IndustryField";
-import { DurationField } from "./form/fields/DurationField";
-import { GoalsField } from "./form/fields/GoalsField";
-import { MentorshipFormActions } from "./form/MentorshipFormActions";
-import { formSchema, type FormData } from "./form/schema";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Brain, Loader2 } from "lucide-react";
 import { useMentorship } from "@/hooks/useMentorship";
 import { v4 as uuidv4 } from 'uuid';
 import { MentorshipRequest } from "@/types/mocks";
+import * as z from "zod";
+
+// Define the schema for form validation
+const formSchema = z.object({
+  message: z.string().min(10, {
+    message: "Your message must be at least 10 characters."
+  }),
+  focusAreas: z.string().min(1, {
+    message: "Please enter at least one focus area."
+  }),
+  industry: z.string().min(1, {
+    message: "Please select an industry."
+  }),
+  expectedDuration: z.string().optional(),
+  goals: z.string().optional()
+});
+
+// Type for form data
+type FormData = z.infer<typeof formSchema>;
 
 interface MentorshipRequestFormProps {
   isOpen: boolean;
@@ -83,7 +101,7 @@ export function MentorshipRequestForm({
           expectedDuration: values.expectedDuration,
           goals: typeof values.goals === 'string' 
             ? values.goals.split('\n').map(goal => goal.trim())
-            : Array.isArray(values.goals) ? values.goals : [],
+            : [],
           createdAt: new Date().toISOString(),
           // For backward compatibility
           mentor_id: mentor.id,
@@ -104,27 +122,178 @@ export function MentorshipRequestForm({
     }
   }
 
+  // Create initials for avatar fallback
+  const initials = mentor.name
+    .split(" ")
+    .map(part => part[0])
+    .join("")
+    .toUpperCase()
+    .substring(0, 2);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
-        <MentorshipFormHeader 
-          mentor={mentor} 
-          isCareerTwinRecommended={!!mentor.recommendationId} 
-        />
+        <DialogHeader>
+          <div className="flex items-center gap-4 mb-1">
+            <Avatar className="h-12 w-12">
+              {mentor.avatar ? (
+                <AvatarImage src={mentor.avatar} alt={mentor.name} />
+              ) : (
+                <AvatarFallback>{initials}</AvatarFallback>
+              )}
+            </Avatar>
+            <div className="flex flex-col">
+              <DialogTitle>{mentor.name}</DialogTitle>
+              {mentor.recommendationId && (
+                <Badge variant="outline" className="flex w-fit items-center gap-1 mt-1">
+                  <Brain className="h-3 w-3" />
+                  <span className="text-xs">AI Recommended</span>
+                </Badge>
+              )}
+            </div>
+          </div>
+          <DialogDescription>
+            Send a request to start a mentorship relationship with {mentor.name}.
+            {mentor.recommendationId && " This mentor was recommended by your Career Twin based on your goals and skills."}
+          </DialogDescription>
+        </DialogHeader>
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <MessageField form={form} />
-            <FocusAreasField form={form} />
-            <IndustryField form={form} />
-            <DurationField form={form} />
-            <GoalsField form={form} />
-            
-            <MentorshipFormActions 
-              isSubmitting={isSubmitting || mentorshipLoading}
-              onCancel={onClose}
-              submitError={submitError}
+            {/* Message Field */}
+            <FormField
+              control={form.control}
+              name="message"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Your Message</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Explain why you want to be mentored and what you hope to achieve"
+                      {...field}
+                      rows={4}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
+
+            {/* Focus Areas Field */}
+            <FormField
+              control={form.control}
+              name="focusAreas"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Focus Areas</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="e.g. Career Development, Leadership, Technical Skills"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Separate multiple focus areas with commas
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Industry Field */}
+            <FormField
+              control={form.control}
+              name="industry"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Industry</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an industry" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="technology">Technology</SelectItem>
+                      <SelectItem value="healthcare">Healthcare</SelectItem>
+                      <SelectItem value="finance">Finance</SelectItem>
+                      <SelectItem value="education">Education</SelectItem>
+                      <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                      <SelectItem value="retail">Retail</SelectItem>
+                      <SelectItem value="energy">Energy</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Duration Field */}
+            <FormField
+              control={form.control}
+              name="expectedDuration"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Expected Duration</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a duration" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="3months">3 months</SelectItem>
+                      <SelectItem value="6months">6 months</SelectItem>
+                      <SelectItem value="1year">1 year</SelectItem>
+                      <SelectItem value="ongoing">Ongoing</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Goals Field */}
+            <FormField
+              control={form.control}
+              name="goals"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Your Goals</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="List specific goals you'd like to achieve (one per line)"
+                      {...field}
+                      rows={3}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    List one goal per line
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Form Actions */}
+            {submitError && (
+              <p className="text-sm text-destructive">{submitError}</p>
+            )}
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting || mentorshipLoading}>
+                {isSubmitting || mentorshipLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : "Send Request"}
+              </Button>
+            </div>
           </form>
         </Form>
       </DialogContent>
