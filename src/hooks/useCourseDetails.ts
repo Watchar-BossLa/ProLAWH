@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CourseInstructor, CourseModule, CoursePrerequisite, CourseReview, CourseContent, EnrollmentStatus, ContentType } from "@/types/learning";
+import { MockData } from "@/types/mocks";
 
 // Define minimal types for the database entities we're dealing with
 interface Course {

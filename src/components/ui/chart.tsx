@@ -38,7 +38,7 @@ export interface ChartTooltipProps {
   content?: (props: { active?: boolean; payload?: any[]; label?: string }) => React.ReactElement | null;
 }
 
-// Fix the typing for the recharts tooltip
+// Fix the typing for the recharts tooltip to resolve the ReactNode vs ReactElement issue
 export function ChartTooltip({ content }: ChartTooltipProps) {
   return <RechartsTooltip content={content || undefined} />;
 }

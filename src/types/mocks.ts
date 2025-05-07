@@ -38,7 +38,7 @@ export interface MockData {
   score?: number;
   progress_percentage?: number;
   content_type?: string;
-  course_id?: string;
+  course_id?: string; // Using only one declaration
   order?: number;
   module_id?: string;
   content?: string;
@@ -68,8 +68,7 @@ export interface MockData {
   estimated_duration?: string;
   is_published?: boolean;
   difficulty_level?: string; // Added to support LearningDashboard
-  // Additional fields for CourseContentData compatibility
-  course_id?: string;
+  // No duplicate course_id here
 }
 
 // Define an interface for mentor recommendation data structure
