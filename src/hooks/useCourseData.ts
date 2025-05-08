@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Course, CourseContentData } from "@/types/courseDetails";
+import { ContentType } from "@/types/learning";
 
 export function useCourseData(courseId: string) {
   const courseQuery = useQuery({
@@ -66,7 +67,7 @@ export function useCourseData(courseId: string) {
       return mockContents.map((content) => ({
         ...content,
         content_type: content.content_type,
-        module_id: content.module_id || "default", // Ensure module_id exists with a default value
+        module_id: content.module_id || "default",
         description: content.description || null,
         created_at: content.created_at || new Date().toISOString(),
         updated_at: content.updated_at || new Date().toISOString()

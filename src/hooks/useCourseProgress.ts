@@ -1,103 +1,60 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
-
-interface CourseProgress {
-  id: string;
-  completed_content_ids?: string[];
-  completed_at?: string | null;
-  overall_progress?: number;
-}
+import { MarkContentCompletedOptions } from "@/types/courseProgress";
+import {
+  getExistingProgress,
+  updateCourseProgress,
+  createCourseProgress,
+  getTotalContentCount
+} from "@/services/courseProgressService";
 
 export function useCourseProgress(courseId: string) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const markContentAsCompleted = useMutation({
-    mutationFn: async (contentId: string) => {
+    mutationFn: async ({ contentId }: MarkContentCompletedOptions) => {
       if (!user?.id) {
         throw new Error("You must be logged in to track progress");
       }
 
-      // Check if there's existing progress
-      const { data: existingProgress, error: checkError } = await supabase
-        .from("course_progress")
-        .select("*");
-
-      if (checkError && checkError.code !== "PGRST116") {
-        throw checkError;
-      }
+      // Get existing progress
+      const existingProgress = await getExistingProgress(user.id, courseId);
       
-      // Use mock data for our response since real API would return data
-      const mockExistingProgress = existingProgress && existingProgress.length > 0 
-        ? existingProgress[0] as CourseProgress
-        : null;
-
       // Get total content count for percentage calculation
-      const totalContentCount = 10; // Mock value for total contents
+      const totalContentCount = await getTotalContentCount(courseId);
       
-      if (mockExistingProgress) {
+      if (existingProgress) {
         // Safely access completed_content_ids with proper type checking
-        const completedContentIdsRaw = mockExistingProgress.completed_content_ids || [];
+        const completedContentIdsRaw = existingProgress.completed_content_ids || [];
         // Ensure it's an array
-        const mockCompletedIds = Array.isArray(completedContentIdsRaw) 
-          ? completedContentIdsRaw 
-          : [];
+        const completedIds = Array.isArray(completedContentIdsRaw) ? completedContentIdsRaw : [];
         
         // Don't add if already completed
-        if (mockCompletedIds.includes(contentId)) {
-          return mockExistingProgress;
+        if (completedIds.includes(contentId)) {
+          return existingProgress;
         }
         
-        const updatedContentIds = [...mockCompletedIds, contentId];
+        const updatedContentIds = [...completedIds, contentId];
         const overallProgress = Math.round((updatedContentIds.length / totalContentCount) * 100);
         
-        // Safely access completed_at with proper type checking
-        const completedAt = mockExistingProgress.completed_at || null;
-        const newCompletedAt = overallProgress === 100 ? new Date().toISOString() : completedAt;
+        // Determine if course is now complete
+        const completedAt = overallProgress === 100 ? new Date().toISOString() : existingProgress.completed_at;
         
         // Update existing progress
-        const { data, error } = await supabase
-          .from("course_progress")
-          .update({
-            completed_content_ids: updatedContentIds,
-            overall_progress: overallProgress,
-            last_accessed_at: new Date().toISOString(),
-            completed_at: newCompletedAt,
-          });
-
-        if (error) throw error;
-        
-        // Return mock response
-        return {
-          id: 'mock-id',
+        return await updateCourseProgress(existingProgress.id, {
           completed_content_ids: updatedContentIds,
           overall_progress: overallProgress,
-          completed_at: newCompletedAt
-        };
+          last_accessed_at: new Date().toISOString(),
+          completed_at: completedAt,
+        });
       } else {
-        // Create new progress entry with mock data
+        // Create new progress entry
         const overallProgress = Math.round((1 / totalContentCount) * 100);
         
-        const { data, error } = await supabase
-          .from("course_progress")
-          .insert({
-            user_id: user.id,
-            course_id: courseId,
-            completed_content_ids: [contentId],
-            overall_progress: overallProgress,
-          });
-
-        if (error) throw error;
-        
-        // Return mock response
-        return {
-          id: 'mock-id',
-          completed_content_ids: [contentId],
-          overall_progress: overallProgress
-        };
+        return await createCourseProgress(user.id, courseId, contentId, overallProgress);
       }
     },
     onSuccess: () => {
@@ -114,7 +71,8 @@ export function useCourseProgress(courseId: string) {
   });
 
   return {
-    markContentAsCompleted: (contentId: string) => markContentAsCompleted.mutateAsync(contentId),
+    markContentAsCompleted: (contentId: string) => 
+      markContentAsCompleted.mutateAsync({ contentId }),
     isUpdating: markContentAsCompleted.isPending,
   };
 }
