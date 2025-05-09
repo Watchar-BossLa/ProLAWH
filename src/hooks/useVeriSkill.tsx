@@ -15,10 +15,7 @@ interface VeriSkillContextType {
 const VeriSkillContext = createContext<VeriSkillContextType | undefined>(undefined);
 
 export function VeriSkillProvider({ children }: { children: React.ReactNode }) {
-  // Get auth context with optional chaining to prevent errors if auth isn't ready
-  const auth = useAuth();
-  const user = auth?.user;
-
+  const { user } = useAuth();
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);

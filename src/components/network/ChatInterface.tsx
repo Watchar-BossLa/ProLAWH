@@ -22,7 +22,7 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
     const mockMessages: NetworkMessage[] = [
       {
         id: "1",
-        sender: "user",
+        senderId: "currentUser",
         receiverId: connection.id,
         content: "Hi there, wanted to connect about the project we discussed!",
         timestamp: "2025-04-25T14:30:00Z",
@@ -30,7 +30,7 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
       },
       {
         id: "2",
-        sender: "contact",
+        senderId: connection.id,
         receiverId: "currentUser",
         content: "Hey! Good to hear from you. What aspects of the project did you want to discuss specifically?",
         timestamp: "2025-04-25T14:35:00Z",
@@ -38,7 +38,7 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
       },
       {
         id: "3",
-        sender: "user",
+        senderId: "currentUser",
         receiverId: connection.id,
         content: "I was thinking about the technical architecture. Do you have some time this week to go over it?",
         timestamp: "2025-04-25T14:40:00Z",
@@ -59,7 +59,7 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
     
     const newMessage: NetworkMessage = {
       id: `msg-${Date.now()}`,
-      sender: "user",
+      senderId: "currentUser",
       receiverId: connection.id,
       content: message,
       timestamp: new Date().toISOString(),
@@ -104,7 +104,7 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
       {/* Chat messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg) => {
-          const isCurrentUser = msg.sender === "user";
+          const isCurrentUser = msg.senderId === "currentUser";
           return (
             <div 
               key={msg.id} 

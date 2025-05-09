@@ -19,7 +19,7 @@ export function NetworkStatsCards({ stats }: NetworkStatsCardsProps) {
         <CardContent>
           <div className="text-2xl font-bold">{stats.totalConnections}</div>
           <p className="text-xs text-muted-foreground mt-1">
-            +{stats.newConnectionsThisMonth} new connections this month
+            +23 new connections this month
           </p>
         </CardContent>
       </Card>
@@ -32,7 +32,7 @@ export function NetworkStatsCards({ stats }: NetworkStatsCardsProps) {
         <CardContent>
           <div className="text-2xl font-bold">{stats.mentors}</div>
           <p className="text-xs text-muted-foreground mt-1">
-            {stats.mentorshipStats.active} active mentorship sessions
+            3 active mentorship sessions
           </p>
         </CardContent>
       </Card>

@@ -1,183 +1,188 @@
 
 import * as React from "react";
-import { Slot } from "@radix-ui/react-slot";
 import {
-  CartesianGrid,
-  Line,
+  Area, AreaChart, Bar, CartesianGrid, Cell,
+  Legend, Line, Tooltip as RechartsTooltip, 
+  ResponsiveContainer, Sector, XAxis, YAxis,
+  BarChart as RechartsBarChart,
   LineChart as RechartsLineChart,
-  ResponsiveContainer,
-  Tooltip as RechartsTooltip,
-  XAxis,
-  YAxis,
-  BarChart as RechartsBarChart, 
-  Bar,
   PieChart as RechartsPieChart,
-  Pie,
-  Cell
+  Pie
 } from "recharts";
 
-import { cn } from "@/lib/utils";
+// Type definitions
+type ValueType = string | number | Array<string | number>;
+type NameType = string | number;
 
-interface ChartProps {
-  children?: React.ReactNode;
-  className?: string;
+// Chart components for export
+export interface ChartTooltipContentProps {
+  children: React.ReactNode;
 }
 
-const Chart = React.forwardRef<HTMLDivElement, ChartProps>(
-  ({ children, className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn("aspect-[4/3] w-full p-4", className)}
-      {...props}
-    >
+export function ChartTooltipContent({ children }: ChartTooltipContentProps) {
+  return (
+    <div className="rounded-md border bg-background p-2 shadow-md">
+      {children}
+    </div>
+  );
+}
+
+export interface ChartConfig {
+  [key: string]: {
+    label?: string;
+    color?: string;
+  };
+}
+
+export interface ChartTooltipProps {
+  content?: ((props: { active?: boolean; payload?: any[]; label?: string }) => React.ReactElement | null) | undefined;
+}
+
+export function ChartTooltip({ content }: ChartTooltipProps) {
+  return <RechartsTooltip content={content} />;
+}
+
+export interface ChartContainerProps extends React.HTMLAttributes<HTMLDivElement> {
+  config?: ChartConfig;
+  children: React.ReactNode;
+}
+
+export function ChartContainer({
+  config,
+  children,
+  ...props
+}: ChartContainerProps) {
+  return (
+    <div {...props}>
       <ResponsiveContainer width="100%" height="100%">
-        <div className="h-full w-full">{children}</div>
+        {children}
       </ResponsiveContainer>
     </div>
-  )
-);
-Chart.displayName = "Chart";
-
-interface ChartTooltipProps {
-  className?: string;
-  content?: React.ReactElement | ((props: any) => React.ReactNode);
+  );
 }
-
-const ChartTooltip = React.forwardRef<
-  React.ElementRef<typeof RechartsTooltip>,
-  ChartTooltipProps
->(({ className, content, ...props }, ref) => (
-  <RechartsTooltip
-    ref={ref}
-    content={content || <CustomTooltip />}
-    cursor={false}
-    wrapperClassName={cn(className)}
-    {...props}
-  />
-));
-ChartTooltip.displayName = "ChartTooltip";
-
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="rounded-lg border bg-background p-2 shadow-sm">
-        <div className="grid grid-cols-2 gap-2">
-          <div className="flex flex-col">
-            <span className="text-[0.70rem] uppercase text-muted-foreground">
-              Value
-            </span>
-            <span className="font-bold text-muted-foreground">
-              {payload[0].value}
-            </span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[0.70rem] uppercase text-muted-foreground">
-              Date
-            </span>
-            <span className="font-bold">{label}</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return null;
-};
 
 // PieChart Component
 interface PieChartProps {
-  data: Array<any>;
+  data: Array<Record<string, any>>;
   valueKey: string;
   categoryKey: string;
   colors?: string[];
+  className?: string;
 }
 
-const PieChart = ({
+export function PieChart({
   data,
   valueKey,
   categoryKey,
-  colors = ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"]
-}: PieChartProps) => {
+  colors = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"],
+  className,
+}: PieChartProps) {
   return (
-    <RechartsPieChart width={400} height={300}>
-      <Pie
-        data={data}
-        cx="50%"
-        cy="50%"
-        labelLine={false}
-        outerRadius={100}
-        fill="#8884d8"
-        dataKey={valueKey}
-        nameKey={categoryKey}
-      >
-        {data.map((entry, index) => (
-          <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-        ))}
-      </Pie>
-      <ChartTooltip />
-    </RechartsPieChart>
+    <div className={`w-full h-[300px] flex justify-center ${className}`}>
+      <RechartsPieChart width={400} height={300}>
+        <Pie
+          data={data}
+          cx="50%"
+          cy="50%"
+          labelLine={false}
+          outerRadius={80}
+          fill="#8884d8"
+          dataKey={valueKey}
+          nameKey={categoryKey}
+          label={(entry) => `${entry.name}: ${(entry.percent * 100).toFixed(0)}%`}
+        >
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+          ))}
+        </Pie>
+        <RechartsTooltip formatter={(value: any) => [`${value}`, '']} />
+        <Legend />
+      </RechartsPieChart>
+    </div>
   );
-};
+}
 
 // LineChart Component
 interface LineChartProps {
-  data: Array<any>;
+  data: Array<Record<string, any>>;
   valueKey: string;
   categoryKey: string;
   colors?: string[];
+  className?: string;
 }
 
-const LineChart = ({
+export function LineChart({
   data,
   valueKey,
   categoryKey,
-  colors = ["#2563eb"]
-}: LineChartProps) => {
+  colors = ["#0088FE"],
+  className,
+}: LineChartProps) {
   return (
-    <RechartsLineChart data={data}>
-      <XAxis dataKey={categoryKey} stroke="#888888" />
-      <YAxis stroke="#888888" />
-      <CartesianGrid strokeDasharray="3 3" />
-      <Line
-        type="monotone"
-        dataKey={valueKey}
-        stroke={colors[0]}
-        activeDot={{ r: 8 }}
-      />
-      <ChartTooltip />
-    </RechartsLineChart>
+    <div className={`w-full h-[300px] ${className}`}>
+      <RechartsLineChart
+        width={500}
+        height={300}
+        data={data}
+        margin={{
+          top: 5,
+          right: 30,
+          left: 20,
+          bottom: 5,
+        }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey={categoryKey} />
+        <YAxis />
+        <RechartsTooltip />
+        <Legend />
+        <Line
+          type="monotone"
+          dataKey={valueKey}
+          stroke={colors[0]}
+          activeDot={{ r: 8 }}
+        />
+      </RechartsLineChart>
+    </div>
   );
-};
+}
 
 // BarChart Component
 interface BarChartProps {
-  data: Array<any>;
+  data: Array<Record<string, any>>;
   valueKey: string;
   categoryKey: string;
   colors?: string[];
+  className?: string;
 }
 
-const BarChart = ({
+export function BarChart({
   data,
   valueKey,
   categoryKey,
-  colors = ["#2563eb"]
-}: BarChartProps) => {
+  colors = ["#0088FE"],
+  className,
+}: BarChartProps) {
   return (
-    <RechartsBarChart data={data}>
-      <XAxis dataKey={categoryKey} stroke="#888888" />
-      <YAxis stroke="#888888" />
-      <CartesianGrid strokeDasharray="3 3" />
-      <Bar dataKey={valueKey} fill={colors[0]} radius={[4, 4, 0, 0]} />
-      <ChartTooltip />
-    </RechartsBarChart>
+    <div className={`w-full h-[300px] ${className}`}>
+      <RechartsBarChart
+        width={500}
+        height={300}
+        data={data}
+        margin={{
+          top: 5,
+          right: 30,
+          left: 20,
+          bottom: 5,
+        }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey={categoryKey} />
+        <YAxis />
+        <RechartsTooltip />
+        <Legend />
+        <Bar dataKey={valueKey} fill={colors[0]} />
+      </RechartsBarChart>
+    </div>
   );
-};
-
-export {
-  Chart,
-  ChartTooltip,
-  PieChart,
-  LineChart,
-  BarChart
-};
+}
