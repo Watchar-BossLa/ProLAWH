@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: data.user.email,
           user_metadata: data.user.user_metadata
         });
-        navigate('/dashboard'); // Fixed: Removed the argument object
+        navigate('/dashboard');
       }
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to sign in'));
@@ -133,7 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await supabase.auth.signOut();
       setUser(null);
-      navigate('/'); // Fixed: Removed the argument object
+      navigate('/');
     } catch (err) {
       console.error('Sign out error:', err);
     }
