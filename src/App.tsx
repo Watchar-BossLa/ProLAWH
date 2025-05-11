@@ -164,7 +164,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isLoading && !user) {
-      // Redirect to the /auth page
+      // Redirect to the /auth page - fix the navigate call
       navigate("/auth", { state: { from: location } });
     }
   }, [user, isLoading, navigate, location]);

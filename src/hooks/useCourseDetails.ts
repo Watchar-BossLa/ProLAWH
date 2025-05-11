@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -62,7 +61,18 @@ export function useCourseDetails(courseId: string) {
       if (error) throw error;
       
       // Mock data if empty - ensure types are correct
-      const mockContents: CourseContentData[] = data && data.length > 0 ? data : [
+      const mockContents: CourseContentData[] = data && data.length > 0 ? data.map((item: any) => ({
+        id: item.id,
+        course_id: item.course_id,
+        title: item.title,
+        content_type: item.content_type as ContentType,
+        content: item.content,
+        order: item.order,
+        module_id: item.module_id || "default",
+        description: item.description || null,
+        created_at: item.created_at || new Date().toISOString(),
+        updated_at: item.updated_at || new Date().toISOString()
+      })) : [
         {
           id: "content-1",
           course_id: courseId,
@@ -89,15 +99,8 @@ export function useCourseDetails(courseId: string) {
         }
       ];
       
-      // Transform data to ensure it has all required properties
-      return mockContents.map((content) => ({
-        ...content,
-        content_type: content.content_type as ContentType,
-        module_id: content.module_id || "default", // Ensure module_id exists with a default value
-        description: content.description || null,
-        created_at: content.created_at || new Date().toISOString(),
-        updated_at: content.updated_at || new Date().toISOString()
-      })) as CourseContent[];
+      // Return the correctly typed contents
+      return mockContents as CourseContent[];
     },
     enabled: !!courseId,
   });
