@@ -35,7 +35,8 @@ export interface ChartConfig {
 }
 
 export interface ChartTooltipProps {
-  content?: ((props: { active?: boolean; payload?: any[]; label?: string }) => React.ReactElement | null) | React.ReactElement | null;
+  // Fixed type: Changed to accept ReactNode to handle all possible content types
+  content?: ((props: { active?: boolean; payload?: any[]; label?: string }) => React.ReactNode | null) | React.ReactNode | null;
 }
 
 export function ChartTooltip({ content }: ChartTooltipProps) {
