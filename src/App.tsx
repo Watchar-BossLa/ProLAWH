@@ -3,11 +3,10 @@ import { useEffect } from "react";
 import {
   Routes,
   Route,
-  BrowserRouter,
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import { useAuth, AuthProvider } from "@/hooks/useAuth";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { useActivityTracker } from "@/hooks/useActivityTracker";
 import CareerTwinPage from "@/pages/dashboard/CareerTwinPage";
 import SkillStakingPage from "@/pages/dashboard/SkillStakingPage";
@@ -31,11 +30,9 @@ const PrivacyPolicyPage = () => <div className="container mx-auto py-8">Privacy 
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </BrowserRouter>
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
@@ -168,7 +165,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isLoading && !user) {
       // Redirect to the /auth page
-      navigate("/auth", { replace: true, state: { from: location } });
+      navigate("/auth", { state: { from: location } });
     }
   }, [user, isLoading, navigate, location]);
 
