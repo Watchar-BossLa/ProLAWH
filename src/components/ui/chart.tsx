@@ -1,4 +1,3 @@
-
 import * as React from "react";
 import {
   Area, AreaChart, Bar, CartesianGrid, Cell,
@@ -35,7 +34,7 @@ export interface ChartConfig {
 }
 
 export interface ChartTooltipProps {
-  content?: ((props: { active?: boolean; payload?: any[]; label?: string }) => React.ReactElement | null) | React.ReactElement | null;
+  content?: React.ReactElement | null | ((props: { active?: boolean; payload?: any[]; label?: string }) => React.ReactElement | null);
 }
 
 export function ChartTooltip({ content }: ChartTooltipProps) {

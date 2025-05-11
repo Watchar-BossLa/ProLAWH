@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,6 +16,7 @@ interface Course {
   [key: string]: any;
 }
 
+// Ensure this type matches CourseContent from @/types/learning
 interface CourseContentData {
   id: string;
   course_id: string;
@@ -60,7 +62,7 @@ export function useCourseDetails(courseId: string) {
       
       if (error) throw error;
       
-      // Mock data if empty - ensure types are correct
+      // Fix: Ensure mock data is correctly typed as CourseContentData[]
       const mockContents: CourseContentData[] = data && data.length > 0 ? data.map((item: any) => ({
         id: item.id,
         course_id: item.course_id,
@@ -99,7 +101,6 @@ export function useCourseDetails(courseId: string) {
         }
       ];
       
-      // Return the correctly typed contents
       return mockContents as CourseContent[];
     },
     enabled: !!courseId,

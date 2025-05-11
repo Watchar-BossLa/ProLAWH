@@ -100,6 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: data.user.email,
           user_metadata: data.user.user_metadata
         });
+        // Fix: Remove extra argument
         navigate('/dashboard');
       }
     } catch (err) {
@@ -133,6 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await supabase.auth.signOut();
       setUser(null);
+      // Fix: Remove extra argument
       navigate('/');
     } catch (err) {
       console.error('Sign out error:', err);
