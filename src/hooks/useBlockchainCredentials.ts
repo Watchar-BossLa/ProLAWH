@@ -3,8 +3,27 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
-interface BlockchainCredential {
+// Define the Json type to match what comes from Supabase
+type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
+
+// Define the database model as it comes from Supabase
+interface BlockchainCredentialDB {
+  id: string;
+  user_id: string;
+  skill_id: string;
+  issued_at: string;
+  expires_at?: string;
+  credential_type: string;
+  credential_hash: string;
+  transaction_id: string;
+  is_verified: boolean;
+  metadata: Json;
+}
+
+// Define our application model
+export interface BlockchainCredential {
   id: string;
   user_id: string;
   skill_id: string;
@@ -30,32 +49,55 @@ interface IssueCredentialParams {
   };
 }
 
-export function useBlockchainCredentials(userId?: string) {
+// Helper function to transform DB model to app model
+function transformCredential(dbCredential: BlockchainCredentialDB): BlockchainCredential {
+  const typedMetadata = dbCredential.metadata as any;
+  return {
+    id: dbCredential.id,
+    user_id: dbCredential.user_id,
+    skill_id: dbCredential.skill_id,
+    issued_at: dbCredential.issued_at,
+    credential_type: dbCredential.credential_type,
+    transaction_id: dbCredential.transaction_id,
+    is_verified: dbCredential.is_verified,
+    metadata: {
+      issuer: typedMetadata?.issuer || "Unknown Issuer",
+      verification_method: typedMetadata?.verification_method || "Manual Verification",
+      achievement_level: typedMetadata?.achievement_level || "Verified",
+      verification_proof: typedMetadata?.verification_proof
+    }
+  };
+}
+
+export function useBlockchainCredentials() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   
   // Fetch user's blockchain credentials
   const { data: credentials = [], error } = useQuery({
-    queryKey: ['blockchain-credentials', userId],
+    queryKey: ['blockchain-credentials', user?.id],
     queryFn: async () => {
-      if (!userId) return [];
+      if (!user?.id) return [];
       
       const { data, error } = await supabase
         .from('blockchain_credentials')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', user.id)
         .order('issued_at', { ascending: false });
         
       if (error) throw new Error(error.message);
-      return data as BlockchainCredential[];
+      
+      // Transform DB model to app model
+      return (data as BlockchainCredentialDB[]).map(transformCredential);
     },
-    enabled: !!userId,
+    enabled: !!user?.id,
   });
   
   // Issue a new credential
   const issueCredential = useMutation({
     mutationFn: async ({ skillId, metadata }: IssueCredentialParams) => {
-      if (!userId) throw new Error("User ID is required to issue a credential");
+      if (!user?.id) throw new Error("User ID is required to issue a credential");
       setIsLoading(true);
       
       try {
@@ -63,11 +105,11 @@ export function useBlockchainCredentials(userId?: string) {
         const transactionId = Array.from({ length: 64 }, () => 
           Math.floor(Math.random() * 16).toString(16)).join('');
           
-        // Add credential to the blockchain_credentials table  
+        // Add credential to the blockchain_credentials table
         const { data, error } = await supabase
           .from('blockchain_credentials')
           .insert({
-            user_id: userId,
+            user_id: user.id,
             skill_id: skillId,
             credential_type: 'solana',
             credential_hash: `sol:${transactionId.substring(0, 16)}`,
@@ -80,7 +122,8 @@ export function useBlockchainCredentials(userId?: string) {
           
         if (error) throw error;
         
-        return data as BlockchainCredential;
+        // Transform the returned data
+        return transformCredential(data as BlockchainCredentialDB);
       } finally {
         setIsLoading(false);
       }
@@ -104,7 +147,7 @@ export function useBlockchainCredentials(userId?: string) {
   // Verify an existing credential
   const verifyCredential = useMutation({
     mutationFn: async (credentialId: string) => {
-      if (!userId) throw new Error("User ID is required to verify a credential");
+      if (!user?.id) throw new Error("User ID is required to verify a credential");
       setIsLoading(true);
       
       try {
@@ -116,13 +159,14 @@ export function useBlockchainCredentials(userId?: string) {
           .from('blockchain_credentials')
           .update({ is_verified: true })
           .eq('id', credentialId)
-          .eq('user_id', userId)
+          .eq('user_id', user.id)
           .select()
           .single();
           
         if (error) throw error;
         
-        return data as BlockchainCredential;
+        // Transform the returned data
+        return transformCredential(data as BlockchainCredentialDB);
       } finally {
         setIsLoading(false);
       }

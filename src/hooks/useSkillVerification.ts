@@ -21,7 +21,7 @@ export function useSkillVerification() {
   const [isVerifying, setIsVerifying] = useState(false);
   const queryClient = useQueryClient();
   const { data: skills = [] } = useGreenSkills();
-  const { issueCredential } = useBlockchainCredentials(user?.id);
+  const { issueCredential } = useBlockchainCredentials();
   
   const verifySkill = useMutation({
     mutationFn: async (data: VerificationData) => {
@@ -106,6 +106,7 @@ export function useSkillVerification() {
 
   return {
     verifySkill,
-    isVerifying
+    isVerifying,
+    isLoading: isVerifying // Add this for consistency with other hooks
   };
 }

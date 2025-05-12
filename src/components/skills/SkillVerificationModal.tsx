@@ -24,7 +24,7 @@ export function SkillVerificationModal({ isOpen, onClose, skill }: SkillVerifica
   const [verificationMethod, setVerificationMethod] = useState<VerificationMethod>("challenge");
   const [evidence, setEvidence] = useState<File | null>(null);
   const [notes, setNotes] = useState("");
-  const { verifySkill, isVerifying } = useSkillVerification();
+  const { verifySkill, isVerifying, isLoading: isVerifyingSkill } = useSkillVerification();
   const { walletConnected } = useVeriSkill();
 
   const handleVerify = async () => {
@@ -202,9 +202,9 @@ export function SkillVerificationModal({ isOpen, onClose, skill }: SkillVerifica
           <Button variant="outline" onClick={onClose}>Cancel</Button>
           <Button 
             onClick={handleVerify} 
-            disabled={isVerifying || !walletConnected}
+            disabled={isVerifyingSkill || !walletConnected}
           >
-            {isVerifying ? (
+            {isVerifyingSkill ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Verifying...
