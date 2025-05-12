@@ -7,10 +7,29 @@ import { GreenSkillCategories } from './GreenSkillCategories';
 import { GreenSkillsList } from './GreenSkillsList';
 import { VerifiedSkillBadges } from './verification/VerifiedSkillBadges';
 
+interface Skill {
+  id: string;
+  name: string;
+  description?: string;
+  category: string;
+  level: number;
+  isGreen: boolean;
+  impactLevel?: string;
+  co2_reduction?: number;
+  [key: string]: any; // For any other properties that might exist
+}
+
+interface SkillGapData {
+  skill: string;
+  gap: number;
+  priority: string;
+  [key: string]: any; // For other properties
+}
+
 interface SkillsTabContentProps {
-  skills: any[];
+  skills: Skill[];
   categories: string[];
-  skillGapData: any[];
+  skillGapData: SkillGapData[];
   onFilterChange: (filter: { search: string; category: string; impactLevel: string }) => void;
 }
 
