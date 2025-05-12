@@ -25,7 +25,9 @@ export const ChallengeContainer = ({ challenge, userId, onReturn }: ChallengeCon
     bonusPoints?: number;
   } | null>(null);
   
-  const { totalDuration } = useChallengeTimer(challenge.time_limit);
+  const { totalDuration } = useChallengeTimer(challenge.time_limit, {
+    tickInterval: challenge.time_limit < 30 ? 16 : 1000 // Use 60fps timing for short challenges
+  });
   
   const handleStart = () => {
     startChallenge();

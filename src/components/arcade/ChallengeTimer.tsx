@@ -19,11 +19,11 @@ export function ChallengeTimer({
   onTimeUp,
   highPrecision = false
 }: ChallengeTimerProps) {
-  const { timeRemaining, isRunning, totalDuration, percentRemaining } = useChallengeTimer(
+  const { timeRemaining, isRunning, percentRemaining } = useChallengeTimer(
     duration,
     { 
       onTimeUp,
-      tickInterval: highPrecision ? 100 : 1000 
+      tickInterval: highPrecision ? 16 : 1000 // 60fps (approximately 16ms) for high precision
     }
   );
   const { state } = useChallengeState();

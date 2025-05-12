@@ -22,6 +22,7 @@ export function useChallengeTimer(
   const startTimeRef = useRef<number | null>(null);
   const pausedTimeRemainingRef = useRef<number>(durationInSeconds);
   const lastUpdateTimeRef = useRef<number | null>(null);
+  const rafIdRef = useRef<number | null>(null);
   
   // Calculate percentage of time remaining
   const percentRemaining = Math.max(0, Math.min(100, (timeRemaining / durationInSeconds) * 100));
@@ -30,6 +31,11 @@ export function useChallengeTimer(
     if (timerRef.current !== null) {
       clearInterval(timerRef.current);
       timerRef.current = null;
+    }
+    
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
     }
   }, []);
   
@@ -58,14 +64,15 @@ export function useChallengeTimer(
         setTimeRemaining(newTimeRemaining);
         
         if (newTimeRemaining <= 0) {
+          clearTimer();
           setIsRunning(false);
           onTimeUp?.();
-        } else if (isRunning) {
-          requestAnimationFrame(animationFrame);
+        } else {
+          rafIdRef.current = requestAnimationFrame(animationFrame);
         }
       };
       
-      requestAnimationFrame(animationFrame);
+      rafIdRef.current = requestAnimationFrame(animationFrame);
     } else {
       // Use standard interval for normal precision
       timerRef.current = window.setInterval(() => {
