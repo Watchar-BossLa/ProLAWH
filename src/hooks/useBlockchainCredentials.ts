@@ -1,135 +1,153 @@
 
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-export interface BlockchainCredential {
+interface BlockchainCredential {
   id: string;
   user_id: string;
   skill_id: string;
   issued_at: string;
-  expires_at: string | null;
   credential_type: string;
-  credential_hash: string;
   transaction_id: string;
   is_verified: boolean;
-  metadata: {
-    issuer?: string;
-    verification_method?: string;
-    achievement_level?: string;
+  metadata?: {
+    issuer: string;
+    verification_method: string;
+    achievement_level: string;
     verification_proof?: string;
-  } | null;
+  };
+}
+
+interface IssueCredentialParams {
+  skillId: string;
+  metadata: {
+    issuer: string;
+    verification_method: string;
+    achievement_level: string;
+    verification_proof?: string;
+  };
 }
 
 export function useBlockchainCredentials(userId?: string) {
   const queryClient = useQueryClient();
-  const [loading, setLoading] = useState(false);
-
-  const { data: credentials, isLoading } = useQuery({
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Fetch user's blockchain credentials
+  const { data: credentials = [], error } = useQuery({
     queryKey: ['blockchain-credentials', userId],
     queryFn: async () => {
       if (!userId) return [];
       
       const { data, error } = await supabase
         .from('blockchain_credentials')
-        .select('*, skills(name, category)')
+        .select('*')
         .eq('user_id', userId)
         .order('issued_at', { ascending: false });
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!userId
-  });
-
-  const verifyCredential = useMutation({
-    mutationFn: async (credentialId: string) => {
-      setLoading(true);
-      try {
-        // Simulate blockchain verification
-        await new Promise(resolve => setTimeout(resolve, 2000));
         
-        const { data, error } = await supabase
-          .from('blockchain_credentials')
-          .update({ is_verified: true })
-          .eq('id', credentialId)
-          .select();
-        
-        if (error) throw error;
-        return data;
-      } finally {
-        setLoading(false);
-      }
+      if (error) throw new Error(error.message);
+      return data as BlockchainCredential[];
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['blockchain-credentials'] });
-      toast({
-        title: "Credential Verified",
-        description: "Your skill credential has been verified on the blockchain",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Verification Failed",
-        description: error instanceof Error ? error.message : "Failed to verify credential",
-        variant: "destructive"
-      });
-    }
+    enabled: !!userId,
   });
-
+  
+  // Issue a new credential
   const issueCredential = useMutation({
-    mutationFn: async (params: {
-      skillId: string;
-      metadata: any;
-    }) => {
-      setLoading(true);
+    mutationFn: async ({ skillId, metadata }: IssueCredentialParams) => {
+      if (!userId) throw new Error("User ID is required to issue a credential");
+      setIsLoading(true);
+      
       try {
-        if (!userId) throw new Error("User not authenticated");
-        
-        // Generate mock blockchain data
-        const mockTransactionId = `tx_${Math.random().toString(36).substring(2, 15)}`;
-        const mockHash = `0x${Array.from({length: 40}, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
-        
+        // Generate a mock transaction hash
+        const transactionId = Array.from({ length: 64 }, () => 
+          Math.floor(Math.random() * 16).toString(16)).join('');
+          
+        // Add credential to the blockchain_credentials table  
         const { data, error } = await supabase
           .from('blockchain_credentials')
           .insert({
             user_id: userId,
-            skill_id: params.skillId,
-            credential_type: 'polygon',
-            credential_hash: mockHash,
-            transaction_id: mockTransactionId,
-            is_verified: false,
-            metadata: params.metadata
+            skill_id: skillId,
+            credential_type: 'solana',
+            credential_hash: `sol:${transactionId.substring(0, 16)}`,
+            transaction_id: transactionId,
+            is_verified: true,
+            metadata,
           })
-          .select();
-        
+          .select()
+          .single();
+          
         if (error) throw error;
-        return data;
+        
+        return data as BlockchainCredential;
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blockchain-credentials'] });
       toast({
-        title: "Credential Issued",
-        description: "Your skill has been issued as a credential on the blockchain",
+        title: "Credential issued",
+        description: "Your skill credential has been recorded on the blockchain",
       });
     },
     onError: (error) => {
       toast({
-        title: "Issue Failed",
-        description: error instanceof Error ? error.message : "Failed to issue credential",
-        variant: "destructive"
+        title: "Failed to issue credential",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive",
       });
     }
   });
 
+  // Verify an existing credential
+  const verifyCredential = useMutation({
+    mutationFn: async (credentialId: string) => {
+      if (!userId) throw new Error("User ID is required to verify a credential");
+      setIsLoading(true);
+      
+      try {
+        // In a real implementation, this would verify the credential on the blockchain
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Update the credential status
+        const { data, error } = await supabase
+          .from('blockchain_credentials')
+          .update({ is_verified: true })
+          .eq('id', credentialId)
+          .eq('user_id', userId)
+          .select()
+          .single();
+          
+        if (error) throw error;
+        
+        return data as BlockchainCredential;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blockchain-credentials'] });
+      toast({
+        title: "Credential verified",
+        description: "Your skill credential has been successfully verified",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Verification failed",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive",
+      });
+    }
+  });
+  
   return {
     credentials,
-    isLoading: isLoading || loading,
-    verifyCredential,
-    issueCredential
+    isLoading,
+    error,
+    issueCredential,
+    verifyCredential
   };
 }
