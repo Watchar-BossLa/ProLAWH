@@ -22,6 +22,7 @@ export const ChallengeContainer = ({ challenge, userId, onReturn }: ChallengeCon
     data: Record<string, any>;
     points: number;
     timeTaken?: number;
+    bonusPoints?: number;
   } | null>(null);
   
   const { totalDuration } = useChallengeTimer(challenge.time_limit);
@@ -37,7 +38,8 @@ export const ChallengeContainer = ({ challenge, userId, onReturn }: ChallengeCon
       success,
       data,
       points,
-      timeTaken
+      timeTaken,
+      bonusPoints: data.bonusPoints || 0
     });
     
     if (success) {
@@ -74,6 +76,7 @@ export const ChallengeContainer = ({ challenge, userId, onReturn }: ChallengeCon
             score={result.points}
             timeTaken={result.timeTaken || 0}
             mediaCaptures={result.data.captures}
+            bonusPoints={result.bonusPoints}
             onReset={handleReset}
           />
         ) : (

@@ -7,20 +7,22 @@ interface TimerProgressProps {
   percent: number;
   isRunning?: boolean;
   className?: string;
+  smooth?: boolean;
 }
 
 export function TimerProgress({ 
   percent, 
   isRunning = true,
+  smooth = true,
   className 
 }: TimerProgressProps) {
   const [animated, setAnimated] = useState(false);
   
   // Add animation class only after initial render to prevent animation on mount
   useEffect(() => {
-    const timer = setTimeout(() => setAnimated(isRunning), 100);
+    const timer = setTimeout(() => setAnimated(isRunning && smooth), 100);
     return () => clearTimeout(timer);
-  }, [isRunning]);
+  }, [isRunning, smooth]);
   
   const getColorClass = () => {
     if (percent > 60) return "bg-green-500 dark:bg-green-600";
@@ -37,6 +39,7 @@ export function TimerProgress({
         animated && "transition-all duration-1000",
         className
       )}
+      aria-label={`${Math.round(percent)}% of time remaining`}
     />
   );
 }

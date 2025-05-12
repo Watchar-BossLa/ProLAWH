@@ -60,7 +60,7 @@ export const ChallengeStateProvider = ({ children }: { children: ReactNode }) =>
   const isPaused = state === 'paused';
   
   return (
-    <ChallengeStateContext.Provider 
+    <ChallengeStateContext.Provider
       value={{
         state,
         setState,

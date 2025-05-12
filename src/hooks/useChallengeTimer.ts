@@ -21,6 +21,7 @@ export function useChallengeTimer(
   const timerRef = useRef<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
   const pausedTimeRemainingRef = useRef<number>(durationInSeconds);
+  const lastUpdateTimeRef = useRef<number | null>(null);
   
   // Calculate percentage of time remaining
   const percentRemaining = Math.max(0, Math.min(100, (timeRemaining / durationInSeconds) * 100));
@@ -36,27 +37,57 @@ export function useChallengeTimer(
     if (isRunning) return;
     
     clearTimer();
-    startTimeRef.current = Date.now();
+    const now = Date.now();
+    startTimeRef.current = now;
+    lastUpdateTimeRef.current = now;
     setIsRunning(true);
     
-    timerRef.current = window.setInterval(() => {
-      const elapsedSeconds = startTimeRef.current
-        ? Math.floor((Date.now() - startTimeRef.current) / 1000)
-        : 0;
+    // Use high-precision timer with requestAnimationFrame for <100ms intervals
+    if (tickInterval < 100) {
+      const animationFrame = () => {
+        const currentTime = Date.now();
+        const elapsedSeconds = startTimeRef.current
+          ? (currentTime - startTimeRef.current) / 1000
+          : 0;
+        
+        const newTimeRemaining = Math.max(
+          0,
+          pausedTimeRemainingRef.current - elapsedSeconds
+        );
+        
+        setTimeRemaining(newTimeRemaining);
+        
+        if (newTimeRemaining <= 0) {
+          setIsRunning(false);
+          onTimeUp?.();
+        } else if (isRunning) {
+          requestAnimationFrame(animationFrame);
+        }
+      };
       
-      const newTimeRemaining = Math.max(
-        0,
-        pausedTimeRemainingRef.current - elapsedSeconds
-      );
-      
-      setTimeRemaining(newTimeRemaining);
-      
-      if (newTimeRemaining <= 0) {
-        clearTimer();
-        setIsRunning(false);
-        onTimeUp?.();
-      }
-    }, tickInterval);
+      requestAnimationFrame(animationFrame);
+    } else {
+      // Use standard interval for normal precision
+      timerRef.current = window.setInterval(() => {
+        const currentTime = Date.now();
+        const elapsedSeconds = startTimeRef.current
+          ? (currentTime - startTimeRef.current) / 1000
+          : 0;
+        
+        const newTimeRemaining = Math.max(
+          0,
+          pausedTimeRemainingRef.current - elapsedSeconds
+        );
+        
+        setTimeRemaining(newTimeRemaining);
+        
+        if (newTimeRemaining <= 0) {
+          clearTimer();
+          setIsRunning(false);
+          onTimeUp?.();
+        }
+      }, tickInterval);
+    }
   }, [isRunning, clearTimer, onTimeUp, tickInterval]);
   
   const pause = useCallback(() => {

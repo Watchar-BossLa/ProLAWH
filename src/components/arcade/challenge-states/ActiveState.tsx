@@ -19,7 +19,7 @@ export function ActiveState({
   const { failChallenge } = useChallengeState();
 
   const handleTimeUp = () => {
-    onComplete(false, {}, 0);
+    onComplete(false, { reason: "time_expired" }, 0);
   };
   
   const handleChallengeComplete = (captures: string[]) => {
@@ -31,14 +31,33 @@ export function ActiveState({
     const isSuccess = capturedCount >= Math.max(1, requiredItemsCount);
     const earnedPoints = isSuccess ? challenge.points : 0;
     
-    onComplete(isSuccess, { captures }, earnedPoints);
+    // Calculate bonus points for speed (if completed successfully)
+    let bonusPoints = 0;
+    if (isSuccess) {
+      // Award bonus points based on challenge type
+      if (challenge.type === "camera") {
+        bonusPoints = Math.floor(challenge.points * 0.2); // 20% bonus for camera challenges
+      }
+    }
+    
+    const totalPoints = earnedPoints + bonusPoints;
+    
+    onComplete(isSuccess, { 
+      captures,
+      bonusPoints,
+      totalPoints 
+    }, totalPoints);
   };
+
+  // Determine if we should use high precision timer (for fast challenges)
+  const useHighPrecision = challenge.time_limit < 30;
 
   return (
     <div className="space-y-4">
       <ChallengeTimer 
         duration={challenge.time_limit} 
         onTimeUp={handleTimeUp}
+        highPrecision={useHighPrecision}
       />
       
       {challenge.type === "camera" ? (

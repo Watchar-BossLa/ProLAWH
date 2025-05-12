@@ -6,19 +6,29 @@ import { TimerProgress } from "./timer/TimerProgress";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { useChallengeState } from "@/hooks/useChallengeState";
+import { AlertTriangle } from "lucide-react";
 
 interface ChallengeTimerProps {
   duration: number;
   onTimeUp?: () => void;
+  highPrecision?: boolean;
 }
 
-export function ChallengeTimer({ duration, onTimeUp }: ChallengeTimerProps) {
+export function ChallengeTimer({ 
+  duration, 
+  onTimeUp,
+  highPrecision = false
+}: ChallengeTimerProps) {
   const { timeRemaining, isRunning, totalDuration, percentRemaining } = useChallengeTimer(
     duration,
-    { onTimeUp }
+    { 
+      onTimeUp,
+      tickInterval: highPrecision ? 100 : 1000 
+    }
   );
   const { state } = useChallengeState();
   const [hasWarnedLowTime, setHasWarnedLowTime] = useState(false);
+  const [hasWarnedCriticalTime, setHasWarnedCriticalTime] = useState(false);
   
   // Alert user when time is running low (15% remaining)
   useEffect(() => {
@@ -27,6 +37,7 @@ export function ChallengeTimer({ duration, onTimeUp }: ChallengeTimerProps) {
         title: "Time is running out!",
         description: "Hurry up to complete the challenge.",
         variant: "default",
+        icon: <AlertTriangle className="h-5 w-5 text-amber-500" />
       });
       setHasWarnedLowTime(true);
       
@@ -42,12 +53,24 @@ export function ChallengeTimer({ duration, onTimeUp }: ChallengeTimerProps) {
         document.body.removeChild(announcement);
       }, 3000);
     }
-  }, [percentRemaining, isRunning, hasWarnedLowTime]);
+
+    // Critical time warning (5% remaining)
+    if (isRunning && percentRemaining <= 5 && !hasWarnedCriticalTime) {
+      toast({
+        title: "Critical time warning!",
+        description: "Only seconds remaining to complete!",
+        variant: "destructive",
+        icon: <AlertTriangle className="h-5 w-5" />
+      });
+      setHasWarnedCriticalTime(true);
+    }
+  }, [percentRemaining, isRunning, hasWarnedLowTime, hasWarnedCriticalTime]);
   
   // Reset warning state when timer restarts
   useEffect(() => {
     if (percentRemaining > 90) {
       setHasWarnedLowTime(false);
+      setHasWarnedCriticalTime(false);
     }
   }, [percentRemaining]);
   
@@ -57,6 +80,12 @@ export function ChallengeTimer({ duration, onTimeUp }: ChallengeTimerProps) {
     if (percentRemaining > 25) return "text-amber-500";
     return "text-red-500";
   };
+
+  // Add pulse animation when time is critical
+  const getPulseClass = () => {
+    if (percentRemaining <= 10 && isRunning) return "animate-pulse";
+    return "";
+  };
   
   return (
     <Card className="relative p-4 flex flex-col items-center justify-center">
@@ -64,17 +93,19 @@ export function ChallengeTimer({ duration, onTimeUp }: ChallengeTimerProps) {
         <TimerProgress 
           percent={percentRemaining} 
           isRunning={isRunning}
+          smooth={!highPrecision}
           aria-hidden="true"
         />
       </div>
       
-      <div className="relative z-10 flex flex-col items-center">
+      <div className={`relative z-10 flex flex-col items-center ${getPulseClass()}`}>
         <span className="text-sm font-medium mb-1">Time Remaining</span>
         <TimerDisplay 
           seconds={timeRemaining} 
+          showMilliseconds={highPrecision}
           className={`text-2xl font-mono font-bold ${getColorClass()}`}
           aria-live="polite"
-          aria-label={`${Math.floor(timeRemaining / 60)} minutes and ${timeRemaining % 60} seconds remaining`}
+          aria-label={`${Math.floor(timeRemaining / 60)} minutes and ${Math.floor(timeRemaining % 60)} seconds remaining`}
         />
         <span className="text-xs text-muted-foreground mt-1">
           {Math.round(percentRemaining)}% remaining
