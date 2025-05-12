@@ -55,8 +55,7 @@ export function useSkillVerification() {
         const { data: verificationData, error: verificationError } = await supabase
           .from('skill_verifications')
           .insert({
-            user_id: user.id, // Changed from user_skill_id to user_id to match your schema
-            skill_id: data.skillId,  // Added skill_id field
+            user_skill_id: data.skillId, // Changed to use skillId directly as the user_skill_id
             verification_type: data.method,
             verification_source: data.method === 'credential' ? 'upload' : 
                                data.method === 'endorsement' ? 'peer' : 'challenge',
