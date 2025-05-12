@@ -1,122 +1,97 @@
+
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useVeriSkill } from "@/hooks/useVeriSkill";
-import { ActiveState } from "./challenge-states/ActiveState";
 import { ReadyState } from "./challenge-states/ReadyState";
-import ChallengeTimer from "./ChallengeTimer";
-import { type Challenge, type ChallengeContainerProps, type ChallengeResult } from "@/types/arcade";
-import CameraChallenge from "./CameraChallenge";
-import ChallengeCompletion from "./ChallengeCompletion";
+import { ActiveState } from "./challenge-states/ActiveState";
+import { ChallengeCompletion } from "./ChallengeCompletion";
+import { type Challenge, type ChallengeContainerProps } from "@/types/arcade";
+import { useChallengeState } from "@/hooks/useChallengeState";
+import { useChallengeTimer } from "@/hooks/useChallengeTimer";
 
 export const ChallengeContainer = ({ challenge, userId, onReturn }: ChallengeContainerProps) => {
-  const { submitChallengeResult } = useVeriSkill();
-  const [activeState, setActiveState] = useState<'ready' | 'active' | 'completed' | 'failed'>('ready');
-  const [timeLeft, setTimeLeft] = useState(challenge.time_limit);
-  const [result, setResult] = useState<ChallengeResult | null>(null);
-
+  const { 
+    state, 
+    startChallenge, 
+    completeChallenge, 
+    failChallenge 
+  } = useChallengeState();
+  
+  const [result, setResult] = useState<{
+    success: boolean;
+    data: Record<string, any>;
+    points: number;
+    timeTaken?: number;
+  } | null>(null);
+  
+  const { totalDuration } = useChallengeTimer(challenge.time_limit);
+  
   const handleStart = () => {
-    setActiveState('active');
+    startChallenge();
   };
-
-  const handleTimeUpdate = (newTimeLeft: number) => {
-    setTimeLeft(newTimeLeft);
-  };
-
-  const handleTimeUp = () => {
-    if (activeState === 'active') {
-      handleFailure("Time's up! Challenge failed.");
+  
+  const handleComplete = (success: boolean, data: Record<string, any>, points: number) => {
+    const timeTaken = challenge.time_limit - (totalDuration || 0);
+    
+    setResult({
+      success,
+      data,
+      points,
+      timeTaken
+    });
+    
+    if (success) {
+      completeChallenge();
+    } else {
+      failChallenge();
     }
   };
-
-  const handleSuccess = async (message: string, points = challenge.points) => {
-    const challengeResult = {
-      success: true,
-      points: points,
-      message: message
-    };
-    
-    setResult(challengeResult);
-    setActiveState('completed');
-    
-    // Record the result in the database
-    await submitChallengeResult(challenge.id, challengeResult);
+  
+  const handleReset = () => {
+    setResult(null);
   };
-
-  const handleFailure = async (message: string) => {
-    const challengeResult = {
-      success: false,
-      points: 0,
-      message: message
-    };
-    
-    setResult(challengeResult);
-    setActiveState('failed');
-    
-    // Record the failed attempt
-    await submitChallengeResult(challenge.id, challengeResult);
-  };
-
-  const renderChallengeContent = () => {
-    switch (activeState) {
+  
+  const renderContent = () => {
+    switch (state) {
       case 'ready':
-        return (
-          <ReadyState 
-            onStart={handleStart} 
-          />
-        );
+        return <ReadyState onStart={handleStart} />;
+        
       case 'active':
+      case 'paused':
         return (
-          <>
-            <ChallengeTimer 
-              initialTime={challenge.time_limit} 
-              onTimeUpdate={handleTimeUpdate}
-              onTimeUp={handleTimeUp}
-            />
-            {challenge.type === 'camera' && (
-              <CameraChallenge 
-                challenge={challenge}
-                onSuccess={handleSuccess}
-                onFailure={handleFailure}
-              />
-            )}
-            {/* Other challenge types would be implemented here */}
-          </>
-        );
-      case 'completed':
-      case 'failed':
-        return (
-          <ChallengeCompletion 
-            result={result}
-            onRetry={() => setActiveState('ready')}
+          <ActiveState 
+            challenge={challenge}
+            onComplete={handleComplete}
             onReturn={onReturn}
           />
         );
+        
+      case 'completed':
+      case 'failed':
+        return result ? (
+          <ChallengeCompletion 
+            challengeId={challenge.id}
+            score={result.points}
+            timeTaken={result.timeTaken || 0}
+            mediaCaptures={result.data.captures}
+            onReset={handleReset}
+          />
+        ) : (
+          <div className="text-center py-8">
+            <p>There was an issue processing your result.</p>
+            <Button onClick={handleReset} className="mt-4">Try Again</Button>
+          </div>
+        );
+        
+      default:
+        return <ReadyState onStart={handleStart} />;
     }
   };
-
+  
   return (
     <Card>
       <CardContent className="p-6">
-        {renderChallengeContent()}
-        
-        <div className="mt-6 flex justify-between">
-          <Button 
-            variant="outline" 
-            onClick={onReturn}
-          >
-            Return to Arcade
-          </Button>
-          
-          {activeState === 'active' && (
-            <Button 
-              variant="destructive"
-              onClick={() => handleFailure("Challenge abandoned")}
-            >
-              Abandon Challenge
-            </Button>
-          )}
-        </div>
+        {renderContent()}
       </CardContent>
     </Card>
   );

@@ -1,42 +1,51 @@
 
 import { Challenge } from "@/types/arcade";
-import ChallengeTimer from "../ChallengeTimer";
-import CameraChallenge from "../CameraChallenge";
+import { ChallengeTimer } from "../ChallengeTimer";
+import { CameraChallenge } from "../CameraChallenge";
 import { Button } from "@/components/ui/button";
+import { useChallengeState } from "@/hooks/useChallengeState";
 
 interface ActiveStateProps {
   challenge: Challenge;
-  timeLeft: number;
-  onTimeUpdate: (time: number) => void;
   onComplete: (success: boolean, data: Record<string, any>, points: number) => void;
-  onTimeUp: () => void;
   onReturn: () => void;
 }
 
 export function ActiveState({ 
   challenge,
-  timeLeft,
-  onTimeUpdate,
   onComplete,
-  onTimeUp,
   onReturn
 }: ActiveStateProps) {
+  const { failChallenge } = useChallengeState();
+
+  const handleTimeUp = () => {
+    onComplete(false, {}, 0);
+  };
+  
+  const handleChallengeComplete = (captures: string[]) => {
+    // Calculate success based on required items and captured images
+    const requiredItemsCount = challenge.validation_rules.required_items.length;
+    const capturedCount = captures.length;
+    
+    // Simple success calculation - can be enhanced with more complex logic
+    const isSuccess = capturedCount >= Math.max(1, requiredItemsCount);
+    const earnedPoints = isSuccess ? challenge.points : 0;
+    
+    onComplete(isSuccess, { captures }, earnedPoints);
+  };
+
   return (
     <div className="space-y-4">
       <ChallengeTimer 
-        initialTime={challenge.time_limit} 
-        onTimeUpdate={onTimeUpdate}
-        onTimeUp={onTimeUp}
+        duration={challenge.time_limit} 
+        onTimeUp={handleTimeUp}
       />
       
       {challenge.type === "camera" ? (
         <CameraChallenge 
-          challenge={{
-            id: challenge.id,
-            validation_rules: challenge.validation_rules,
-            points: challenge.points
-          }} 
-          onComplete={onComplete}
+          requiredItems={challenge.validation_rules.required_items}
+          onComplete={handleChallengeComplete}
+          minCaptures={Math.max(1, challenge.validation_rules.required_items.length)}
         />
       ) : (
         <div className="text-center py-12">
@@ -48,6 +57,18 @@ export function ActiveState({
           </Button>
         </div>
       )}
+      
+      <div className="flex justify-end">
+        <Button 
+          variant="destructive" 
+          onClick={() => {
+            failChallenge();
+            onComplete(false, { reason: "abandoned" }, 0);
+          }}
+        >
+          Abandon Challenge
+        </Button>
+      </div>
     </div>
   );
 }

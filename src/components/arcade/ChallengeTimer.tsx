@@ -13,7 +13,10 @@ interface ChallengeTimerProps {
 }
 
 export function ChallengeTimer({ duration, onTimeUp }: ChallengeTimerProps) {
-  const { timeRemaining, isRunning, totalDuration, percentRemaining } = useChallengeTimer(duration);
+  const { timeRemaining, isRunning, totalDuration, percentRemaining } = useChallengeTimer(
+    duration,
+    { onTimeUp }
+  );
   const { state } = useChallengeState();
   const [hasWarnedLowTime, setHasWarnedLowTime] = useState(false);
   
@@ -47,13 +50,6 @@ export function ChallengeTimer({ duration, onTimeUp }: ChallengeTimerProps) {
       setHasWarnedLowTime(false);
     }
   }, [percentRemaining]);
-  
-  // Handle time up
-  useEffect(() => {
-    if (timeRemaining <= 0 && state === 'active') {
-      onTimeUp?.();
-    }
-  }, [timeRemaining, onTimeUp, state]);
   
   // Get appropriate color based on time remaining
   const getColorClass = () => {
