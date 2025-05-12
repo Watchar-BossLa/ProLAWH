@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,6 +17,7 @@ interface Skill {
 export function StakeableSkillsList() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeSkillDialog, setActiveSkillDialog] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSkills = async () => {
@@ -37,6 +37,14 @@ export function StakeableSkillsList() {
 
     fetchSkills();
   }, []);
+
+  const handleOpenDialog = (skillId: string) => {
+    setActiveSkillDialog(skillId);
+  };
+
+  const handleCloseDialog = () => {
+    setActiveSkillDialog(null);
+  };
 
   if (isLoading) {
     return (
@@ -87,7 +95,21 @@ export function StakeableSkillsList() {
             )}
           </CardContent>
           <CardFooter>
-            <SkillStakeDialog skillId={skill.id} skillName={skill.name} />
+            <button 
+              onClick={() => handleOpenDialog(skill.id)}
+              className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+            >
+              Stake on {skill.name}
+            </button>
+            
+            {activeSkillDialog === skill.id && (
+              <SkillStakeDialog
+                isOpen={true}
+                onClose={handleCloseDialog}
+                skillId={skill.id}
+                skillName={skill.name}
+              />
+            )}
           </CardFooter>
         </Card>
       ))}
