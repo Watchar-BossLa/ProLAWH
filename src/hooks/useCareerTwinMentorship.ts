@@ -1,207 +1,157 @@
 
-import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { toast } from '@/hooks/use-toast';
-import { MockData, MentorRecommendation } from '@/types/mocks';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
+import { useCareerTwin, CareerRecommendation } from "@/hooks/useCareerTwin";
 
-interface MentorDetails {
+interface MentorRecommendation {
   id: string;
-  expertise: string[];
-  fullName: string;
-  avatarUrl?: string;
-  yearsOfExperience?: number;
-  bio?: string;
-  availability?: string;
-  isAcceptingMentees?: boolean;
+  mentorId: string;
+  mentorName: string;
+  mentorExpertise: string[];
+  matchReason: string;
+  relevanceScore: number;
+  recommendationId?: string;
+}
+
+interface MentorProfile {
+  id: string;
+  full_name?: string;
+  avatar_url?: string;
+}
+
+// Type guard to check if an object is a valid MentorProfile
+function isMentorProfile(obj: any): obj is MentorProfile {
+  return obj && typeof obj === 'object' && 'id' in obj;
 }
 
 export function useCareerTwinMentorship() {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  // Query to get mentor recommendations from AI Career Twin
-  const { data: mentorRecommendations, isLoading } = useQuery({
-    queryKey: ['mentor-recommendations'],
+  const queryClient = useQueryClient();
+  const { trackActivity, recommendations } = useCareerTwin();
+  
+  // Get mentor recommendations from career twin
+  const { data: mentorRecommendations, isLoading, error } = useQuery({
+    queryKey: ["mentor-recommendations"],
     queryFn: async () => {
       if (!user) return [];
-      // This would normally fetch from a career-twin edge function
-      // Here we'll return mock data
-      return [
-        {
-          id: '1',
-          mentorId: 'mentor-1',
-          mentorName: 'Environmental Specialist',
-          mentorExpertise: ['Sustainability', 'Green Energy'],
-          matchReason: 'Based on your career goals in sustainability',
-          relevanceScore: 0.95,
-          recommendationId: 'rec-123',
-          reason: 'Matches your sustainability interests',
-          score: 0.95,
-        },
-        {
-          id: '2',
-          mentorId: 'mentor-2',
-          mentorName: 'Clean Tech Engineer',
-          mentorExpertise: ['Green Technologies', 'Renewable Energy'],
-          matchReason: 'Matches your interest in green technologies',
-          relevanceScore: 0.87,
-          recommendationId: 'rec-456',
-          reason: 'Aligns with your technical background',
-          score: 0.87,
+      
+      // First get the mentor-type recommendations
+      const mentorTypeRecommendations = recommendations?.filter(
+        rec => rec.type === 'mentor_suggest'
+      ) || [];
+      
+      // For each mentor recommendation, try to find matching mentors
+      const mentorMatches: MentorRecommendation[] = [];
+      
+      for (const rec of mentorTypeRecommendations) {
+        if (!rec.skills || rec.skills.length === 0) continue;
+        
+        // Find mentors that match the skills in the recommendation
+        const { data: mentors, error } = await supabase
+          .from("mentors")
+          .select(`
+            id,
+            expertise,
+            profiles:id (full_name, avatar_url)
+          `)
+          .filter("is_accepting_mentees", "eq", true)
+          .filter("expertise", "cs", `{${rec.skills.join(',')}}`);
+          
+        if (error || !mentors) continue;
+        
+        // Add matching mentors to the list with relevance scoring
+        for (const mentor of mentors) {
+          // Calculate match score based on overlapping skills
+          const mentorSkills = mentor.expertise || [];
+          const overlapCount = mentorSkills.filter(skill => 
+            rec.skills?.includes(skill)
+          ).length;
+          
+          const relevanceScore = overlapCount / Math.max(1, mentorSkills.length);
+          
+          // Safely handle the profile data
+          const profileData = mentor.profiles;
+          let fullName = "Unnamed Mentor";
+          
+          // Fix: Make sure profileData is not null and is an object
+          if (profileData && typeof profileData === 'object') {
+            // TypeScript now knows profileData is an object
+            const profile = profileData as Record<string, unknown>;
+            // Now check if full_name exists and is a string
+            if ('full_name' in profile && typeof profile.full_name === 'string') {
+              fullName = profile.full_name || "Unnamed Mentor";
+            }
+          }
+          
+          mentorMatches.push({
+            id: `${rec.id}-${mentor.id}`,
+            mentorId: mentor.id,
+            mentorName: fullName,
+            mentorExpertise: mentor.expertise || [],
+            matchReason: rec.recommendation,
+            relevanceScore: relevanceScore,
+            recommendationId: rec.id
+          });
         }
-      ] as MentorRecommendation[];
+      }
+      
+      // Sort by relevance score
+      return mentorMatches.sort((a, b) => b.relevanceScore - a.relevanceScore);
     },
-    enabled: !!user
+    enabled: !!user && !!recommendations
   });
 
-  // Get a list of mentors recommended by Career Twin
-  const getRecommendedMentors = async (limit: number = 5) => {
-    if (!user) {
-      setError(new Error('You must be logged in to view recommended mentors'));
-      return [];
-    }
-
-    setLoading(true);
-    setError(null);
-    try {
-      // In a real app, this would fetch from the career twin API
-      // For now, we'll just fetch from the mentors table
-      const { data, error } = await supabase
-        .from('mentors')
-        .select(`
-          id, 
-          expertise,
-          profiles:id(full_name, avatar_url), 
-          years_of_experience,
-          bio, 
-          availability,
-          is_accepting_mentees
-        `)
-        .limit(limit);
-
-      if (error) throw error;
-
-      if (data && Array.isArray(data)) {
-        // Transform the mock data to match our expected interface
-        return data.map((item: MockData) => ({
-          id: item.id,
-          expertise: item.expertise || [],
-          profiles: item.profiles || { full_name: 'Unknown Mentor', avatar_url: '' },
-          years_of_experience: item.years_of_experience || 0,
-          bio: item.bio || '',
-          availability: item.availability || '',
-          is_accepting_mentees: item.is_accepting_mentees !== false
-        }));
-      }
-      
-      return [];
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Error fetching recommended mentors'));
-      console.error('Error fetching recommended mentors:', err);
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Get details for a specific mentor
-  const getMentorDetails = async (mentorId: string): Promise<MentorDetails | null> => {
-    if (!user) {
-      setError(new Error('You must be logged in to view mentor details'));
-      return null;
-    }
-
-    setLoading(true);
-    setError(null);
-    try {
-      const { data, error } = await supabase
-        .from('mentors')
-        .select(`
-          id, 
-          expertise,
-          profiles:id(full_name, avatar_url),
-          years_of_experience, 
-          bio, 
-          availability,
-          is_accepting_mentees
-        `)
-        .eq('id', mentorId)
-        .single();
-        
-      if (error) throw error;
-      
-      if (data) {
-        // Transform the mock data
-        const item = data as MockData;
-        const profile = item.profiles || { full_name: 'Unknown Mentor', avatar_url: '' };
-        
-        return {
-          id: item.id,
-          expertise: item.expertise || [],
-          fullName: profile.full_name || 'Unknown Mentor',
-          avatarUrl: profile.avatar_url,
-          yearsOfExperience: item.years_of_experience,
-          bio: item.bio || '',
-          availability: item.availability || '',
-          isAcceptingMentees: item.is_accepting_mentees !== false
-        };
-      }
-      
-      return null;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Error fetching mentor details'));
-      console.error('Error fetching mentor details:', err);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Request mentorship based on Career Twin recommendation
+  // Request mentorship from a recommended mentor
   const requestMentorship = useMutation({
-    mutationFn: async ({
-      mentorId,
-      message,
-      focusAreas,
+    mutationFn: async ({ 
+      mentorId, 
+      message, 
+      focusAreas, 
       industry,
-      recommendationId
-    }: {
-      mentorId: string;
+      recommendationId 
+    }: { 
+      mentorId: string; 
       message: string;
       focusAreas: string[];
       industry: string;
-      recommendationId: string;
+      recommendationId?: string;
     }) => {
-      if (!user) {
-        throw new Error('You must be logged in to request mentorship');
-      }
+      if (!user) throw new Error("You must be logged in to request mentorship");
       
-      // Create a mentorship request
-      const { error } = await supabase
-        .from('mentorship_requests')
+      const { data, error } = await supabase
+        .from("mentorship_requests")
         .insert({
           requester_id: user.id,
           mentor_id: mentorId,
           message,
           focus_areas: focusAreas,
           industry,
-          status: 'pending',
-          // Link this request to the Career Twin recommendation
-          metadata: { career_twin_recommendation_id: recommendationId }
-        });
+          status: "pending"
+        })
+        .select()
+        .single();
       
       if (error) throw error;
-
-      return true;
+      
+      // Track this activity
+      trackActivity("request_mentorship", {
+        mentor_id: mentorId,
+        recommendation_id: recommendationId,
+        request_id: data.id
+      });
+      
+      return data;
     },
     onSuccess: () => {
       toast({
         title: "Request Sent",
-        description: "Your mentorship request has been sent. You'll receive a notification when they respond.",
+        description: "Your mentorship request has been sent.",
       });
+      
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ["mentor-recommendations"] });
     },
     onError: (error: Error) => {
       toast({
@@ -213,12 +163,9 @@ export function useCareerTwinMentorship() {
   });
 
   return {
-    loading,
-    error,
     mentorRecommendations,
     isLoading,
-    getRecommendedMentors,
-    getMentorDetails,
+    error,
     requestMentorship
   };
 }

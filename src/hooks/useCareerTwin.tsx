@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { MockData } from '@/types/mocks';
 
 export interface CareerRecommendation {
   id: string;
@@ -33,28 +32,14 @@ export function useCareerTwin() {
     queryFn: async () => {
       if (!user) return [];
       
-      // Update to correctly use the mock Supabase client
       const { data, error } = await supabase
         .from("career_recommendations")
-        .select("*");
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
-      
-      // Ensure we transform the mock data to match our expected types
-      if (data && Array.isArray(data)) {
-        return data.map((item: MockData) => ({
-          id: item.id,
-          user_id: item.user_id || user.id,
-          type: (item.type || 'skill_gap') as 'skill_gap' | 'job_match' | 'mentor_suggest',
-          recommendation: item.recommendation || 'Career recommendation',
-          relevance_score: item.relevance_score || 0,
-          status: (item.status || 'pending') as 'pending' | 'accepted' | 'rejected' | 'implemented',
-          created_at: item.created_at || new Date().toISOString(),
-          skills: item.skills ? (Array.isArray(item.skills) ? item.skills : []) : []
-        })) as CareerRecommendation[];
-      }
-      
-      return [] as CareerRecommendation[];
+      return data as CareerRecommendation[];
     },
     enabled: !!user
   });
@@ -64,15 +49,19 @@ export function useCareerTwin() {
     mutationFn: async () => {
       if (!user) throw new Error("You must be logged in to generate recommendations");
       
-      const response = await supabase.functions.invoke('career-twin', {
-        body: { requestType: 'generate' }
+      const response = await fetch("/api/career-twin", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        }
       });
       
-      if (response.error) {
-        throw new Error(response.error.message || "Failed to generate recommendation");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to generate recommendation");
       }
       
-      return response.data;
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["career-recommendations"] });
@@ -95,11 +84,11 @@ export function useCareerTwin() {
     mutationFn: async ({ id, status }: { id: string; status: CareerRecommendation["status"] }) => {
       if (!user) throw new Error("You must be logged in to update recommendations");
       
-      // Update to correctly use the mock Supabase client
       const { error } = await supabase
         .from("career_recommendations")
         .update({ status })
-        .eq("id", id);
+        .eq("id", id)
+        .eq("user_id", user.id);
       
       if (error) throw error;
     },
@@ -129,7 +118,6 @@ export function useCareerTwin() {
     }) => {
       if (!user) throw new Error("You must be logged in to create implementation plans");
       
-      // Update to correctly use the mock Supabase client
       const { error } = await supabase
         .from("user_implementation_plans")
         .insert({

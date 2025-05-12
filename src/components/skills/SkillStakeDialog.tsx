@@ -18,22 +18,13 @@ import { SkillStake } from "@/types/staking";
 import { useAuth } from "@/hooks/useAuth";
 
 interface SkillStakeDialogProps {
-  open?: boolean;
-  onClose?: () => void;
-  onCreateStake?: (data: any) => Promise<void>;
-  skillId?: string;
-  skillName?: string;
+  skillId: string;
+  skillName: string;
 }
 
-export function SkillStakeDialog({ 
-  open, 
-  onClose, 
-  onCreateStake,
-  skillId,
-  skillName 
-}: SkillStakeDialogProps) {
-  const [isOpen, setIsOpen] = useState(open || false);
+export function SkillStakeDialog({ skillId, skillName }: SkillStakeDialogProps) {
   const [isStaking, setIsStaking] = useState(false);
+  const [open, setOpen] = useState(false);
   const { address, isConnected, connect } = usePolygonWallet();
   const { user } = useAuth();
   const {
@@ -43,39 +34,71 @@ export function SkillStakeDialog({
     isLoading: isLoadingContracts
   } = useStakingContracts();
 
-  const handleClose = () => {
-    if (onClose) {
-      onClose();
-    } else {
-      setIsOpen(false);
-    }
-  };
-
   const handleStake = async (amount: string): Promise<void> => {
+    const amountNum = parseFloat(amount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      toast({
+        title: "Invalid amount",
+        description: "Please enter a valid positive number",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to stake",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsStaking(true);
     try {
-      if (onCreateStake) {
-        await onCreateStake({ amount: parseFloat(amount), skillId, skillName });
-      } else if (skillId) {
-        setIsStaking(true);
-        const address = await connect();
-        // Ignore the returned address, we only care that it succeeded
-        
-        const contract = stakingContracts.find(c => c.id === selectedContract);
-        if (!contract) throw new Error("No contract selected");
-        
-        const result = await polygonClient.createStake(
-          contract.contract_address,
-          skillId,
-          parseFloat(amount)
-        );
-        
-        toast({
-          title: "Stake created",
-          description: `Successfully staked ${amount} USDC on ${skillName || "skill"}`,
-        });
-        
-        handleClose();
-      }
+      const contract = stakingContracts.find(c => c.id === selectedContract);
+      if (!contract) throw new Error("Selected contract not found");
+
+      const txResult = await polygonClient.createStake(
+        contract.contract_address,
+        skillId,
+        amountNum
+      );
+      
+      const stakeData: SkillStake = {
+        skill_id: skillId,
+        amount_usdc: amountNum,
+        user_id: user.id,
+        polygon_tx_hash: txResult.transactionHash,
+        polygon_contract_address: contract.contract_address,
+        stake_token_amount: Math.floor(amountNum * 1000000),
+        status: 'active'
+      };
+
+      const { error } = await supabase
+        .from("skill_stakes")
+        .insert(stakeData);
+
+      if (error) throw error;
+
+      toast({
+        title: "Stake created",
+        description: (
+          <div>
+            Successfully staked {amount} USDC on {skillName}
+            <br />
+            <a 
+              href={polygonClient.getTransactionUrl(txResult.transactionHash)} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              View transaction
+            </a>
+          </div>
+        ),
+      });
+      setOpen(false);
     } catch (error: any) {
       toast({
         title: "Staking Error",
@@ -87,40 +110,21 @@ export function SkillStakeDialog({
     }
   };
 
-  // If being used as a standalone component
-  if (!open && onClose === undefined) {
-    return (
-      <>
-        <Button onClick={() => setIsOpen(true)} className="w-full">Stake on Skill</Button>
-        
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Stake on {skillName || "Skill"}</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <StakeForm
-                stakingContracts={stakingContracts}
-                selectedContract={selectedContract}
-                onContractChange={setSelectedContract}
-                onSubmit={handleStake}
-                isLoading={isStaking || isLoadingContracts}
-                isWalletConnected={isConnected}
-                onConnectWallet={connect}
-              />
-            </div>
-          </DialogContent>
-        </Dialog>
-      </>
-    );
-  }
+  // Wrapper function to handle the connect wallet functionality
+  const handleConnectWallet = async (): Promise<void> => {
+    // Call the connect function but ignore its return value
+    await connect();
+    // This function returns void as required by the StakeForm props
+  };
 
-  // If being controlled by parent
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">Stake on Skill</Button>
+      </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Create Stake</DialogTitle>
+          <DialogTitle>Stake on {skillName}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <StakeForm
@@ -130,7 +134,7 @@ export function SkillStakeDialog({
             onSubmit={handleStake}
             isLoading={isStaking || isLoadingContracts}
             isWalletConnected={isConnected}
-            onConnectWallet={connect}
+            onConnectWallet={handleConnectWallet}
           />
         </div>
       </DialogContent>

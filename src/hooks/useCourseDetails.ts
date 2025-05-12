@@ -1,34 +1,12 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/useAuth";
 import { CourseInstructor, CourseModule, CoursePrerequisite, CourseReview, CourseContent, EnrollmentStatus, ContentType } from "@/types/learning";
-import { MockData } from "@/types/mocks";
 
-// Define minimal types for the database entities we're dealing with
-interface Course {
-  id: string;
-  title: string;
-  description?: string;
-  difficulty_level: string;
-  estimated_duration?: string;
-  created_by?: string;
-  [key: string]: any;
-}
-
-// Ensure this type matches CourseContent from @/types/learning
-interface CourseContentData {
-  id: string;
-  course_id: string;
-  title: string;
-  content_type: ContentType;
-  content: string;
-  order: number;
-  module_id?: string;
-  description?: string;
-  created_at?: string;
-  updated_at?: string;
-}
+type Course = Database["public"]["Tables"]["courses"]["Row"];
+type CourseContentFromDB = Database["public"]["Tables"]["course_contents"]["Row"];
 
 export function useCourseDetails(courseId: string) {
   const { user } = useAuth();
@@ -38,17 +16,12 @@ export function useCourseDetails(courseId: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("courses")
-        .select("*");
+        .select("*")
+        .eq("id", courseId)
+        .single();
       
       if (error) throw error;
-      // Return the first course or create a mock one
-      return (data && data.length > 0 ? data[0] : {
-        id: courseId,
-        title: "Mock Course",
-        description: "Mock Description",
-        difficulty_level: "intermediate",
-        estimated_duration: "2 hours"
-      }) as Course;
+      return data as Course;
     },
     enabled: !!courseId,
   });
@@ -58,50 +31,18 @@ export function useCourseDetails(courseId: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("course_contents")
-        .select("*");
+        .select("*")
+        .eq("course_id", courseId)
+        .order("order", { ascending: true });
       
       if (error) throw error;
       
-      // Fix: Ensure mock data is correctly typed as CourseContentData[]
-      const mockContents: CourseContentData[] = data && data.length > 0 ? data.map((item: any) => ({
-        id: item.id,
-        course_id: item.course_id,
-        title: item.title,
-        content_type: item.content_type as ContentType,
-        content: item.content,
-        order: item.order,
-        module_id: item.module_id || "default",
-        description: item.description || null,
-        created_at: item.created_at || new Date().toISOString(),
-        updated_at: item.updated_at || new Date().toISOString()
-      })) : [
-        {
-          id: "content-1",
-          course_id: courseId,
-          title: "Introduction",
-          content_type: "video" as ContentType,
-          content: "https://example.com/video.mp4",
-          order: 1,
-          module_id: "module-1",
-          description: "Introduction to the course",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: "content-2",
-          course_id: courseId,
-          title: "Lesson 1",
-          content_type: "text" as ContentType,
-          content: "This is lesson 1 content",
-          order: 2,
-          module_id: "module-1",
-          description: "First lesson content",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
-      
-      return mockContents as CourseContent[];
+      // Transform data to ensure it has all required properties
+      return data.map((content: CourseContentFromDB & { module_id?: string }) => ({
+        ...content,
+        content_type: content.content_type as ContentType,
+        module_id: content.module_id || "default" // Ensure module_id exists with a default value
+      })) as CourseContent[];
     },
     enabled: !!courseId,
   });
@@ -114,20 +55,19 @@ export function useCourseDetails(courseId: string) {
       
       const { data, error } = await supabase
         .from("profiles")
-        .select("*");
+        .select("*")
+        .eq("id", course.created_by)
+        .single();
       
       if (error) return null;
       
-      // Mock instructor data
-      const mockInstructor = {
-        id: "mock-instructor-id",
-        name: "Dr. Jane Smith",
+      return {
+        id: data.id,
+        name: data.full_name || "Anonymous",
         title: "Course Instructor",
-        bio: "Expert in sustainable development and green technologies",
-        avatar_url: "/placeholder.svg"
-      };
-      
-      return mockInstructor as CourseInstructor;
+        bio: data.bio || "No bio available",
+        avatar_url: data.avatar_url || "/placeholder.svg"
+      } as CourseInstructor;
     },
     enabled: !!course?.created_by,
   });
@@ -138,25 +78,37 @@ export function useCourseDetails(courseId: string) {
     queryFn: async () => {
       if (!user?.id) return { is_enrolled: false, progress_percentage: 0, completed_content_ids: [] };
 
-      // Mock enrollment data
-      const mockEnrollmentStatus = {
-        is_enrolled: true,
-        progress_percentage: 35,
-        last_content_id: "content-1",
-        completed_content_ids: ["content-1"]
-      };
+      const { data: enrollmentData, error: enrollmentError } = await supabase
+        .from("user_enrollments")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("course_id", courseId)
+        .single();
 
-      // Mock progress data
-      const mockProgressData = {
-        overall_progress: 35,
-        completed_content_ids: ["content-1"],
-      };
+      if (enrollmentError || !enrollmentData) {
+        return { is_enrolled: false, progress_percentage: 0, completed_content_ids: [] };
+      }
+
+      const { data: progressData, error: progressError } = await supabase
+        .from("course_progress")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("course_id", courseId)
+        .single();
+
+      if (progressError || !progressData) {
+        return { 
+          is_enrolled: true, 
+          progress_percentage: enrollmentData.progress_percentage || 0,
+          completed_content_ids: []
+        };
+      }
 
       return {
         is_enrolled: true,
-        progress_percentage: mockProgressData.overall_progress,
-        last_content_id: mockProgressData.completed_content_ids[mockProgressData.completed_content_ids.length - 1],
-        completed_content_ids: mockProgressData.completed_content_ids
+        progress_percentage: progressData.overall_progress,
+        last_content_id: progressData.completed_content_ids[progressData.completed_content_ids.length - 1],
+        completed_content_ids: progressData.completed_content_ids
       } as EnrollmentStatus;
     },
     enabled: !!courseId && !!user?.id,

@@ -13,10 +13,5 @@ export interface SkillStake {
   polygon_tx_hash?: string;
   polygon_contract_address?: string;
   stake_token_amount?: number;
-  status?: "active" | "completed" | "withdrawn" | "cancelled";
-  poolId?: string;
-  skill_name?: string;
-  skill_category?: string;
-  started_at?: string;
-  ends_at?: string | null;
+  status?: "active" | "completed" | "withdrawn";
 }

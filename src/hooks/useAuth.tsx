@@ -1,168 +1,78 @@
 
-import { useState, useEffect, createContext, useContext } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, createContext, useContext } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { User } from '@supabase/supabase-js';
 
-// Define AuthUser type
-interface AuthUser {
-  id: string;
-  email?: string;
-  user_metadata?: {
-    [key: string]: any;
-  };
-}
-
-// Define AuthContextType
 interface AuthContextType {
-  user: AuthUser | null;
-  isAuthenticated: boolean;
+  user: User | null;
   isLoading: boolean;
   error: Error | null;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, metadata?: any) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
-// Create context with a default value
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  isLoading: true,
+  error: null,
+  signOut: async () => {}
+});
 
-// Auth Provider component
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const navigate = useNavigate();
 
-  // Check for existing session on mount
   useEffect(() => {
-    const getCurrentUser = async () => {
-      setIsLoading(true);
-      
+    // Check active session on mount
+    const getInitialSession = async () => {
       try {
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
           throw error;
         }
-        
-        if (data?.session?.user) {
-          setUser({
-            id: data.session.user.id,
-            email: data.session.user.email,
-            user_metadata: data.session.user.user_metadata
-          });
-        }
+
+        setUser(data.session?.user || null);
       } catch (err) {
-        setError(err instanceof Error ? err : new Error('Unknown authentication error'));
-        console.error('Auth error:', err);
+        setError(err instanceof Error ? err : new Error('Unknown error'));
+        console.error("Error getting auth session:", err);
       } finally {
         setIsLoading(false);
       }
     };
-    
-    getCurrentUser();
-    
+
+    getInitialSession();
+
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        if (session) {
-          setUser({
-            id: session.user.id,
-            email: session.user.email,
-            user_metadata: session.user.user_metadata
-          });
-        } else {
-          setUser(null);
-        }
+        setUser(session?.user || null);
+        setIsLoading(false);
       }
     );
-    
-    // Clean up subscription on unmount
+
+    // Cleanup function
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
-  const signIn = async (email: string, password: string) => {
-    setError(null);
-    
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ 
-        email, 
-        password 
-      });
-      
-      if (error) throw error;
-      
-      if (data?.user) {
-        setUser({
-          id: data.user.id,
-          email: data.user.email,
-          user_metadata: data.user.user_metadata
-        });
-        // Fixed: Removed extra argument from navigate call
-        navigate('/dashboard');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to sign in'));
-      console.error('Sign in error:', err);
-    }
-  };
-
-  const signUp = async (email: string, password: string, metadata?: any) => {
-    setError(null);
-    
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: metadata || {}
-        }
-      });
-      
-      if (error) throw error;
-      
-      // In a real app, we might need to handle email verification here
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to sign up'));
-      console.error('Sign up error:', err);
-    }
-  };
-
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
-      setUser(null);
-      // Fixed: Removed extra argument from navigate call
-      navigate('/');
     } catch (err) {
-      console.error('Sign out error:', err);
+      setError(err instanceof Error ? err : new Error('Error during sign out'));
+      console.error("Error during sign out:", err);
     }
   };
 
-  const value = {
-    user,
-    isAuthenticated: !!user,
-    isLoading,
-    error,
-    signIn,
-    signUp,
-    signOut
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, isLoading, error, signOut }}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-// Custom hook to use auth context
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  return useContext(AuthContext);
 };

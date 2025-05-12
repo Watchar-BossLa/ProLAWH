@@ -14,16 +14,59 @@ import { Coins, Link } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { SkillStake } from "@/types/staking";
 
-interface SkillStakesListProps {
-  isLoading?: boolean;
-  stakes: SkillStake[];
+interface SkillStake {
+  id: string;
+  skill_name: string;
+  skill_category: string;
+  amount_usdc: number;
+  status: "active" | "completed" | "withdrawn";
+  started_at: string;
+  polygon_tx_hash?: string;
+  polygon_contract_address?: string;
 }
 
-export function SkillStakesList({ isLoading = false, stakes = [] }: SkillStakesListProps) {
-  // Remove the useState and useEffect since stakes are now passed as props
-  
+export function SkillStakesList() {
+  const [stakes, setStakes] = useState<SkillStake[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStakes = async () => {
+      const { data, error } = await supabase
+        .from("active_stakes")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching stakes:", error);
+        return;
+      }
+
+      setStakes(data);
+      setIsLoading(false);
+    };
+
+    fetchStakes();
+
+    // Subscribe to changes
+    const channel = supabase
+      .channel("table-db-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "skill_stakes",
+        },
+        () => fetchStakes()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const getTransactionUrl = (txHash: string, contractAddress: string) => {
     // For now, default to Mumbai testnet
     return `https://mumbai.polygonscan.com/tx/${txHash}`;
@@ -93,12 +136,12 @@ export function SkillStakesList({ isLoading = false, stakes = [] }: SkillStakesL
               <TableCell>{stake.amount_usdc}</TableCell>
               <TableCell>
                 <Badge variant={stake.status === 'active' ? 'default' : 
-                              stake.status === 'completed' ? 'secondary' : 'destructive'}>
+                               stake.status === 'completed' ? 'secondary' : 'destructive'}>
                   {stake.status}
                 </Badge>
               </TableCell>
               <TableCell>
-                {stake.started_at && formatDistanceToNow(new Date(stake.started_at), {
+                {formatDistanceToNow(new Date(stake.started_at), {
                   addSuffix: true,
                 })}
               </TableCell>

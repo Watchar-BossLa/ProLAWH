@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,8 +13,6 @@ import { GoalsField } from "./form/fields/GoalsField";
 import { MentorshipFormActions } from "./form/MentorshipFormActions";
 import { formSchema, type FormData } from "./form/schema";
 import { useMentorship } from "@/hooks/useMentorship";
-import { v4 as uuidv4 } from 'uuid';
-import { MentorshipRequest } from "@/types/mocks";
 
 interface MentorshipRequestFormProps {
   isOpen: boolean;
@@ -57,10 +54,7 @@ export function MentorshipRequestForm({
     setSubmitError(null);
     
     try {
-      // Ensure focusAreas is a string before attempting to split
-      const focusAreas = typeof values.focusAreas === 'string' 
-        ? values.focusAreas.split(',').map(area => area.trim())
-        : Array.isArray(values.focusAreas) ? values.focusAreas : [];
+      const focusAreas = values.focusAreas.split(',').map(area => area.trim());
       
       // If we have a recommendation ID, use the Career Twin request method
       if (mentor.recommendationId) {
@@ -72,24 +66,14 @@ export function MentorshipRequestForm({
           recommendationId: mentor.recommendationId
         });
       } else {
-        // Otherwise use the standard mentorship request with proper typing
-        const request: MentorshipRequest = {
-          id: uuidv4(),
-          mentorId: mentor.id,
-          requesterId: "currentUser", // This will be replaced with actual user ID in a real implementation
-          message: values.message,
-          status: "pending",
-          focusAreas: focusAreas,
-          industry: values.industry,
-          expectedDuration: values.expectedDuration,
-          goals: typeof values.goals === 'string' 
-            ? values.goals.split('\n').map(goal => goal.trim())
-            : Array.isArray(values.goals) ? values.goals : [],
-          createdAt: new Date().toISOString(),
-          // For backward compatibility
+        // Otherwise use the standard mentorship request
+        const request = {
           mentor_id: mentor.id,
-          requester_id: "currentUser",
-          focus_areas: focusAreas
+          message: values.message,
+          focus_areas: focusAreas,
+          industry: values.industry,
+          expected_duration: values.expectedDuration,
+          goals: values.goals ? values.goals.split('\n').map(goal => goal.trim()) : undefined,
         };
         
         await sendMentorshipRequest(request);

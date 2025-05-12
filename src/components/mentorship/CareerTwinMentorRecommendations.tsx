@@ -19,7 +19,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MentorshipRequestForm } from "@/components/mentorship/MentorshipRequestForm";
 import { Brain, UserPlus, Loader2, AlertCircle } from "lucide-react";
-import { MentorRecommendation } from "@/types/mocks";
+
+// Define the type for mentor recommendation
+interface MentorRecommendationData {
+  id: string;
+  mentorId: string;
+  mentorName: string;
+  mentorExpertise: string[];
+  matchReason: string;
+  relevanceScore: number;
+  recommendationId?: string;
+}
 
 // Define the type for selected mentor
 interface SelectedMentor {
@@ -95,7 +105,6 @@ export function CareerTwinMentorRecommendations() {
     );
   }
   
-  // Now mentorRecommendations is already properly typed from useCareerTwinMentorship
   return (
     <>
       <Card className="mb-6">
@@ -110,7 +119,7 @@ export function CareerTwinMentorRecommendations() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {mentorRecommendations.slice(0, 3).map((rec) => (
+            {mentorRecommendations?.slice(0, 3).map((rec) => (
               <div key={rec.id} className="border rounded-lg p-4 hover:bg-muted/30 transition-colors">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-medium">{rec.mentorName}</h3>
@@ -124,12 +133,12 @@ export function CareerTwinMentorRecommendations() {
                 </p>
                 
                 <div className="flex flex-wrap gap-1 mb-3">
-                  {rec.mentorExpertise && rec.mentorExpertise.slice(0, 3).map((skill, i) => (
+                  {rec.mentorExpertise.slice(0, 3).map((skill, i) => (
                     <Badge key={i} variant="secondary" className="text-xs">
                       {skill}
                     </Badge>
                   ))}
-                  {rec.mentorExpertise && rec.mentorExpertise.length > 3 && (
+                  {rec.mentorExpertise.length > 3 && (
                     <Badge variant="outline" className="text-xs">
                       +{rec.mentorExpertise.length - 3} more
                     </Badge>

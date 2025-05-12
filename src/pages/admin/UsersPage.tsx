@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { MockData } from "@/types/mocks";
 import { 
   Table,
   TableBody,
@@ -38,11 +37,11 @@ export default function UsersPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {users?.map((user: MockData) => (
+          {users?.map((user) => (
             <TableRow key={user.id}>
-              <TableCell>{user.full_name || "Unknown"}</TableCell>
-              <TableCell>{user.location || "Unknown"}</TableCell>
-              <TableCell>{user.created_at ? new Date(user.created_at).toLocaleDateString() : "Unknown"}</TableCell>
+              <TableCell>{user.full_name}</TableCell>
+              <TableCell>{user.location}</TableCell>
+              <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
             </TableRow>
           ))}
         </TableBody>

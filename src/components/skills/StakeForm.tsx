@@ -19,7 +19,7 @@ interface StakeFormProps {
   onSubmit: (amount: string) => Promise<void>;
   isLoading: boolean;
   isWalletConnected: boolean;
-  onConnectWallet: () => Promise<string | void>;
+  onConnectWallet: () => Promise<void>; // Updated to return Promise<void>
 }
 
 export function StakeForm({
@@ -38,15 +38,10 @@ export function StakeForm({
     onSubmit(amount);
   };
 
-  const handleConnect = async () => {
-    await onConnectWallet();
-    // Ignore the return value
-  };
-
   if (!isWalletConnected) {
     return (
       <div className="mb-4">
-        <Button onClick={handleConnect} className="w-full">
+        <Button onClick={onConnectWallet} className="w-full">
           Connect Polygon Wallet
         </Button>
       </div>

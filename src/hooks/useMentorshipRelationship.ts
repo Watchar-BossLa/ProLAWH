@@ -8,38 +8,36 @@ export function useMentorshipRelationship() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const getMentorshipRelationships = async () => {
+  const getMentorshipRelationships = async (status?: string) => {
     if (!user) {
       setError(new Error('You must be logged in to view mentorships'));
-      return [];
+      return null;
     }
 
     setLoading(true);
     setError(null);
     try {
-      // Return mock data with proper type annotations
-      return [
-        {
-          id: "mock-rel-1",
-          mentor_id: "mock-mentor-1",
-          mentee_id: user.id,
-          status: "active",
-          focus_areas: ["Web Development", "Career Growth"],
-          goals: "Learn React, Get promoted",
-          meeting_frequency: "weekly",
-          mentor: {
-            id: "mock-mentor-1",
-            profiles: {
-              full_name: "Jane Mentor",
-              avatar_url: "/assets/mentor1.jpg"
-            }
-          }
-        }
-      ];
+      let query = supabase
+        .from('mentorship_relationships')
+        .select(`
+          *,
+          mentor:mentor_id(id, profiles:id(full_name, avatar_url)),
+          mentee:mentee_id(id, profiles:id(full_name, avatar_url))
+        `)
+        .or(`mentor_id.eq.${user.id},mentee_id.eq.${user.id}`);
+
+      if (status) {
+        query = query.eq('status', status);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      return data;
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Error fetching mentorships'));
       console.error('Error fetching mentorship relationships:', err);
-      return [];
+      return null;
     } finally {
       setLoading(false);
     }

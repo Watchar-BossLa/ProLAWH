@@ -1,184 +1,100 @@
 
-import { useEffect } from "react";
-import {
-  Routes,
-  Route,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
-import { AuthProvider, useAuth } from "@/hooks/useAuth";
-import { useActivityTracker } from "@/hooks/useActivityTracker";
-import CareerTwinPage from "@/pages/dashboard/CareerTwinPage";
-import SkillStakingPage from "@/pages/dashboard/SkillStakingPage";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "@/components/theme/theme-provider";
+import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
+import AuthPage from "./pages/auth/AuthPage";
+import ProfilePage from "./pages/profile/ProfilePage";
+import { DashboardLayout } from "./components/dashboard/DashboardLayout";
+import { DashboardHome } from "./components/dashboard/DashboardHome";
+import DashboardPlaceholder from "./pages/dashboard/DashboardPlaceholder";
+import CareerTwinPage from "./pages/dashboard/CareerTwinPage";
+import ArcadePage from "./pages/dashboard/ArcadePage";
+import ChallengePage from "./pages/dashboard/ChallengePage";
+import SkillStakingPage from "./pages/dashboard/SkillStakingPage";
+import GreenSkillsPage from "./pages/dashboard/GreenSkillsPage";
+import StudyBeePage from "./pages/dashboard/StudyBeePage";
+import OpportunityMarketplace from "./pages/dashboard/OpportunityMarketplace";
+import NetworkDashboard from "./pages/dashboard/NetworkDashboard";
+import NetworkConnectionProfile from "./pages/dashboard/NetworkConnectionProfile";
+import { AuthProvider } from "./hooks/useAuth";
+import LearningDashboard from "./pages/dashboard/LearningDashboard";
+import CourseDetailsPage from "./pages/dashboard/CourseDetailsPage";
+import SkillsAndBadgesPage from "./pages/dashboard/SkillsAndBadgesPage";
+import { AdminLayout } from "@/components/admin/AdminLayout";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import UsersPage from "./pages/admin/UsersPage";
+import AnalyticsPage from "./pages/admin/AnalyticsPage";
+import PaymentsPage from "./pages/admin/PaymentsPage";
+import SettingsPage from "./pages/admin/SettingsPage";
+import MentorshipDashboard from "./pages/dashboard/MentorshipDashboard";
+import MentorshipDetailPage from "./pages/dashboard/MentorshipDetailPage";
+import { QuorumForgeProvider } from "./hooks/useQuorumForge";
+import QuorumForgeDashboard from "./pages/dashboard/QuorumForgeDashboard";
+import VeriSkillNetworkPage from "./pages/dashboard/VeriSkillNetworkPage";
 
-// Create minimal navigation components since the originals are missing
-const SiteHeader = () => <header className="bg-background border-b py-4"><div className="container mx-auto">ProLawh Header</div></header>;
-const SiteFooter = () => <footer className="bg-background border-t py-4 mt-auto"><div className="container mx-auto">ProLawh Footer</div></footer>;
-const SiteLayout = ({ children }: { children: React.ReactNode }) => <div className="min-h-screen flex flex-col">{children}</div>;
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
-// Create minimal page components since the originals are missing
-const AuthPage = () => <div className="container mx-auto py-8">Auth Page</div>;
-const HomePage = () => <div className="container mx-auto py-8">Home Page</div>;
-const DashboardPage = () => <div className="container mx-auto py-8">Dashboard Page</div>;
-const ProfilePage = () => <div className="container mx-auto py-8">Profile Page</div>;
-const NetworkPage = () => <div className="container mx-auto py-8">Network Page</div>;
-const LearningPage = () => <div className="container mx-auto py-8">Learning Page</div>;
-const ChallengesPage = () => <div className="container mx-auto py-8">Challenges Page</div>;
-const NotFoundPage = () => <div className="container mx-auto py-8">Not Found</div>;
-const TermsOfServicePage = () => <div className="container mx-auto py-8">Terms of Service</div>;
-const PrivacyPolicyPage = () => <div className="container mx-auto py-8">Privacy Policy</div>;
+const App = () => (
+  <ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <QuorumForgeProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<AuthPage />} />
+                
+                <Route path="/dashboard" element={<DashboardLayout />}>
+                  <Route index element={<DashboardHome />} />
+                  <Route path="learning" element={<LearningDashboard />} />
+                  <Route path="learning/course/:courseId" element={<CourseDetailsPage />} />
+                  <Route path="skills" element={<SkillsAndBadgesPage />} />
+                  <Route path="mentorship" element={<MentorshipDashboard />} />
+                  <Route path="mentorship/:mentorshipId" element={<MentorshipDetailPage />} />
+                  <Route path="opportunities" element={<OpportunityMarketplace />} />
+                  <Route path="arcade" element={<ArcadePage />} />
+                  <Route path="arcade/challenge/:challengeId" element={<ChallengePage />} />
+                  <Route path="career-twin" element={<CareerTwinPage />} />
+                  <Route path="green-skills" element={<GreenSkillsPage />} />
+                  <Route path="staking" element={<SkillStakingPage />} />
+                  <Route path="study-bee" element={<StudyBeePage />} />
+                  <Route path="network" element={<NetworkDashboard />} />
+                  <Route path="network/:connectionId" element={<NetworkConnectionProfile />} />
+                  <Route path="quorumforge" element={<QuorumForgeDashboard />} />
+                  <Route path="veriskill" element={<VeriSkillNetworkPage />} />
+                </Route>
+                
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="users" element={<UsersPage />} />
+                  <Route path="analytics" element={<AnalyticsPage />} />
+                  <Route path="payments" element={<PaymentsPage />} />
+                  <Route path="settings" element={<SettingsPage />} />
+                </Route>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </QuorumForgeProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
+)
 
-function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  );
-}
-
-function AppContent() {
-  return (
-    <>
-      <ScrollToTop />
-      <SiteHeader />
-      <PageContent />
-      <SiteFooter />
-    </>
-  );
-}
-
-function PageContent() {
-  const { user } = useAuth();
-  const { trackActivity } = useActivityTracker();
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // Track page view when component mounts
-    if (trackActivity) {
-      trackActivity("page_view", { path: location.pathname });
-    }
-  }, [trackActivity, location.pathname]);
-
-  // Redirect to profile page if user is new
-  useEffect(() => {
-    if (user?.user_metadata?.new_user) {
-      navigate("/dashboard/profile");
-    }
-  }, [user, navigate]);
-
-  return (
-    <div className="bg-background">
-      <SiteLayout>
-        <CareerTwinListener />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/terms" element={<TermsOfServicePage />} />
-          <Route path="/privacy" element={<PrivacyPolicyPage />} />
-
-          {/* Dashboard Routes - Requires Authentication */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/profile"
-            element={
-              <ProtectedRoute>
-                <ProfilePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/network"
-            element={
-              <ProtectedRoute>
-                <NetworkPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/learning"
-            element={
-              <ProtectedRoute>
-                <LearningPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/challenges"
-            element={
-              <ProtectedRoute>
-                <ChallengesPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/career-twin"
-            element={
-              <ProtectedRoute>
-                <CareerTwinPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/skill-staking"
-            element={
-              <ProtectedRoute>
-                <SkillStakingPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </SiteLayout>
-    </div>
-  );
-}
-
-// Scroll to top on route change
-function ScrollToTop() {
-  const { pathname } = useLocation();
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-
-  return null;
-}
-
-// Create minimal CareerTwinListener component since the original is missing
-const CareerTwinListener = () => null;
-
-// Protected Route Component
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!isLoading && !user) {
-      // Redirect to the /auth page without passing state
-      navigate("/auth");
-    }
-  }, [user, isLoading, navigate, location]);
-
-  if (isLoading) {
-    return <div></div>;
-  }
-
-  // Use pageTransitions from a simple object since the original might be missing
-  const pageTransitions = { initial: "opacity-100 transition-opacity duration-300" };
-  
-  return user ? (
-    <div className={`fade-in ${pageTransitions.initial}`}>{children}</div>
-  ) : null;
-}
-
-export default App;
+export default App

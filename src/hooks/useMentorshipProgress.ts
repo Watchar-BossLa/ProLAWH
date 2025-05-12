@@ -30,15 +30,13 @@ export function useMentorshipProgress() {
         notes,
       };
 
-      const response = await supabase
+      const { data, error } = await supabase
         .from('mentorship_progress')
         .insert(progressItem)
-        .select();
-        
-      // Check if response has data and single method
-      const data = response.data?.[0] || null;
-      
-      if (response.error) throw response.error;
+        .select()
+        .single();
+
+      if (error) throw error;
       
       toast({
         title: 'Progress Updated',
@@ -71,16 +69,14 @@ export function useMentorshipProgress() {
     setLoading(true);
     setError(null);
     try {
-      const response = await supabase
+      const { data, error } = await supabase
         .from('mentorship_progress')
         .update({ completed })
         .eq('id', progressId)
-        .select();
-        
-      // Check if response has data and single method
-      const data = response.data?.[0] || null;
-      
-      if (response.error) throw response.error;
+        .select()
+        .single();
+
+      if (error) throw error;
       
       toast({
         title: 'Progress Updated',

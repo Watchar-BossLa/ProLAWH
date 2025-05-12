@@ -14,26 +14,19 @@ export function useChallengeState(challengeId: string, userId: string) {
 
   const startChallenge = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: attemptData, error } = await supabase
         .from('challenge_attempts')
         .insert({
           challenge_id: challengeId,
           user_id: userId,
           status: 'started',
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
-      // Safely access the ID if data exists
-      if (data && Array.isArray(data) && data[0]) {
-        setAttemptId(data[0].id || 'temp-id');
-      } else if (data && typeof data === 'object') {
-        // Handle case where data might be a single object
-        setAttemptId((data as any).id || 'temp-id');
-      } else {
-        setAttemptId('temp-id'); // Fallback
-      }
-      
+      setAttemptId(attemptData.id);
       setStatus('active');
     } catch (error: any) {
       toast({
@@ -61,7 +54,8 @@ export function useChallengeState(challengeId: string, userId: string) {
           submission_data: submissionData,
           points_earned: pointsEarned,
           time_taken: timeTaken,
-        });
+        })
+        .eq('id', attemptId);
 
       if (error) throw error;
 

@@ -1,121 +1,111 @@
 
-import { useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { useMutation } from '@tanstack/react-query';
-import { toast } from '@/hooks/use-toast';
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
+import { useBlockchainCredentials } from "@/hooks/useBlockchainCredentials";
+import { useGreenSkills } from "@/hooks/useGreenSkills";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-export type VerificationMethod = "challenge" | "credential" | "endorsement";
+export type VerificationMethod = 'challenge' | 'credential' | 'endorsement';
+
+interface VerificationData {
+  skillId: string;
+  method: VerificationMethod;
+  evidence?: File | string;
+  notes?: string;
+}
 
 export function useSkillVerification() {
   const { user } = useAuth();
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<Error | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
-
-  const uploadVerificationEvidence = async (
-    file: File,
-    skillId: string,
-    method: VerificationMethod
-  ): Promise<string | null> => {
-    if (!user) {
-      setUploadError(new Error('You must be logged in to upload verification evidence'));
-      return null;
-    }
-
-    if (!file) {
-      setUploadError(new Error('No file selected'));
-      return null;
-    }
-
-    setIsUploading(true);
-    setUploadError(null);
-    setUploadProgress(0);
-
-    try {
-      // Simulate file upload since our mock doesn't have storage
-      // In a real implementation we would use:
-      // const { data, error } = await supabase.storage
-      //   .from('skill-verifications')
-      //   .upload(`${user.id}/${skillId}/${uuidv4()}`, file)
-
-      // Mock progress updates
-      const mockUpload = async () => {
-        for (let i = 0; i <= 100; i += 20) {
-          setUploadProgress(i);
-          await new Promise(r => setTimeout(r, 300));
-        }
-      };
-      
-      await mockUpload();
-      
-      // Return a mock file URL
-      const mockFileUrl = `https://example.com/storage/skill-verifications/${user.id}/${skillId}/${uuidv4()}`;
-      return mockFileUrl;
-    } catch (err) {
-      setUploadError(err instanceof Error ? err : new Error('Error uploading file'));
-      console.error('Error uploading verification evidence:', err);
-      return null;
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  // Add the missing verifySkill mutation
+  const [isVerifying, setIsVerifying] = useState(false);
+  const queryClient = useQueryClient();
+  const { data: skills = [] } = useGreenSkills();
+  const { issueCredential } = useBlockchainCredentials(user?.id);
+  
   const verifySkill = useMutation({
-    mutationFn: async ({ 
-      skillId, 
-      method, 
-      evidence 
-    }: { 
-      skillId: string, 
-      method: VerificationMethod, 
-      evidence: File | string | null 
-    }) => {
-      if (!user) {
-        throw new Error('You must be logged in to verify skills');
+    mutationFn: async (data: VerificationData) => {
+      if (!user) throw new Error("You must be logged in to verify a skill");
+      setIsVerifying(true);
+      
+      try {
+        let evidenceUrl = "";
+        
+        // If evidence is a file, upload it
+        if (data.evidence instanceof File) {
+          const fileExt = data.evidence.name.split('.').pop();
+          const filePath = `${user.id}/verifications/${Date.now()}.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('skill-verifications')
+            .upload(filePath, data.evidence);
+            
+          if (uploadError) throw uploadError;
+          
+          const { data: fileData } = supabase.storage
+            .from('skill-verifications')
+            .getPublicUrl(filePath);
+            
+          evidenceUrl = fileData.publicUrl;
+        } else if (typeof data.evidence === 'string') {
+          evidenceUrl = data.evidence;
+        }
+        
+        // Create a verification record
+        const { data: verificationData, error: verificationError } = await supabase
+          .from('skill_verifications')
+          .insert({
+            user_skill_id: user.id, // This assumes user_skill_id matches the user ID
+            verification_type: data.method,
+            verification_source: data.method === 'credential' ? 'upload' : 
+                               data.method === 'endorsement' ? 'peer' : 'challenge',
+            verification_evidence: evidenceUrl,
+            verification_score: data.method === 'challenge' ? 100 : 80
+          })
+          .select()
+          .single();
+          
+        if (verificationError) throw verificationError;
+        
+        // Issue a blockchain credential
+        const skill = skills.find(s => s.id === data.skillId);
+        if (!skill) throw new Error("Skill not found");
+        
+        await issueCredential.mutateAsync({
+          skillId: data.skillId,
+          metadata: {
+            issuer: "ProLawh",
+            verification_method: data.method,
+            achievement_level: "Verified",
+            verification_proof: evidenceUrl || "Internal verification"
+          }
+        });
+        
+        return verificationData;
+      } finally {
+        setIsVerifying(false);
       }
-      
-      let evidenceUrl = null;
-      
-      if (evidence instanceof File) {
-        evidenceUrl = await uploadVerificationEvidence(evidence, skillId, method);
-      } else if (typeof evidence === 'string') {
-        evidenceUrl = evidence;
-      }
-      
-      // In a real implementation, we would save to the database
-      // For now, just return a mock result
-      return {
-        id: uuidv4(),
-        skillId,
-        method,
-        status: 'pending',
-        evidenceUrl
-      };
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['skill-verifications'] });
+      queryClient.invalidateQueries({ queryKey: ['blockchain-credentials'] });
+      
       toast({
-        title: "Verification submitted",
-        description: "Your skill verification has been submitted for review.",
+        title: "Skill verified successfully",
+        description: "Your green skill has been verified and added to your credentials",
       });
     },
     onError: (error) => {
       toast({
         title: "Verification failed",
-        description: error.message,
-        variant: "destructive",
+        description: error instanceof Error ? error.message : "Failed to verify skill",
+        variant: "destructive"
       });
     }
   });
 
   return {
-    uploadVerificationEvidence,
-    isUploading,
-    uploadError,
-    uploadProgress,
     verifySkill,
-    isVerifying: verifySkill.isPending
+    isVerifying
   };
 }

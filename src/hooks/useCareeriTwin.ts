@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
-import { MockData } from '@/types/mocks';
 
 export interface CareerRecommendation {
   id: string;
@@ -13,7 +12,6 @@ export interface CareerRecommendation {
   relevance_score: number;
   status: 'pending' | 'accepted' | 'rejected' | 'implemented';
   created_at: string;
-  skills?: string[];
 }
 
 export function useCareerTwin() {
@@ -31,34 +29,24 @@ export function useCareerTwin() {
     setLoading(true);
     setError(null);
     try {
-      // Updated to work with the mock client
-      const { data, error } = await supabase
+      let query = supabase
         .from('career_recommendations')
-        .select();
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (type) {
+        query = query.eq('type', type);
+      }
+
+      if (status) {
+        query = query.eq('status', status);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
-      
-      // Filter the results in memory and ensure they have required properties
-      let filteredData = data && Array.isArray(data) ? data.map((item: MockData) => ({
-        id: item.id,
-        user_id: item.user_id || user.id,
-        type: (item.type as 'skill_gap' | 'job_match' | 'mentor_suggest') || 'skill_gap',
-        recommendation: item.recommendation || '',
-        relevance_score: item.relevance_score || 0,
-        status: item.status || 'pending',
-        created_at: item.created_at || new Date().toISOString(),
-        skills: item.skills ? (Array.isArray(item.skills) ? item.skills : [typeof item.skills === 'object' ? item.skills.name : '']) : []
-      })) : [];
-      
-      // Apply additional filters if provided
-      if (type) {
-        filteredData = filteredData.filter(item => item.type === type);
-      }
-      if (status) {
-        filteredData = filteredData.filter(item => item.status === status);
-      }
-      
-      return filteredData;
+      return data;
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Error fetching recommendations'));
       console.error('Error fetching career recommendations:', err);
@@ -81,12 +69,13 @@ export function useCareerTwin() {
     setLoading(true);
     setError(null);
     try {
-      // Updated to work with the mock client
-      const response = await supabase
+      const { data, error } = await supabase
         .from('career_recommendations')
-        .update({ status });
-      
-      if (response.error) throw response.error;
+        .update({ status })
+        .eq('id', recommendationId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
       
       toast({
         title: 'Status Updated',
@@ -120,8 +109,7 @@ export function useCareerTwin() {
     setLoading(true);
     setError(null);
     try {
-      // Updated to work with the mock client
-      const response = await supabase
+      const { data, error } = await supabase
         .from('career_recommendations')
         .insert({
           user_id: userId,
@@ -129,10 +117,11 @@ export function useCareerTwin() {
           recommendation,
           relevance_score,
           status: 'pending'
-        });
-      
-      if (response.error) throw response.error;
-      return response.data;
+        })
+        .select();
+
+      if (error) throw error;
+      return data;
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Error adding recommendation'));
       console.error('Error adding career recommendation:', err);

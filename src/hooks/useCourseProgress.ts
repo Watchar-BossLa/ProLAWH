@@ -4,13 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 
-interface CourseProgress {
-  id: string;
-  completed_content_ids?: string[];
-  completed_at?: string | null;
-  overall_progress?: number;
-}
-
 export function useCourseProgress(courseId: string) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -24,39 +17,31 @@ export function useCourseProgress(courseId: string) {
       // Check if there's existing progress
       const { data: existingProgress, error: checkError } = await supabase
         .from("course_progress")
-        .select("*");
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("course_id", courseId)
+        .single();
 
       if (checkError && checkError.code !== "PGRST116") {
         throw checkError;
       }
-      
-      // Use mock data for our response since real API would return data
-      const mockExistingProgress = existingProgress && existingProgress.length > 0 
-        ? existingProgress[0] as CourseProgress
-        : null;
 
       // Get total content count for percentage calculation
-      const totalContentCount = 10; // Mock value for total contents
+      const { count: totalContentCount, error: countError } = await supabase
+        .from("course_contents")
+        .select("*", { count: "exact", head: true })
+        .eq("course_id", courseId);
+
+      if (countError) throw countError;
       
-      if (mockExistingProgress) {
-        // Safely access completed_content_ids with proper type checking
-        const completedContentIdsRaw = mockExistingProgress.completed_content_ids || [];
-        // Ensure it's an array
-        const mockCompletedIds = Array.isArray(completedContentIdsRaw) 
-          ? completedContentIdsRaw 
-          : [];
-        
+      if (existingProgress) {
         // Don't add if already completed
-        if (mockCompletedIds.includes(contentId)) {
-          return mockExistingProgress;
+        if (existingProgress.completed_content_ids.includes(contentId)) {
+          return existingProgress;
         }
         
-        const updatedContentIds = [...mockCompletedIds, contentId];
-        const overallProgress = Math.round((updatedContentIds.length / totalContentCount) * 100);
-        
-        // Safely access completed_at with proper type checking
-        const completedAt = mockExistingProgress.completed_at || null;
-        const newCompletedAt = overallProgress === 100 ? new Date().toISOString() : completedAt;
+        const updatedContentIds = [...existingProgress.completed_content_ids, contentId];
+        const overallProgress = Math.round((updatedContentIds.length / (totalContentCount || 1)) * 100);
         
         // Update existing progress
         const { data, error } = await supabase
@@ -65,21 +50,28 @@ export function useCourseProgress(courseId: string) {
             completed_content_ids: updatedContentIds,
             overall_progress: overallProgress,
             last_accessed_at: new Date().toISOString(),
-            completed_at: newCompletedAt,
-          });
+            completed_at: overallProgress === 100 ? new Date().toISOString() : existingProgress.completed_at,
+          })
+          .eq("id", existingProgress.id)
+          .select()
+          .single();
 
         if (error) throw error;
         
-        // Return mock response
-        return {
-          id: 'mock-id',
-          completed_content_ids: updatedContentIds,
-          overall_progress: overallProgress,
-          completed_at: newCompletedAt
-        };
+        // Also update enrollment progress
+        await supabase
+          .from("user_enrollments")
+          .update({
+            progress_percentage: overallProgress,
+            completed_at: overallProgress === 100 ? new Date().toISOString() : null,
+          })
+          .eq("user_id", user.id)
+          .eq("course_id", courseId);
+          
+        return data;
       } else {
-        // Create new progress entry with mock data
-        const overallProgress = Math.round((1 / totalContentCount) * 100);
+        // Create new progress entry
+        const overallProgress = Math.round((1 / (totalContentCount || 1)) * 100);
         
         const { data, error } = await supabase
           .from("course_progress")
@@ -88,16 +80,22 @@ export function useCourseProgress(courseId: string) {
             course_id: courseId,
             completed_content_ids: [contentId],
             overall_progress: overallProgress,
-          });
+          })
+          .select()
+          .single();
 
         if (error) throw error;
         
-        // Return mock response
-        return {
-          id: 'mock-id',
-          completed_content_ids: [contentId],
-          overall_progress: overallProgress
-        };
+        // Also update enrollment progress
+        await supabase
+          .from("user_enrollments")
+          .update({
+            progress_percentage: overallProgress,
+          })
+          .eq("user_id", user.id)
+          .eq("course_id", courseId);
+          
+        return data;
       }
     },
     onSuccess: () => {

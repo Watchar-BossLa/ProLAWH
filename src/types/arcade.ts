@@ -1,22 +1,6 @@
-
 export interface ChallengeValidationRules {
-  required_items?: string[];
+  required_items: string[];
   min_confidence?: number;
-  correct_answers?: Record<string, string | string[]>;
-  test_cases?: TestCase[];
-}
-
-export interface TestCase {
-  input: string;
-  expected_output: string;
-  description?: string;
-}
-
-export interface Question {
-  id: string;
-  text: string;
-  options?: string[];
-  type: "multiple-choice" | "text" | "code";
 }
 
 export interface Challenge {
@@ -29,7 +13,6 @@ export interface Challenge {
   time_limit: number;
   instructions: string;
   validation_rules: ChallengeValidationRules;
-  questions?: Question[];
 }
 
 export interface ChallengeResult {
