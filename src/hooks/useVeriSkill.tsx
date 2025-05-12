@@ -1,266 +1,379 @@
 
-import { useState, useEffect, createContext, useContext } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from '@/hooks/use-toast';
-import { VeriSkillPlatformConfig, SkillPassport, GigOpportunity } from '@/types/veriskill';
+import { createContext, useContext, useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { SkillStake } from "@/types/staking";
+import type { Challenge, ChallengeResult } from "@/types/arcade";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
 
 interface VeriSkillContextType {
-  isConnected: boolean;
-  isPending: boolean;
+  // Core functionality
+  isLoading: boolean;
   error: Error | null;
-  config: VeriSkillPlatformConfig | null;
-  userSkillPassport: SkillPassport | null;
-  availableGigs: GigOpportunity[];
-  connectWallet: (did?: string) => Promise<void>;
+  
+  // Skill verification
+  verifySkill: (skillId: string, evidenceUrl: string) => Promise<boolean>;
+  
+  // Skill staking
+  stakeSkill: (stake: Omit<SkillStake, "id">) => Promise<boolean>;
+  activeStakes: SkillStake[];
+  
+  // Arcade challenges
+  submitChallengeResult: (challengeId: string, result: Partial<ChallengeResult>) => Promise<boolean>;
+  userChallenges: {id: string, completedAt: Date | null}[];
+  
+  // Wallet functionality
+  connectWallet: () => Promise<boolean>;
   disconnectWallet: () => void;
-  refreshSkills: () => Promise<void>;
-  getLatestGigs: () => Promise<GigOpportunity[]>;
+  walletConnected: boolean;
+  walletAddress: string | null;
 }
 
 const VeriSkillContext = createContext<VeriSkillContextType>({
-  isConnected: false,
-  isPending: false,
+  isLoading: false,
   error: null,
-  config: null,
-  userSkillPassport: null,
-  availableGigs: [],
-  connectWallet: async () => {},
+  verifySkill: async () => false,
+  stakeSkill: async () => false,
+  activeStakes: [],
+  submitChallengeResult: async () => false,
+  userChallenges: [],
+  connectWallet: async () => false,
   disconnectWallet: () => {},
-  refreshSkills: async () => {},
-  getLatestGigs: async () => []
+  walletConnected: false,
+  walletAddress: null
 });
 
-export const VeriSkillProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
-  const [isConnected, setIsConnected] = useState(false);
-  const [isPending, setIsPending] = useState(false);
+export const VeriSkillProvider = ({ children }: { children: React.ReactNode }) => {
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [config, setConfig] = useState<VeriSkillPlatformConfig | null>(null);
-  const [userSkillPassport, setUserSkillPassport] = useState<SkillPassport | null>(null);
-  const [availableGigs, setAvailableGigs] = useState<GigOpportunity[]>([]);
-
-  // Initialize with mock data for demonstration
+  const [activeStakes, setActiveStakes] = useState<SkillStake[]>([]);
+  const [userChallenges, setUserChallenges] = useState<{id: string, completedAt: Date | null}[]>([]);
+  const [walletConnected, setWalletConnected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  
+  const { user } = useAuth();
+  
+  // Load user's active stakes
   useEffect(() => {
     if (user) {
-      // In a real integration, this would be loaded from the VeriSkill API
-      setConfig({
-        apiEndpoint: 'https://api.veriskill.network',
-        embedMode: true,
-        features: {
-          wallet: true,
-          marketplace: true,
-          credentials: true,
-          payments: true
-        }
-      });
-      
-      // Simulate loading delay
-      setIsPending(true);
-      setTimeout(() => {
-        setIsPending(false);
-      }, 1500);
-    } else {
-      // Reset state when user logs out
-      setIsConnected(false);
-      setUserSkillPassport(null);
-      setConfig(null);
+      fetchActiveStakes();
+      fetchUserChallenges();
     }
   }, [user]);
-
-  const connectWallet = async (did?: string) => {
+  
+  const fetchActiveStakes = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
     try {
-      setIsPending(true);
-      
-      // Simulate API call to connect wallet
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In a real implementation, this would communicate with the VeriSkill platform
-      setIsConnected(true);
-      
-      // Mock data for demo purposes
-      setUserSkillPassport({
-        did: did || `did:key:z${Math.random().toString(36).substring(2, 15)}`,
-        credentials: [],
-        skills: [
-          {
-            name: 'React',
-            level: 'advanced',
-            verificationStatus: 'verified',
-            credentialIds: []
-          },
-          {
-            name: 'TypeScript',
-            level: 'intermediate',
-            verificationStatus: 'pending',
-            credentialIds: []
-          }
-        ],
-        profile: {
-          name: user?.email?.split('@')[0] || 'VeriSkill User',
-        }
-      });
-      
-      toast({
-        title: 'Wallet Connected',
-        description: 'Your digital identity wallet is now connected to VeriSkill Network',
-      });
+      const { data, error } = await supabase
+        .from('active_stakes')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active');
+        
+      if (error) throw error;
+      setActiveStakes(data as SkillStake[]);
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to connect wallet'));
-      toast({
-        variant: 'destructive',
-        title: 'Connection Failed',
-        description: 'Could not connect to VeriSkill Network',
-      });
+      setError(err instanceof Error ? err : new Error('Error fetching stakes'));
+      console.error("Error fetching active stakes:", err);
     } finally {
-      setIsPending(false);
+      setIsLoading(false);
     }
   };
-
-  const disconnectWallet = () => {
-    setIsConnected(false);
-    setUserSkillPassport(null);
-    toast({
-      title: 'Wallet Disconnected',
-      description: 'Your wallet has been disconnected from VeriSkill Network',
-    });
-  };
-
-  const refreshSkills = async () => {
+  
+  const fetchUserChallenges = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
     try {
-      setIsPending(true);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // In a real implementation, this would fetch updated skills from the platform
-      if (userSkillPassport) {
-        setUserSkillPassport({
-          ...userSkillPassport,
-          skills: [
-            ...userSkillPassport.skills,
-            {
-              name: 'Python',
-              level: 'beginner',
-              verificationStatus: 'unverified',
-              credentialIds: []
-            }
-          ]
-        });
+      const { data, error } = await supabase
+        .from('challenge_attempts')
+        .select('challenge_id, completed_at')
+        .eq('user_id', user.id);
+        
+      if (error) throw error;
+      setUserChallenges(data.map(item => ({
+        id: item.challenge_id,
+        completedAt: item.completed_at ? new Date(item.completed_at) : null
+      })));
+    } catch (err) {
+      console.error("Error fetching user challenges:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const verifySkill = async (skillId: string, evidenceUrl: string) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to verify skills",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
+    setIsLoading(true);
+    try {
+      // First check if the user has this skill
+      const { data: userSkills, error: skillError } = await supabase
+        .from('user_skills')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('skill_id', skillId)
+        .single();
+        
+      if (skillError) {
+        // User doesn't have this skill yet, let's insert it
+        const { data: newSkill, error: insertError } = await supabase
+          .from('user_skills')
+          .insert({
+            user_id: user.id,
+            skill_id: skillId,
+            proficiency_level: 1,
+            is_verified: false
+          })
+          .select('id')
+          .single();
+          
+        if (insertError) throw insertError;
+        
+        // Add verification for the new skill
+        const { error: verificationError } = await supabase
+          .from('skill_verifications')
+          .insert({
+            user_skill_id: newSkill.id,
+            verification_type: 'evidence',
+            verification_source: 'user_submitted',
+            verification_evidence: evidenceUrl,
+            verification_score: 70 // Starting score
+          });
+          
+        if (verificationError) throw verificationError;
+      } else {
+        // User has this skill, add a new verification
+        const { error: verificationError } = await supabase
+          .from('skill_verifications')
+          .insert({
+            user_skill_id: userSkills.id,
+            verification_type: 'evidence',
+            verification_source: 'user_submitted',
+            verification_evidence: evidenceUrl,
+            verification_score: 70 // Starting score
+          });
+          
+        if (verificationError) throw verificationError;
       }
       
       toast({
-        title: 'Skills Refreshed',
-        description: 'Your skill passport has been updated',
+        title: "Verification submitted",
+        description: "Your skill verification is being processed",
       });
+      
+      return true;
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to refresh skills'));
+      setError(err instanceof Error ? err : new Error('Error verifying skill'));
+      console.error("Error verifying skill:", err);
+      
       toast({
-        variant: 'destructive',
-        title: 'Refresh Failed',
-        description: 'Could not update your skill passport',
+        title: "Verification failed",
+        description: "There was an error submitting your verification",
+        variant: "destructive"
       });
+      
+      return false;
     } finally {
-      setIsPending(false);
+      setIsLoading(false);
     }
   };
-
-  const getLatestGigs = async () => {
-    try {
-      setIsPending(true);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1200));
-      
-      // Mock gig data for demo purposes
-      const mockGigs: GigOpportunity[] = [
-        {
-          id: 'gig-1',
-          title: 'React Developer for E-commerce Platform',
-          description: 'We need a skilled React developer to help build our e-commerce platform',
-          requiredSkills: ['React', 'TypeScript', 'Redux'],
-          budget: {
-            amount: 2000,
-            currency: 'USDC'
-          },
-          duration: {
-            estimatedHours: 80,
-            deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-          },
-          client: {
-            id: 'client-1',
-            name: 'TechShop Inc.',
-            rating: 4.8
-          },
-          location: {
-            type: 'remote',
-            timezone: ['UTC-5', 'UTC-4']
-          },
-          status: 'open',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 'gig-2',
-          title: 'Python Backend Developer',
-          description: 'Looking for a Python developer to build APIs for our mobile app',
-          requiredSkills: ['Python', 'FastAPI', 'PostgreSQL'],
-          budget: {
-            amount: 1500,
-            currency: 'USDC'
-          },
-          duration: {
-            estimatedHours: 60
-          },
-          client: {
-            id: 'client-2',
-            name: 'MobileApps Ltd',
-            rating: 4.5
-          },
-          location: {
-            type: 'hybrid',
-            country: 'Kenya'
-          },
-          status: 'open',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ];
-      
-      setAvailableGigs(mockGigs);
-      return mockGigs;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to fetch gigs'));
+  
+  const stakeSkill = async (stake: Omit<SkillStake, "id">) => {
+    if (!user) {
       toast({
-        variant: 'destructive',
-        title: 'Fetch Failed',
-        description: 'Could not load latest opportunities',
+        title: "Authentication required",
+        description: "Please sign in to stake skills",
+        variant: "destructive"
       });
-      return [];
-    } finally {
-      setIsPending(false);
+      return false;
     }
+    
+    if (!walletConnected) {
+      toast({
+        title: "Wallet required",
+        description: "Please connect your wallet to stake skills",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
+    setIsLoading(true);
+    try {
+      // Mock polygon transaction hash for demonstration
+      const polygonTxHash = `0x${Array.from({length: 64}, () => 
+        Math.floor(Math.random() * 16).toString(16)).join('')}`;
+      
+      // Insert new stake
+      const { error } = await supabase
+        .from('skill_stakes')
+        .insert({
+          ...stake,
+          user_id: user.id,
+          polygon_tx_hash: polygonTxHash,
+          status: 'active',
+          started_at: new Date().toISOString()
+        });
+        
+      if (error) throw error;
+      
+      // Refresh active stakes
+      await fetchActiveStakes();
+      
+      toast({
+        title: "Skill staked successfully",
+        description: `You've staked ${stake.amount_usdc} USDC on this skill`,
+      });
+      
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Error staking skill'));
+      console.error("Error staking skill:", err);
+      
+      toast({
+        title: "Staking failed",
+        description: "There was an error staking your skill",
+        variant: "destructive"
+      });
+      
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const submitChallengeResult = async (challengeId: string, result: Partial<ChallengeResult>) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to submit challenge results",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
+    setIsLoading(true);
+    try {
+      // Record challenge attempt
+      const { error } = await supabase
+        .from('challenge_attempts')
+        .insert({
+          user_id: user.id,
+          challenge_id: challengeId,
+          status: result.success ? 'completed' : 'failed',
+          points_earned: result.points || 0,
+          submission_data: { message: result.message },
+          completed_at: result.success ? new Date().toISOString() : null
+        });
+        
+      if (error) throw error;
+      
+      // Refresh challenges
+      await fetchUserChallenges();
+      
+      if (result.success) {
+        toast({
+          title: "Challenge completed",
+          description: `You earned ${result.points} points!`,
+        });
+      } else {
+        toast({
+          title: "Challenge failed",
+          description: result.message || "Better luck next time",
+          variant: "destructive"
+        });
+      }
+      
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Error submitting result'));
+      console.error("Error submitting challenge result:", err);
+      
+      toast({
+        title: "Submission failed",
+        description: "There was an error recording your results",
+        variant: "destructive"
+      });
+      
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const connectWallet = async () => {
+    setIsLoading(true);
+    
+    try {
+      // Simulating wallet connection for demo
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const mockAddress = `0x${Array.from({length: 40}, () => 
+        Math.floor(Math.random() * 16).toString(16)).join('')}`;
+      
+      setWalletConnected(true);
+      setWalletAddress(mockAddress);
+      
+      toast({
+        title: "Wallet connected",
+        description: `Connected to ${mockAddress.substring(0, 6)}...${mockAddress.substring(38)}`,
+      });
+      
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Error connecting wallet'));
+      console.error("Error connecting wallet:", err);
+      
+      toast({
+        title: "Connection failed",
+        description: "Could not connect to wallet",
+        variant: "destructive"
+      });
+      
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const disconnectWallet = () => {
+    setWalletConnected(false);
+    setWalletAddress(null);
+    
+    toast({
+      title: "Wallet disconnected",
+      description: "Your wallet has been disconnected",
+    });
   };
 
   return (
-    <VeriSkillContext.Provider
-      value={{
-        isConnected,
-        isPending,
-        error,
-        config,
-        userSkillPassport,
-        availableGigs,
-        connectWallet,
-        disconnectWallet,
-        refreshSkills,
-        getLatestGigs
-      }}
-    >
+    <VeriSkillContext.Provider value={{
+      isLoading,
+      error,
+      verifySkill,
+      stakeSkill,
+      activeStakes,
+      submitChallengeResult,
+      userChallenges,
+      connectWallet,
+      disconnectWallet,
+      walletConnected,
+      walletAddress
+    }}>
       {children}
     </VeriSkillContext.Provider>
   );
 };
 
-export const useVeriSkill = () => useContext(VeriSkillContext);
-
-// Add this provider to App.tsx later if we want to use the context globally
+export const useVeriSkill = () => {
+  return useContext(VeriSkillContext);
+};
