@@ -16,6 +16,7 @@ interface ChallengeCompletionProps {
   score: number;
   timeTaken: number;
   mediaCaptures?: string[];
+  bonusPoints?: number;
   onReset: () => void;
 }
 
@@ -24,6 +25,7 @@ export function ChallengeCompletion({
   score, 
   timeTaken, 
   mediaCaptures = [],
+  bonusPoints = 0,
   onReset 
 }: ChallengeCompletionProps) {
   const { challenge, submitChallenge } = useChallenges();
@@ -126,6 +128,15 @@ export function ChallengeCompletion({
             {score}/{challenge?.points || 100} points
           </Badge>
         </div>
+        
+        {bonusPoints > 0 && (
+          <div className="flex justify-between items-center">
+            <span>Speed Bonus</span>
+            <Badge variant="outline" className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300">
+              +{bonusPoints} points
+            </Badge>
+          </div>
+        )}
         
         <div className="flex justify-between items-center">
           <span>Time taken</span>
