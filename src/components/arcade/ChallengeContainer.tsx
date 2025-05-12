@@ -6,8 +6,8 @@ import { ActiveState } from "./challenge-states/ActiveState";
 import { ReadyState } from "./challenge-states/ReadyState";
 import ChallengeTimer from "./ChallengeTimer";
 import { type Challenge, type ChallengeContainerProps, type ChallengeResult } from "@/types/arcade";
-import { CameraChallenge } from "./CameraChallenge";
-import { ChallengeCompletion } from "./ChallengeCompletion";
+import CameraChallenge from "./CameraChallenge";
+import ChallengeCompletion from "./ChallengeCompletion";
 
 export const ChallengeContainer = ({ challenge, userId, onReturn }: ChallengeContainerProps) => {
   const { submitChallengeResult } = useVeriSkill();
@@ -62,7 +62,6 @@ export const ChallengeContainer = ({ challenge, userId, onReturn }: ChallengeCon
       case 'ready':
         return (
           <ReadyState 
-            challenge={challenge} 
             onStart={handleStart} 
           />
         );
@@ -88,10 +87,9 @@ export const ChallengeContainer = ({ challenge, userId, onReturn }: ChallengeCon
       case 'failed':
         return (
           <ChallengeCompletion 
-            success={activeState === 'completed'}
-            message={result?.message || ''}
-            points={result?.points || 0}
+            result={result}
             onRetry={() => setActiveState('ready')}
+            onReturn={onReturn}
           />
         );
     }

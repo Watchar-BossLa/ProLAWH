@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { SkillStakeDialog } from "./SkillStakeDialog";
+import SkillStakeDialog from "./SkillStakeDialog"; // Fixed: Changed from named to default import
 
 interface Skill {
   id: string;

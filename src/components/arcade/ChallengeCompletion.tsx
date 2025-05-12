@@ -1,13 +1,10 @@
 
 import { Button } from "@/components/ui/button";
 import { Trophy, Award, Star, Flag } from "lucide-react";
+import type { ChallengeResult } from "@/types/arcade";
 
 interface ChallengeCompletionProps {
-  result: {
-    success: boolean;
-    points: number;
-    message: string;
-  } | null;
+  result: ChallengeResult | null;
   onRetry: () => void;
   onReturn: () => void;
 }

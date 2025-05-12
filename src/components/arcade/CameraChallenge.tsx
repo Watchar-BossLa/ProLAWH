@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
@@ -14,10 +15,12 @@ interface CameraChallengeProps {
     validation_rules: ChallengeValidationRules;
     points: number;
   };
-  onComplete: (success: boolean, data: Record<string, any>, points: number) => void;
+  onSuccess?: (message: string, points?: number) => void;
+  onFailure?: (message: string) => void;
+  onComplete?: (success: boolean, data: Record<string, any>, points: number) => void;
 }
 
-export default function CameraChallenge({ challenge, onComplete }: CameraChallengeProps) {
+export default function CameraChallenge({ challenge, onSuccess, onFailure, onComplete }: CameraChallengeProps) {
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
   const [detectedObjects, setDetectedObjects] = useState<Set<string>>(new Set());
   const [isProcessing, setIsProcessing] = useState(false);
@@ -59,10 +62,16 @@ export default function CameraChallenge({ challenge, onComplete }: CameraChallen
               variant: "default"
             });
             
-            onComplete(true, {
-              images: capturedImages,
-              detected_objects: Array.from(newDetectedObjects)
-            }, challenge.points);
+            if (onSuccess) {
+              onSuccess("All items detected successfully!", challenge.points);
+            }
+            
+            if (onComplete) {
+              onComplete(true, {
+                images: capturedImages,
+                detected_objects: Array.from(newDetectedObjects)
+              }, challenge.points);
+            }
           }
         } else {
           toast({
@@ -92,10 +101,16 @@ export default function CameraChallenge({ challenge, onComplete }: CameraChallen
   };
   
   const handleGiveUp = () => {
-    onComplete(false, {
-      images: capturedImages,
-      detected_objects: Array.from(detectedObjects)
-    }, 0);
+    if (onFailure) {
+      onFailure("Challenge abandoned");
+    }
+    
+    if (onComplete) {
+      onComplete(false, {
+        images: capturedImages,
+        detected_objects: Array.from(detectedObjects)
+      }, 0);
+    }
   };
   
   const detectionProgress = requiredItems.length > 0 
@@ -152,10 +167,16 @@ export default function CameraChallenge({ challenge, onComplete }: CameraChallen
                 setDetectedObjects(newDetectedObjects);
                 
                 if (newDetectedObjects.size === requiredItems.length) {
-                  onComplete(true, {
-                    images: capturedImages,
-                    detected_objects: Array.from(newDetectedObjects)
-                  }, challenge.points);
+                  if (onSuccess) {
+                    onSuccess("All items detected successfully!", challenge.points);
+                  }
+                  
+                  if (onComplete) {
+                    onComplete(true, {
+                      images: capturedImages,
+                      detected_objects: Array.from(newDetectedObjects)
+                    }, challenge.points);
+                  }
                 }
               }
             }}
@@ -170,10 +191,17 @@ export default function CameraChallenge({ challenge, onComplete }: CameraChallen
               // Complete the challenge
               const allItems = new Set(requiredItems);
               setDetectedObjects(allItems);
-              onComplete(true, {
-                images: capturedImages,
-                detected_objects: Array.from(allItems)
-              }, challenge.points);
+              
+              if (onSuccess) {
+                onSuccess("All items detected successfully!", challenge.points);
+              }
+              
+              if (onComplete) {
+                onComplete(true, {
+                  images: capturedImages,
+                  detected_objects: Array.from(allItems)
+                }, challenge.points);
+              }
             }}
           >
             Complete Challenge
