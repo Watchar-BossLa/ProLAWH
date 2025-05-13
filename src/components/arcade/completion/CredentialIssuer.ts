@@ -1,63 +1,53 @@
 
-import { toast } from "@/hooks/use-toast";
 import { useBlockchainCredentials } from "@/hooks/useBlockchainCredentials";
 
 interface UseCredentialIssuerProps {
-  challengeId: string;
+  challengeId?: string;
   challengeName?: string;
   score: number;
-  skillId?: string;
   totalPoints?: number;
+  skillId?: string;
 }
 
-export function useCredentialIssuer({
-  challengeId,
-  challengeName = "Unknown Challenge",
-  score,
-  skillId = "green-skill-default",
-  totalPoints = 100
-}: UseCredentialIssuerProps) {
+export function useCredentialIssuer(props: UseCredentialIssuerProps) {
+  const { challengeId, challengeName, score, totalPoints, skillId } = props;
   const { issueCredential } = useBlockchainCredentials();
   
-  // Determine achievement level based on score percentage
-  const getAchievementLevel = () => {
-    const scorePercentage = score / totalPoints;
-    if (scorePercentage > 0.9) return "Expert";
-    if (scorePercentage > 0.7) return "Proficient";
-    return "Beginner";
-  };
-  
   const issueCredentialForChallenge = async () => {
+    if (!challengeId || !challengeName || !totalPoints || !skillId) {
+      console.error("Missing required properties for credential issuance");
+      return false;
+    }
+    
     try {
-      await issueCredential.mutateAsync({
-        skillId: skillId,
-        metadata: {
-          issuer: "ProLawh Arcade",
-          verification_method: "challenge",
-          achievement_level: getAchievementLevel(),
-          verification_proof: `Challenge ${challengeName} completed with score ${score}/${totalPoints}`
-        }
-      });
+      // Calculate passing score threshold (70%)
+      const isPassingScore = score >= (totalPoints * 0.7);
       
-      toast({
-        title: "Credential Issued!",
-        description: "Your achievement has been recorded on the blockchain",
-      });
+      if (!isPassingScore) {
+        console.warn("Cannot issue credential for failing score");
+        return false;
+      }
+      
+      // Prepare credential data
+      const credentialData = {
+        id: challengeId,
+        name: challengeName,
+        score,
+        skillId,
+        achievedAt: new Date().toISOString()
+      };
+      
+      // Issue the actual credential
+      await issueCredential(credentialData);
       
       return true;
     } catch (error) {
-      toast({
-        title: "Failed to issue credential",
-        description: "There was an error issuing your credential",
-        variant: "destructive"
-      });
-      
+      console.error("Failed to issue credential:", error);
       return false;
     }
   };
   
   return {
-    issueCredentialForChallenge,
-    isLoading: issueCredential.isPending
+    issueCredentialForChallenge
   };
 }
