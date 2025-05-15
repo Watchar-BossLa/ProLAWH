@@ -1,5 +1,6 @@
 
 import { useBlockchainCredentials } from "@/hooks/useBlockchainCredentials";
+import { toast } from "@/hooks/use-toast";
 
 interface UseCredentialIssuerProps {
   challengeId?: string;
@@ -9,45 +10,80 @@ interface UseCredentialIssuerProps {
   skillId?: string;
 }
 
+interface CredentialData {
+  id: string;
+  name: string;
+  score: number;
+  skillId: string;
+  achievedAt: string;
+}
+
 export function useCredentialIssuer(props: UseCredentialIssuerProps) {
-  const { challengeId, challengeName, score, totalPoints, skillId } = props;
+  const { 
+    challengeId = "", 
+    challengeName = "Unknown Challenge", 
+    score, 
+    totalPoints = 100,
+    skillId = "green-skill-default"
+  } = props;
+  
   const { issueCredential } = useBlockchainCredentials();
   
-  const issueCredentialForChallenge = async () => {
-    if (!challengeId || !challengeName || !totalPoints || !skillId) {
-      console.error("Missing required properties for credential issuance");
-      return false;
-    }
-    
+  // Determine achievement level based on score percentage
+  const getAchievementLevel = () => {
+    const scorePercentage = score / (totalPoints || 100);
+    if (scorePercentage > 0.9) return "Expert";
+    if (scorePercentage > 0.7) return "Proficient";
+    return "Beginner";
+  };
+  
+  const issueCredentialForChallenge = async (): Promise<boolean> => {
     try {
       // Calculate passing score threshold (70%)
-      const isPassingScore = score >= (totalPoints * 0.7);
+      const isPassingScore = score >= ((totalPoints || 100) * 0.7);
       
       if (!isPassingScore) {
         console.warn("Cannot issue credential for failing score");
         return false;
       }
       
-      // Prepare credential data
+      // Create credential data
       const credentialData = {
-        id: challengeId,
-        name: challengeName,
-        score,
-        skillId,
-        achievedAt: new Date().toISOString()
+        skillId: skillId,
+        metadata: {
+          issuer: "ProLawh Arcade",
+          verification_method: "challenge",
+          achievement_level: getAchievementLevel(),
+          verification_proof: `Challenge ${challengeName} completed with score ${score}/${totalPoints}`,
+          id: challengeId,
+          achievedAt: new Date().toISOString()
+        }
       };
       
-      // Issue the actual credential
-      await issueCredential(credentialData);
+      // Issue the credential
+      await issueCredential.mutateAsync(credentialData);
+      
+      toast({
+        title: "Credential Issued!",
+        description: "Your achievement has been recorded on the blockchain",
+      });
       
       return true;
     } catch (error) {
       console.error("Failed to issue credential:", error);
+      
+      toast({
+        title: "Failed to issue credential",
+        description: "There was an error issuing your credential",
+        variant: "destructive"
+      });
+      
       return false;
     }
   };
   
   return {
-    issueCredentialForChallenge
+    issueCredentialForChallenge,
+    isLoading: issueCredential.isPending
   };
 }
