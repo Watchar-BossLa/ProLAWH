@@ -80,7 +80,7 @@ export function ActiveState({
         return (
           <div className="text-center py-12">
             <p className="text-lg text-muted-foreground">
-              {challenge.type.toUpperCase()} challenges are coming soon!
+              {challenge.type} challenges are coming soon!
             </p>
             <Button onClick={onReturn} className="mt-4">
               Return to Arcade

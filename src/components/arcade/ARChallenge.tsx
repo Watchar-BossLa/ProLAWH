@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
-import { Cube, AlertCircle } from "lucide-react";
+import { Cuboid, AlertCircle } from "lucide-react";
 
 interface ARChallengeProps {
   challenge: {
@@ -93,7 +93,7 @@ export default function ARChallenge({ challenge, onComplete }: ARChallengeProps)
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
             <div className="flex justify-center mb-4">
-              <Cube className="h-12 w-12 text-primary animate-pulse" />
+              <Cuboid className="h-12 w-12 text-primary animate-pulse" />
             </div>
             <p className="text-center">Checking AR capabilities...</p>
           </CardContent>
@@ -120,7 +120,7 @@ export default function ARChallenge({ challenge, onComplete }: ARChallengeProps)
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-center gap-4 mb-6">
-              <Cube className="h-8 w-8 text-primary" />
+              <Cuboid className="h-8 w-8 text-primary" />
               <h3 className="text-xl font-semibold">AR Challenge</h3>
             </div>
             <p className="text-center mb-6">
@@ -146,7 +146,7 @@ export default function ARChallenge({ challenge, onComplete }: ARChallengeProps)
   return (
     <div className="py-6 space-y-4">
       <Alert>
-        <Cube className="h-4 w-4" />
+        <Cuboid className="h-4 w-4" />
         <AlertTitle>AR Session Active</AlertTitle>
         <AlertDescription>
           Place the required objects in your environment. For this prototype, buttons below 
