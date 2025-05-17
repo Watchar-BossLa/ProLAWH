@@ -55,7 +55,7 @@ export default function ARSessionManager({
             toast({
               title: "AR Not Supported",
               description: "Your device doesn't support AR. Using simulation mode instead",
-              variant: "warning",
+              variant: "destructive",
             });
           }
         } catch (error) {
@@ -169,7 +169,7 @@ export default function ARSessionManager({
     return (
       <div className="space-y-4">
         {isARSupported === false && sessionError && (
-          <Alert variant="warning" className="mb-4">
+          <Alert variant="destructive" className="mb-4">
             <View className="h-4 w-4" />
             <AlertTitle>AR Not Supported</AlertTitle>
             <AlertDescription>
