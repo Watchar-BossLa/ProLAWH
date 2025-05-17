@@ -10,7 +10,7 @@ export interface ErrorBoundaryProps {
   title?: string;
   description?: string;
   icon?: ReactNode;
-  variant?: "default" | "destructive" | "outline";
+  variant?: "default" | "destructive" | "warning";
   className?: string;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }

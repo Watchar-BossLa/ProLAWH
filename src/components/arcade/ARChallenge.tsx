@@ -2,10 +2,11 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Cuboid, CircleArrowDown } from "lucide-react";
+import { Cuboid, AlertTriangle } from "lucide-react";
 import ARSessionManager from "./ar/ARSessionManager";
 import ARErrorBoundary from "./ar/ARErrorBoundary";
 import ARFallbackMode from "./ar/ARFallbackMode";
+import { useToast } from "@/hooks/use-toast";
 
 interface ARChallengeProps {
   challenge: {
@@ -18,6 +19,7 @@ interface ARChallengeProps {
 
 export default function ARChallenge({ challenge, onComplete }: ARChallengeProps) {
   const [placedObjects, setPlacedObjects] = useState<string[]>([]);
+  const { toast } = useToast();
   
   // Get required items from challenge validation rules
   const requiredItems = challenge.validation_rules.required_items || [];
@@ -28,31 +30,44 @@ export default function ARChallenge({ challenge, onComplete }: ARChallengeProps)
     }
   };
 
+  const handleError = (error: Error) => {
+    console.error("AR challenge error:", error);
+    toast({
+      title: "AR Experience Error",
+      description: "There was a problem with the AR experience. Switching to simulation mode.",
+      variant: "destructive",
+    });
+  };
+
   return (
-    <div className="py-6 space-y-4">
+    <div className="py-4 space-y-4">
       <Card>
         <CardContent className="pt-6">
-          <div className="flex items-center justify-center gap-4 mb-6">
+          <div className="flex items-center justify-center gap-4 mb-4">
             <Cuboid className="h-8 w-8 text-primary" />
             <h3 className="text-xl font-semibold">AR Challenge</h3>
           </div>
           
-          <Alert className="mb-6">
-            <CircleArrowDown className="h-4 w-4" />
-            <AlertTitle>AR Instructions</AlertTitle>
+          <Alert className="mb-4" variant="warning">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Device Requirements</AlertTitle>
             <AlertDescription>
-              Place all required objects in your environment to complete this AR challenge. 
-              You'll need to grant camera permissions to use AR features.
+              This challenge uses Augmented Reality features. For best experience, use a device with AR support.
+              If AR isn't available, a simulation mode will be provided.
             </AlertDescription>
           </Alert>
 
-          <ARErrorBoundary fallback={
-            <ARFallbackMode 
-              requiredItems={requiredItems} 
-              onComplete={onComplete}
-              points={challenge.points} 
-            />
-          }>
+          <ARErrorBoundary 
+            fallback={
+              <ARFallbackMode 
+                requiredItems={requiredItems} 
+                onComplete={onComplete}
+                points={challenge.points} 
+              />
+            }
+            onError={handleError}
+            variant="warning"
+          >
             <ARSessionManager 
               requiredItems={requiredItems}
               onObjectPlaced={handleObjectPlaced}

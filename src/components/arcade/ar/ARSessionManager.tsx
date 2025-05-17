@@ -3,9 +3,15 @@ import { useState, useEffect } from "react";
 import { XR } from "@react-three/xr";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Cuboid, View, Square } from "lucide-react";
+import { Cuboid, View, Square, AlertCircle } from "lucide-react";
 import ARScene from "./ARScene";
 import ARFallbackMode from "./ARFallbackMode";
+import { ARInstructions } from "./ARInstructions";
+import { ARStatusBar } from "./ARStatusBar";
+import { ARPermissionsRequest } from "./ARPermissionsRequest";
+import { ARObjectList } from "./ARObjectList";
+import { Card, CardContent } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 
 interface ARSessionManagerProps {
   requiredItems: string[];
@@ -27,6 +33,9 @@ export default function ARSessionManager({
   const [isInitializing, setIsInitializing] = useState(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [useFallbackMode, setUseFallbackMode] = useState(false);
+  const [isInstructionsExpanded, setIsInstructionsExpanded] = useState(true);
+  const [isRequestingPermission, setIsRequestingPermission] = useState(false);
+  const { toast } = useToast();
 
   // Check if AR is supported
   useEffect(() => {
@@ -36,6 +45,19 @@ export default function ARSessionManager({
           // @ts-ignore - XR API may not be fully typed
           const isSupported = await navigator.xr?.isSessionSupported("immersive-ar");
           setIsARSupported(isSupported);
+          
+          if (isSupported) {
+            toast({
+              title: "AR Support Detected",
+              description: "Your device supports AR experiences",
+            });
+          } else {
+            toast({
+              title: "AR Not Supported",
+              description: "Your device doesn't support AR. Using simulation mode instead",
+              variant: "warning",
+            });
+          }
         } catch (error) {
           console.error("Error checking AR support:", error);
           setIsARSupported(false);
@@ -48,11 +70,17 @@ export default function ARSessionManager({
     }
 
     checkARSupport();
-  }, []);
+  }, [toast]);
 
   const handleObjectPlacement = (objectType: string) => {
     // Add object to placed objects
     onObjectPlaced(objectType);
+    
+    // Provide user feedback
+    toast({
+      title: "Object Placed",
+      description: `${objectType} has been successfully placed!`,
+    });
     
     // Check if all required objects are placed
     const newPlacedObjects = [...placedObjects, objectType];
@@ -62,6 +90,12 @@ export default function ARSessionManager({
     
     if (allPlaced) {
       // Challenge completed successfully
+      toast({
+        title: "Challenge Complete!",
+        description: `Congratulations! You earned ${challengePoints} points.`,
+        variant: "default",
+      });
+      
       onComplete(true, { 
         placed_objects: newPlacedObjects,
         completion_time: new Date().toISOString(),
@@ -74,24 +108,51 @@ export default function ARSessionManager({
     if (!isARSupported) return;
     
     setIsInitializing(true);
+    setIsRequestingPermission(true);
+    
     try {
+      // Simulate permission request
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       setIsSessionActive(true);
       setIsInitializing(false);
+      setIsRequestingPermission(false);
+      
+      toast({
+        title: "AR Session Started",
+        description: "Look around and tap on objects to place them",
+      });
     } catch (error) {
       console.error("Error starting AR session:", error);
       setIsInitializing(false);
+      setIsRequestingPermission(false);
       setSessionError("Failed to start AR session");
+      
+      toast({
+        title: "AR Session Failed",
+        description: "Could not start AR session. Try using simulation mode.",
+        variant: "destructive",
+      });
     }
   };
 
   const exitARSession = () => {
     setIsSessionActive(false);
+    toast({
+      title: "AR Session Ended",
+      description: "You've exited AR mode",
+    });
   };
 
   const switchToFallbackMode = () => {
     setUseFallbackMode(true);
+    toast({
+      title: "Simulation Mode Activated",
+      description: "You're now using the simplified simulation mode",
+    });
   };
 
+  // Show loading state while checking AR support
   if (isARSupported === null) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -103,18 +164,34 @@ export default function ARSessionManager({
     );
   }
 
+  // Fallback mode for non-AR devices
   if (useFallbackMode || isARSupported === false) {
     return (
       <div className="space-y-4">
-        {isARSupported === false && (
-          <Alert variant="destructive" className="mb-4">
+        {isARSupported === false && sessionError && (
+          <Alert variant="warning" className="mb-4">
             <View className="h-4 w-4" />
             <AlertTitle>AR Not Supported</AlertTitle>
             <AlertDescription>
-              {sessionError || "Your device or browser doesn't support AR experiences."}
+              {sessionError}
             </AlertDescription>
           </Alert>
         )}
+        
+        <ARInstructions 
+          requiredItems={requiredItems} 
+          isExpanded={isInstructionsExpanded}
+          onToggleExpand={() => setIsInstructionsExpanded(!isInstructionsExpanded)}
+        />
+        
+        <ARStatusBar 
+          placedObjects={placedObjects} 
+          requiredItems={requiredItems} 
+          deviceInfo={{
+            isARSupported,
+            isSessionActive: false
+          }}
+        />
         
         <ARFallbackMode 
           requiredItems={requiredItems}
@@ -125,64 +202,102 @@ export default function ARSessionManager({
     );
   }
 
-  return (
-    <div className="py-4 space-y-4">
-      {!isSessionActive ? (
-        <div className="text-center">
-          <Button 
-            onClick={startARSession} 
-            disabled={isInitializing}
-            size="lg"
-            className="gap-2"
-          >
-            <Cuboid className="h-5 w-5" />
-            {isInitializing ? "Initializing AR..." : "Enter AR Mode"}
-          </Button>
-          <p className="text-sm text-muted-foreground mt-2">
-            You'll need to place {requiredItems.length} objects in your environment
-          </p>
-          <Button 
-            variant="link" 
-            onClick={switchToFallbackMode} 
-            className="mt-4 text-sm"
-          >
-            Unable to use AR? Try simulation mode
-          </Button>
-        </div>
-      ) : (
-        <div>
-          <XR>
-            <ARScene 
-              requiredItems={requiredItems}
-              onPlaceObject={handleObjectPlacement}
-              placedObjects={placedObjects}
-            />
-          </XR>
-          <div className="mt-4 flex justify-center">
-            <Button variant="outline" onClick={exitARSession} className="gap-2">
-              <Square className="h-4 w-4" />
-              Exit AR Mode
+  // Show permission request before starting AR
+  if (!isSessionActive) {
+    return (
+      <div className="space-y-4">
+        <ARInstructions 
+          requiredItems={requiredItems} 
+          isExpanded={isInstructionsExpanded}
+          onToggleExpand={() => setIsInstructionsExpanded(!isInstructionsExpanded)}
+        />
+        
+        <ARStatusBar 
+          placedObjects={placedObjects} 
+          requiredItems={requiredItems}
+          deviceInfo={{
+            isARSupported,
+            isSessionActive
+          }}
+        />
+        
+        {isRequestingPermission ? (
+          <ARPermissionsRequest
+            onRequestPermission={startARSession}
+            onCancel={switchToFallbackMode}
+            isRequesting={isInitializing}
+          />
+        ) : (
+          <div className="text-center py-4">
+            <Button 
+              onClick={() => setIsRequestingPermission(true)} 
+              size="lg"
+              className="gap-2"
+            >
+              <Cuboid className="h-5 w-5" />
+              Start AR Challenge
+            </Button>
+            <p className="text-sm text-muted-foreground mt-2">
+              You'll need to place {requiredItems.length} objects in your environment
+            </p>
+            <Button 
+              variant="link" 
+              onClick={switchToFallbackMode} 
+              className="mt-2 text-sm"
+            >
+              Unable to use AR? Try simulation mode
             </Button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
+    );
+  }
 
-      {/* Show placed objects list */}
-      {placedObjects.length > 0 && (
-        <div className="mt-4">
-          <h4 className="text-sm font-medium mb-2">Placed Objects:</h4>
-          <div className="flex flex-wrap gap-2">
-            {placedObjects.map((object) => (
-              <div 
-                key={object} 
-                className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-md text-sm"
-              >
-                {object} ✓
-              </div>
-            ))}
+  // Active AR session
+  return (
+    <div className="space-y-4">
+      <ARStatusBar 
+        placedObjects={placedObjects} 
+        requiredItems={requiredItems}
+        deviceInfo={{
+          isARSupported,
+          isSessionActive
+        }}
+      />
+      
+      <Card>
+        <CardContent className="p-0 overflow-hidden relative">
+          <div className="w-full h-[400px] relative">
+            <XR>
+              <ARScene 
+                requiredItems={requiredItems}
+                onPlaceObject={handleObjectPlacement}
+                placedObjects={placedObjects}
+              />
+            </XR>
           </div>
-        </div>
-      )}
+          
+          {/* AR Session overlay instruction */}
+          <div className="absolute bottom-4 left-0 right-0 text-center">
+            <div className="bg-black/60 py-2 px-4 rounded-full mx-auto inline-block text-white text-sm">
+              Tap on objects to place them
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <div className="flex justify-between items-center">
+        <ARObjectList 
+          requiredItems={requiredItems} 
+          placedObjects={placedObjects}
+          className="flex-1"
+        />
+        
+        <Button variant="outline" onClick={exitARSession} className="gap-2 ml-4">
+          <Square className="h-4 w-4" />
+          Exit AR Mode
+        </Button>
+      </div>
     </div>
   );
 }
