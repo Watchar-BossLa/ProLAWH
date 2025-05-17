@@ -1,19 +1,12 @@
-
 import { useState } from "react";
 import { useArcadeChallenges } from "@/hooks/useArcadeChallenges";
-import { ChallengeCard } from "@/components/arcade/ChallengeCard";
 import { ArcadeIntro } from "@/components/arcade/ArcadeIntro";
-import { Gamepad2, Filter } from "lucide-react";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { ArcadeHeader } from "@/components/arcade/ArcadeHeader";
+import { ArcadeFilters } from "@/components/arcade/filters/ArcadeFilters";
+import { ArcadeErrorAlert } from "@/components/arcade/ArcadeErrorAlert";
+import { ChallengeGrid } from "@/components/arcade/ChallengeGrid";
 import { pageTransitions } from "@/lib/transitions";
 import { useAuth } from "@/hooks/useAuth";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 import { Challenge } from "@/types/arcade";
 
 export default function ArcadePage() {
@@ -156,97 +149,25 @@ export default function ArcadePage() {
   });
 
   if (error) {
-    return (
-      <div className="container mx-auto p-6">
-        <Alert variant="destructive">
-          <AlertTitle>Error Loading Challenges</AlertTitle>
-          <AlertDescription>{(error as Error).message}</AlertDescription>
-        </Alert>
-      </div>
-    );
+    return <ArcadeErrorAlert error={error as Error} />;
   }
 
   return (
     <div className={`container mx-auto py-8 space-y-6 ${pageTransitions.initial}`}>
-      <div className="flex items-center gap-3 mb-8">
-        <Gamepad2 className="h-8 w-8 text-primary" />
-        <div>
-          <h1 className="text-3xl font-bold">Nano-Challenge Arcade</h1>
-          <p className="text-muted-foreground">Complete quick challenges to earn verifiable credentials</p>
-        </div>
-      </div>
-
+      <ArcadeHeader />
       <ArcadeIntro />
       
-      {/* Filter Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between border-b pb-4">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          <Filter className="h-5 w-5" /> 
-          Challenge Filters
-        </h2>
-        <div className="flex gap-3">
-          <Select
-            value={filterType}
-            onValueChange={setFilterType}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Challenge Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="camera">Camera</SelectItem>
-              <SelectItem value="quiz">Quiz</SelectItem>
-              <SelectItem value="code">Code</SelectItem>
-              <SelectItem value="ar">AR</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select
-            value={filterDifficulty}
-            onValueChange={setFilterDifficulty}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Difficulty" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Difficulties</SelectItem>
-              <SelectItem value="beginner">Beginner</SelectItem>
-              <SelectItem value="intermediate">Intermediate</SelectItem>
-              <SelectItem value="advanced">Advanced</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <ArcadeFilters 
+        filterType={filterType}
+        filterDifficulty={filterDifficulty}
+        setFilterType={setFilterType}
+        setFilterDifficulty={setFilterDifficulty}
+      />
 
-      {/* Challenge Cards */}
-      {isLoading ? (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="border rounded-lg p-6 space-y-4">
-              <div className="w-12 h-12 rounded-full bg-muted animate-pulse" />
-              <div className="space-y-2">
-                <div className="h-4 bg-muted rounded animate-pulse w-3/4" />
-                <div className="h-4 bg-muted rounded animate-pulse w-1/2" />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : filteredChallenges.length === 0 ? (
-        <div className="text-center py-12">
-          <Gamepad2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No Challenges Available</h3>
-          <p className="text-muted-foreground">No challenges match your current filters. Try adjusting them or check back soon!</p>
-        </div>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 animate-in fade-in-50 duration-500">
-          {filteredChallenges.map((challenge) => (
-            <ChallengeCard
-              key={challenge.id}
-              challenge={challenge}
-            />
-          ))}
-        </div>
-      )}
+      <ChallengeGrid 
+        isLoading={isLoading} 
+        challenges={filteredChallenges} 
+      />
     </div>
   );
 }
