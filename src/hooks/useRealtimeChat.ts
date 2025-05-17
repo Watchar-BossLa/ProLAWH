@@ -39,7 +39,10 @@ export function useRealtimeChat({ connectionId }: UseChatOptions = {}) {
           content: msg.content,
           timestamp: msg.timestamp,
           read: msg.read,
-          attachments: msg.attachment_data
+          attachments: msg.attachment_data ? 
+            (Array.isArray(msg.attachment_data.items) ? 
+              msg.attachment_data.items : []) 
+            : undefined
         }));
 
         setMessages(formattedMessages);
@@ -65,14 +68,18 @@ export function useRealtimeChat({ connectionId }: UseChatOptions = {}) {
           filter: `sender_id=eq.${connectionId},receiver_id=eq.${user.id}`
         },
         (payload) => {
+          const newMsg = payload.new as any;
           const newMessage: NetworkMessage = {
-            id: payload.new.id,
-            senderId: payload.new.sender_id,
-            receiverId: payload.new.receiver_id,
-            content: payload.new.content,
-            timestamp: payload.new.timestamp,
-            read: payload.new.read,
-            attachments: payload.new.attachment_data
+            id: newMsg.id,
+            senderId: newMsg.sender_id,
+            receiverId: newMsg.receiver_id,
+            content: newMsg.content,
+            timestamp: newMsg.timestamp,
+            read: newMsg.read,
+            attachments: newMsg.attachment_data ? 
+              (Array.isArray(newMsg.attachment_data.items) ? 
+                newMsg.attachment_data.items : [])
+              : undefined
           };
           
           setMessages(prev => [...prev, newMessage]);
@@ -84,14 +91,14 @@ export function useRealtimeChat({ connectionId }: UseChatOptions = {}) {
         { event: 'sync' },
         () => {
           const state = channel.presenceState();
-          const connectionPresence = Object.values(state).flat()
-            .find((presence: any) => presence.user_id === connectionId);
+          const typingUsers = Object.values(state).flat();
           
-          if (connectionPresence && connectionPresence.typing_to === user.id) {
-            setIsTyping(true);
-          } else {
-            setIsTyping(false);
-          }
+          // Find the connection user in the presence state
+          const connectionPresence = typingUsers.find((presence: any) => {
+            return presence.user_id === connectionId && presence.typing_to === user.id;
+          });
+          
+          setIsTyping(!!connectionPresence);
         }
       )
       .subscribe();

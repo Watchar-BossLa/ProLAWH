@@ -53,11 +53,17 @@ export function usePresenceStatus() {
           table: 'user_presence'
         },
         (payload) => {
+          const newData = payload.new as { 
+            user_id: string; 
+            status: PresenceStatus; 
+            last_active: string 
+          };
+          
           setUserStatuses(prev => ({
             ...prev,
-            [payload.new.user_id]: {
-              status: payload.new.status,
-              lastActive: payload.new.last_active
+            [newData.user_id]: {
+              status: newData.status,
+              lastActive: newData.last_active
             }
           }));
         }
@@ -100,8 +106,10 @@ export function usePresenceStatus() {
     
     const handleBeforeUnload = () => {
       // Synchronous call as the page is about to unload
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/user_presence`;
+      
       navigator.sendBeacon(
-        `${supabase.url}/rest/v1/user_presence`,
+        apiUrl,
         JSON.stringify({
           user_id: user.id,
           status: 'offline',
