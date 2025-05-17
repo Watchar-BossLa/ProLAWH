@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 
-export interface ReadyStateProps {
+interface ReadyStateProps {
   onStart: () => void;
 }
 

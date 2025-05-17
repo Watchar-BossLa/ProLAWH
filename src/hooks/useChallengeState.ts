@@ -1,90 +1,88 @@
 
-import { useState, useCallback, createContext, useContext, ReactNode } from "react";
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
+import type { ChallengeResult } from '@/types/arcade';
 
-type ChallengeState = 'ready' | 'active' | 'paused' | 'completed' | 'failed' | 'verifying';
+export type ChallengeStatus = 'ready' | 'active' | 'completed' | 'failed';
 
-interface ChallengeStateContextType {
-  state: ChallengeState;
-  setState: (state: ChallengeState) => void;
-  resetState: () => void;
-  startChallenge: () => void;
-  pauseChallenge: () => void;
-  resumeChallenge: () => void;
-  completeChallenge: () => void;
-  failChallenge: () => void;
-  startVerification: () => void;
-  isActive: boolean;
-  isComplete: boolean;
-  isPaused: boolean;
+export function useChallengeState(challengeId: string, userId: string) {
+  const [attemptId, setAttemptId] = useState<string | null>(null);
+  const [status, setStatus] = useState<ChallengeStatus>('ready');
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [result, setResult] = useState<ChallengeResult | null>(null);
+
+  const startChallenge = async () => {
+    try {
+      const { data: attemptData, error } = await supabase
+        .from('challenge_attempts')
+        .insert({
+          challenge_id: challengeId,
+          user_id: userId,
+          status: 'started',
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setAttemptId(attemptData.id);
+      setStatus('active');
+    } catch (error: any) {
+      toast({
+        title: 'Error Starting Challenge',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleComplete = async (
+    success: boolean,
+    submissionData: Record<string, any>,
+    pointsEarned: number,
+    timeTaken: number
+  ) => {
+    if (!attemptId) return;
+
+    try {
+      const { error } = await supabase
+        .from('challenge_attempts')
+        .update({
+          status: success ? 'completed' : 'failed',
+          completed_at: new Date().toISOString(),
+          submission_data: submissionData,
+          points_earned: pointsEarned,
+          time_taken: timeTaken,
+        })
+        .eq('id', attemptId);
+
+      if (error) throw error;
+
+      setStatus('completed');
+      setResult({
+        success,
+        points: pointsEarned,
+        message: success 
+          ? 'Congratulations! Challenge completed successfully.' 
+          : 'Challenge failed. Try again!'
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error Completing Challenge',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  return {
+    status,
+    timeLeft,
+    result,
+    setTimeLeft,
+    startChallenge,
+    handleComplete,
+    setStatus
+  };
 }
-
-const ChallengeStateContext = createContext<ChallengeStateContextType | undefined>(undefined);
-
-export const ChallengeStateProvider = ({ children }: { children: ReactNode }) => {
-  const [state, setStateInternal] = useState<ChallengeState>('ready');
-  
-  const setState = useCallback((newState: ChallengeState) => {
-    setStateInternal(newState);
-  }, []);
-  
-  const resetState = useCallback(() => {
-    setStateInternal('ready');
-  }, []);
-  
-  const startChallenge = useCallback(() => {
-    setStateInternal('active');
-  }, []);
-  
-  const pauseChallenge = useCallback(() => {
-    setStateInternal('paused');
-  }, []);
-  
-  const resumeChallenge = useCallback(() => {
-    setStateInternal('active');
-  }, []);
-  
-  const completeChallenge = useCallback(() => {
-    setStateInternal('completed');
-  }, []);
-  
-  const failChallenge = useCallback(() => {
-    setStateInternal('failed');
-  }, []);
-  
-  const startVerification = useCallback(() => {
-    setStateInternal('verifying');
-  }, []);
-  
-  const isActive = state === 'active';
-  const isComplete = state === 'completed';
-  const isPaused = state === 'paused';
-  
-  return (
-    <ChallengeStateContext.Provider
-      value={{
-        state,
-        setState,
-        resetState,
-        startChallenge,
-        pauseChallenge,
-        resumeChallenge,
-        completeChallenge,
-        failChallenge,
-        startVerification,
-        isActive,
-        isComplete,
-        isPaused,
-      }}
-    >
-      {children}
-    </ChallengeStateContext.Provider>
-  );
-};
-
-export const useChallengeState = () => {
-  const context = useContext(ChallengeStateContext);
-  if (!context) {
-    throw new Error("useChallengeState must be used within a ChallengeStateProvider");
-  }
-  return context;
-};

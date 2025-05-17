@@ -21,7 +21,7 @@ export function useSkillVerification() {
   const [isVerifying, setIsVerifying] = useState(false);
   const queryClient = useQueryClient();
   const { data: skills = [] } = useGreenSkills();
-  const { issueCredential } = useBlockchainCredentials();
+  const { issueCredential } = useBlockchainCredentials(user?.id);
   
   const verifySkill = useMutation({
     mutationFn: async (data: VerificationData) => {
@@ -55,7 +55,7 @@ export function useSkillVerification() {
         const { data: verificationData, error: verificationError } = await supabase
           .from('skill_verifications')
           .insert({
-            user_skill_id: data.skillId, // Changed to use skillId directly as the user_skill_id
+            user_skill_id: user.id, // This assumes user_skill_id matches the user ID
             verification_type: data.method,
             verification_source: data.method === 'credential' ? 'upload' : 
                                data.method === 'endorsement' ? 'peer' : 'challenge',
@@ -106,7 +106,6 @@ export function useSkillVerification() {
 
   return {
     verifySkill,
-    isVerifying,
-    isLoading: isVerifying // Add this for consistency with other hooks
+    isVerifying
   };
 }

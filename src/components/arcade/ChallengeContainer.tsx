@@ -1,103 +1,53 @@
 
-import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { ChallengeContainerProps } from "@/types/arcade";
+import { useChallengeState } from "@/hooks/useChallengeState";
 import { ReadyState } from "./challenge-states/ReadyState";
 import { ActiveState } from "./challenge-states/ActiveState";
-import { ChallengeCompletion } from "./ChallengeCompletion";
-import { type Challenge, type ChallengeContainerProps } from "@/types/arcade";
-import { useChallengeState } from "@/hooks/useChallengeState";
-import { useChallengeTimer } from "@/hooks/useChallengeTimer";
+import ChallengeCompletion from "./ChallengeCompletion";
 
-export const ChallengeContainer = ({ challenge, userId, onReturn }: ChallengeContainerProps) => {
-  const { 
-    state, 
-    startChallenge, 
-    completeChallenge, 
-    failChallenge 
-  } = useChallengeState();
-  
-  const [result, setResult] = useState<{
-    success: boolean;
-    data: Record<string, any>;
-    points: number;
-    timeTaken?: number;
-    bonusPoints?: number;
-  } | null>(null);
-  
-  const { totalDuration } = useChallengeTimer(challenge.time_limit, {
-    tickInterval: challenge.time_limit < 30 ? 16 : 1000 // Use 60fps timing for short challenges
-  });
-  
-  const handleStart = () => {
-    startChallenge();
+export function ChallengeContainer({ challenge, userId, onReturn }: ChallengeContainerProps) {
+  const {
+    status,
+    timeLeft,
+    result,
+    setTimeLeft,
+    startChallenge,
+    handleComplete,
+    setStatus
+  } = useChallengeState(challenge.id, userId);
+
+  const handleTimeUp = () => {
+    setStatus("failed");
+    handleComplete(false, {}, 0, challenge.time_limit);
   };
-  
-  const handleComplete = (success: boolean, data: Record<string, any>, points: number) => {
-    const timeTaken = challenge.time_limit - (totalDuration || 0);
-    
-    setResult({
-      success,
-      data,
-      points,
-      timeTaken,
-      bonusPoints: data.bonusPoints || 0
-    });
-    
-    if (success) {
-      completeChallenge();
-    } else {
-      failChallenge();
-    }
-  };
-  
-  const handleReset = () => {
-    setResult(null);
-  };
-  
-  const renderContent = () => {
-    switch (state) {
-      case 'ready':
-        return <ReadyState onStart={handleStart} />;
-        
-      case 'active':
-      case 'paused':
-        return (
-          <ActiveState 
-            challenge={challenge}
-            onComplete={handleComplete}
-            onReturn={onReturn}
-          />
-        );
-        
-      case 'completed':
-      case 'failed':
-        return result ? (
-          <ChallengeCompletion 
-            challengeId={challenge.id}
-            score={result.points}
-            timeTaken={result.timeTaken || 0}
-            mediaCaptures={result.data.captures}
-            bonusPoints={result.bonusPoints}
-            onReset={handleReset}
-          />
-        ) : (
-          <div className="text-center py-8">
-            <p>There was an issue processing your result.</p>
-            <Button onClick={handleReset} className="mt-4">Try Again</Button>
-          </div>
-        );
-        
-      default:
-        return <ReadyState onStart={handleStart} />;
-    }
-  };
-  
+
+  if (status === "ready") {
+    return <ReadyState onStart={startChallenge} />;
+  }
+
+  if (status === "active") {
+    return (
+      <ActiveState
+        challenge={challenge}
+        timeLeft={timeLeft}
+        onTimeUpdate={setTimeLeft}
+        onComplete={(success, data, points) => 
+          handleComplete(success, data, points, challenge.time_limit - timeLeft)
+        }
+        onTimeUp={handleTimeUp}
+        onReturn={onReturn}
+      />
+    );
+  }
+
   return (
-    <Card>
-      <CardContent className="p-6">
-        {renderContent()}
-      </CardContent>
-    </Card>
+    <ChallengeCompletion 
+      result={result}
+      onRetry={() => {
+        setStatus("ready");
+        setTimeLeft(challenge.time_limit);
+      }}
+      onReturn={onReturn}
+    />
   );
-};
+}

@@ -1,45 +1,26 @@
 
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
-import { useEffect, useState } from 'react';
 
 interface TimerProgressProps {
-  percent: number;
-  isRunning?: boolean;
-  className?: string;
-  smooth?: boolean;
+  timeLeft: number;
+  initialTime: number;
 }
 
-export function TimerProgress({ 
-  percent, 
-  isRunning = true,
-  smooth = true,
-  className 
-}: TimerProgressProps) {
-  const [animated, setAnimated] = useState(false);
-  
-  // Add animation class only after initial render to prevent animation on mount
-  useEffect(() => {
-    const timer = setTimeout(() => setAnimated(isRunning && smooth), 100);
-    return () => clearTimeout(timer);
-  }, [isRunning, smooth]);
+export function TimerProgress({ timeLeft, initialTime }: TimerProgressProps) {
+  const progressPercentage = Math.max(0, (timeLeft / initialTime) * 100);
   
   const getColorClass = () => {
-    if (percent > 60) return "bg-green-500 dark:bg-green-600";
-    if (percent > 30) return "bg-amber-500 dark:bg-amber-600";
-    return "bg-red-500 dark:bg-red-600";
+    const percentage = (timeLeft / initialTime) * 100;
+    if (percentage > 60) return "bg-green-500";
+    if (percentage > 30) return "bg-yellow-500";
+    return "bg-red-500";
   };
   
   return (
     <Progress 
-      value={percent} 
-      className={cn(
-        "h-2 transition-all",
-        getColorClass(),
-        animated && "transition-all duration-1000",
-        className
-      )}
-      aria-label={`${Math.round(percent)}% of time remaining`}
+      value={progressPercentage} 
+      className={cn("h-2", getColorClass())}
     />
   );
 }

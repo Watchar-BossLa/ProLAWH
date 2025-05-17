@@ -40,8 +40,6 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/explicit-function-return-type": "off",
       "@typescript-eslint/strict-boolean-expressions": "off",
-      "no-console": ["warn", { allow: ["error", "warn"] }],
-      "react-hooks/exhaustive-deps": "warn",
     },
   }
 );

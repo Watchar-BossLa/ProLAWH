@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function VerifiedSkillBadges() {
   const { user } = useAuth();
-  const { credentials, isLoading } = useBlockchainCredentials();
+  const { credentials, isLoading } = useBlockchainCredentials(user?.id);
 
   if (isLoading) {
     return (

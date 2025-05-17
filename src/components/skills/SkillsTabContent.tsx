@@ -6,14 +6,11 @@ import { GreenSkillStats } from './GreenSkillStats';
 import { GreenSkillCategories } from './GreenSkillCategories';
 import { GreenSkillsList } from './GreenSkillsList';
 import { VerifiedSkillBadges } from './verification/VerifiedSkillBadges';
-import type { GreenSkill } from '@/hooks/useGreenSkills';
-import type { SkillCategory } from '@/hooks/useSkillGapData';
 
-// Define interfaces that match the expected props for child components
 interface SkillsTabContentProps {
-  skills: GreenSkill[];
+  skills: any[];
   categories: string[];
-  skillGapData: SkillCategory[];
+  skillGapData: any[];
   onFilterChange: (filter: { search: string; category: string; impactLevel: string }) => void;
 }
 

@@ -1,57 +1,114 @@
 
 import { useState } from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Award, ChevronRight, Shield } from "lucide-react";
-import { SkillVerificationModal } from "./SkillVerificationModal";
-import { useGreenSkills } from "@/hooks/useGreenSkills";
+import { Shield, CheckCircle, Upload } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { VerificationMethodCard } from "./verification/VerificationMethodCard";
+import { VerificationForm } from "./verification/VerificationForm";
+import type { VerificationMethod } from "@/hooks/useSkillVerification";
 
-interface SkillVerificationProps {
-  className?: string;
+interface VerificationMethodInfo {
+  id: VerificationMethod;
+  name: string;
+  description: string;
+  requiredEvidence: string;
+  icon: JSX.Element;
 }
 
-export function SkillVerification({ className }: SkillVerificationProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedSkill, setSelectedSkill] = useState<undefined | any>(undefined);
-  const { data: skills = [] } = useGreenSkills();
-  
-  const handleVerifySkill = (skill: any) => {
-    setSelectedSkill(skill);
-    setIsModalOpen(true);
+export function SkillVerification() {
+  const [selectedMethod, setSelectedMethod] = useState<VerificationMethod | null>(null);
+  const [showForm, setShowForm] = useState(false);
+
+  const verificationMethods: VerificationMethodInfo[] = [
+    {
+      id: "challenge",
+      name: "Complete Challenge",
+      description: "Demonstrate your skill through a practical challenge",
+      requiredEvidence: "Successfully complete the associated skill challenge",
+      icon: <Shield className="h-5 w-5 text-blue-500" />,
+    },
+    {
+      id: "credential",
+      name: "Upload Credential",
+      description: "Upload an existing certification",
+      requiredEvidence: "Valid digital credential or certificate",
+      icon: <Upload className="h-5 w-5 text-purple-500" />,
+    },
+    {
+      id: "endorsement",
+      name: "Expert Endorsement",
+      description: "Get endorsed by industry experts",
+      requiredEvidence: "Endorsement from 3+ verified experts",
+      icon: <CheckCircle className="h-5 w-5 text-green-500" />,
+    },
+  ];
+
+  const handleMethodSelect = (methodId: VerificationMethod) => {
+    setSelectedMethod(methodId);
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+  };
+
+  const handleVerify = () => {
+    if (!selectedMethod) {
+      toast({
+        title: "Please select a method",
+        description: "You need to select a verification method first",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setShowForm(true);
   };
 
   return (
-    <>
-      <Card className={className}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-green-600" />
-            <span>Skill Verification</span>
-          </CardTitle>
-          <CardDescription>
-            Verify your skills with blockchain credentials
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="text-sm">
-          <p>
-            Verify your skills to receive a blockchain credential that proves your expertise.
-            Choose a skill to verify and select a verification method.
-          </p>
-        </CardContent>
-        <CardFooter>
-          <Button variant="outline" className="w-full" onClick={() => skills.length > 0 && handleVerifySkill(skills[0])}>
-            <Award className="mr-2 h-4 w-4" />
-            Verify Skills
-            <ChevronRight className="ml-auto h-4 w-4" />
-          </Button>
-        </CardFooter>
-      </Card>
-      
-      <SkillVerificationModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        skill={selectedSkill}
-      />
-    </>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Shield className="h-5 w-5 text-primary" />
+          Verify Your Green Skills
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {!showForm ? (
+          <>
+            <p className="text-sm text-muted-foreground">
+              Verified skills increase your credibility and visibility to employers.
+              Choose a verification method:
+            </p>
+
+            <div className="space-y-3">
+              {verificationMethods.map((method) => (
+                <VerificationMethodCard
+                  key={method.id}
+                  id={method.id}
+                  name={method.name}
+                  description={method.description}
+                  requiredEvidence={method.requiredEvidence}
+                  icon={method.icon}
+                  isSelected={selectedMethod === method.id}
+                  onSelect={() => handleMethodSelect(method.id)}
+                />
+              ))}
+            </div>
+
+            <div className="flex justify-end">
+              <Button onClick={handleVerify} disabled={!selectedMethod}>
+                Start Verification
+              </Button>
+            </div>
+          </>
+        ) : (
+          <VerificationForm 
+            selectedMethod={selectedMethod!} 
+            onCancel={handleCancel} 
+          />
+        )}
+      </CardContent>
+    </Card>
   );
 }

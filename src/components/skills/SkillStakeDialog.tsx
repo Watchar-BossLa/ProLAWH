@@ -1,72 +1,108 @@
 
 import { useState } from "react";
+import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Slider } from "@/components/ui/slider";
-import { useToast } from "@/hooks/use-toast";
-import { useVeriSkill } from "@/hooks/useVeriSkill";
-import { ConnectWalletButton } from "./ConnectWalletButton";
+import { supabase } from "@/integrations/supabase/client";
+import { usePolygonWallet } from "@/hooks/usePolygonWallet";
+import { polygonClient } from "@/integrations/polygon/client";
+import { StakeForm } from "./StakeForm";
+import { useStakingContracts } from "@/hooks/useStakingContracts";
+import { SkillStake } from "@/types/staking";
+import { useAuth } from "@/hooks/useAuth";
 
 interface SkillStakeDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
   skillId: string;
   skillName: string;
 }
 
-export default function SkillStakeDialog({
-  isOpen,
-  onClose,
-  skillId,
-  skillName,
-}: SkillStakeDialogProps) {
-  const [amount, setAmount] = useState(10);
+export function SkillStakeDialog({ skillId, skillName }: SkillStakeDialogProps) {
   const [isStaking, setIsStaking] = useState(false);
-  const { toast } = useToast();
-  const { stakeSkill, walletConnected } = useVeriSkill();
+  const [open, setOpen] = useState(false);
+  const { address, isConnected, connect } = usePolygonWallet();
+  const { user } = useAuth();
+  const {
+    stakingContracts,
+    selectedContract,
+    setSelectedContract,
+    isLoading: isLoadingContracts
+  } = useStakingContracts();
 
-  const handleSliderChange = (value: number[]) => {
-    setAmount(value[0]);
-  };
-
-  const handleStake = async () => {
-    if (!walletConnected) {
+  const handleStake = async (amount: string): Promise<void> => {
+    const amountNum = parseFloat(amount);
+    if (isNaN(amountNum) || amountNum <= 0) {
       toast({
-        title: "Connect Wallet",
-        description: "Please connect your wallet first",
+        title: "Invalid amount",
+        description: "Please enter a valid positive number",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to stake",
         variant: "destructive",
       });
       return;
     }
 
     setIsStaking(true);
-
     try {
-      const success = await stakeSkill({
-        skill_id: skillId,
-        amount_usdc: amount,
-        user_id: "", // This will be set in the hook
-      });
+      const contract = stakingContracts.find(c => c.id === selectedContract);
+      if (!contract) throw new Error("Selected contract not found");
 
-      if (success) {
-        toast({
-          title: "Skill Staked",
-          description: `Successfully staked ${amount} USDC on ${skillName}`,
-        });
-        onClose();
-      }
-    } catch (error) {
+      const txResult = await polygonClient.createStake(
+        contract.contract_address,
+        skillId,
+        amountNum
+      );
+      
+      const stakeData: SkillStake = {
+        skill_id: skillId,
+        amount_usdc: amountNum,
+        user_id: user.id,
+        polygon_tx_hash: txResult.transactionHash,
+        polygon_contract_address: contract.contract_address,
+        stake_token_amount: Math.floor(amountNum * 1000000),
+        status: 'active'
+      };
+
+      const { error } = await supabase
+        .from("skill_stakes")
+        .insert(stakeData);
+
+      if (error) throw error;
+
       toast({
-        title: "Staking Failed",
-        description: "An error occurred while staking your skill",
+        title: "Stake created",
+        description: (
+          <div>
+            Successfully staked {amount} USDC on {skillName}
+            <br />
+            <a 
+              href={polygonClient.getTransactionUrl(txResult.transactionHash)} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              View transaction
+            </a>
+          </div>
+        ),
+      });
+      setOpen(false);
+    } catch (error: any) {
+      toast({
+        title: "Staking Error",
+        description: error.message,
         variant: "destructive",
       });
     } finally {
@@ -74,72 +110,33 @@ export default function SkillStakeDialog({
     }
   };
 
+  // Wrapper function to handle the connect wallet functionality
+  const handleConnectWallet = async (): Promise<void> => {
+    // Call the connect function but ignore its return value
+    await connect();
+    // This function returns void as required by the StakeForm props
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">Stake on Skill</Button>
+      </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Stake on {skillName}</DialogTitle>
-          <DialogDescription>
-            Stake USDC tokens to verify your confidence in this skill. You can
-            earn rewards when your skill is validated.
-          </DialogDescription>
         </DialogHeader>
-        <div className="py-4 space-y-4">
-          {!walletConnected && (
-            <div className="flex flex-col items-center space-y-2 p-4 border rounded-md bg-muted/50">
-              <p className="text-sm text-muted-foreground">
-                Connect your wallet to stake on skills
-              </p>
-              <ConnectWalletButton />
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <label htmlFor="amount" className="text-sm font-medium">
-              Stake Amount: {amount} USDC
-            </label>
-            <Slider
-              id="amount"
-              disabled={!walletConnected || isStaking}
-              min={5}
-              max={100}
-              step={1}
-              defaultValue={[amount]}
-              onValueChange={handleSliderChange}
-              className="py-4"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label htmlFor="custom-amount" className="text-sm font-medium">
-              Or enter custom amount:
-            </label>
-            <Input
-              id="custom-amount"
-              disabled={!walletConnected || isStaking}
-              type="number"
-              min={1}
-              value={amount}
-              onChange={(e) => setAmount(Number(e.target.value))}
-              className="col-span-3"
-            />
-          </div>
-
-          <div className="rounded-md bg-amber-50 p-4 border border-amber-200">
-            <p className="text-sm text-amber-800">
-              This is a Polygon-based staking. You'll need USDC on Polygon network.
-              Funds will be locked until skill verification is complete.
-            </p>
-          </div>
+        <div className="grid gap-4 py-4">
+          <StakeForm
+            stakingContracts={stakingContracts}
+            selectedContract={selectedContract}
+            onContractChange={setSelectedContract}
+            onSubmit={handleStake}
+            isLoading={isStaking || isLoadingContracts}
+            isWalletConnected={isConnected}
+            onConnectWallet={handleConnectWallet}
+          />
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isStaking}>
-            Cancel
-          </Button>
-          <Button onClick={handleStake} disabled={!walletConnected || isStaking}>
-            {isStaking ? "Staking..." : `Stake ${amount} USDC`}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
