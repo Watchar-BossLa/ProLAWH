@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NetworkMetrics } from "@/components/network/NetworkMetrics";
 import { NetworkStatsCards } from "@/components/network/stats/NetworkStatsCards";
@@ -12,6 +12,7 @@ import { NetworkToolbar } from "@/components/network/toolbar/NetworkToolbar";
 import { NetworkChatDialog } from "@/components/network/chat/NetworkChatDialog";
 import { useNetworkFiltering } from "@/hooks/useNetworkFiltering";
 import { mockConnections, mockStats, mockUserSkills, mockIndustries, mockActiveChatConnection } from "@/data/mockNetworkData";
+import { usePresenceStatus } from "@/hooks/usePresenceStatus";
 
 export default function NetworkDashboard() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -37,6 +38,19 @@ export default function NetworkDashboard() {
     isLoading: isLoadingRecommendations 
   } = useNetworkRecommendations();
 
+  // Initialize presence system
+  const { updateStatus } = usePresenceStatus();
+  
+  useEffect(() => {
+    // Update user status to online when component mounts
+    updateStatus('online');
+    
+    // Set status to offline when component unmounts
+    return () => {
+      updateStatus('offline');
+    };
+  }, [updateStatus]);
+
   const handleChatOpen = (connectionId: string) => {
     setActiveChatId(connectionId);
   };
@@ -58,6 +72,11 @@ export default function NetworkDashboard() {
     } catch (error) {
       toast.error("Failed to generate recommendations");
     }
+  };
+
+  const getActiveChatConnection = () => {
+    if (!activeChatId) return undefined;
+    return connections.find(conn => conn.id === activeChatId) || mockActiveChatConnection;
   };
 
   return (
@@ -118,7 +137,7 @@ export default function NetworkDashboard() {
       
       <NetworkChatDialog
         activeChatId={activeChatId}
-        activeChatConnection={mockActiveChatConnection}
+        activeChatConnection={getActiveChatConnection()}
         onClose={handleChatClose}
       />
     </div>

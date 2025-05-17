@@ -1271,6 +1271,39 @@ export type Database = {
           },
         ]
       }
+      network_messages: {
+        Row: {
+          attachment_data: Json | null
+          content: string
+          created_at: string
+          id: string
+          read: boolean
+          receiver_id: string
+          sender_id: string
+          timestamp: string
+        }
+        Insert: {
+          attachment_data?: Json | null
+          content: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          receiver_id: string
+          sender_id: string
+          timestamp?: string
+        }
+        Update: {
+          attachment_data?: Json | null
+          content?: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          receiver_id?: string
+          sender_id?: string
+          timestamp?: string
+        }
+        Relationships: []
+      }
       onboarding_progress: {
         Row: {
           completed_at: string | null
@@ -2468,6 +2501,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_presence: {
+        Row: {
+          created_at: string
+          id: string
+          last_active: string
+          status: string
+          typing_to: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_active?: string
+          status?: string
+          typing_to?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_active?: string
+          status?: string
+          typing_to?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_skills: {
         Row: {

@@ -24,3 +24,4 @@ CREATE POLICY "Users can update their own career recommendations"
 ON public.career_recommendations
 FOR UPDATE
 USING (auth.uid() = user_id);
+
