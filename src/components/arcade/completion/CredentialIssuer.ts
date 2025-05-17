@@ -47,6 +47,16 @@ export function useCredentialIssuer(props: UseCredentialIssuerProps) {
         return false;
       }
       
+      if (!challengeId) {
+        console.error("Missing challenge ID for credential issuance");
+        toast({
+          title: "Credential Error",
+          description: "Missing challenge information",
+          variant: "destructive"
+        });
+        return false;
+      }
+      
       // Create credential data
       const credentialData = {
         skillId: skillId,
