@@ -10,6 +10,12 @@ interface PresenceState {
   lastActive?: string;
 }
 
+interface PresencePayload {
+  user_id: string;
+  status: PresenceStatus;
+  last_active: string;
+}
+
 export function usePresenceStatus() {
   const [userStatuses, setUserStatuses] = useState<Record<string, PresenceState>>({});
   const { user } = useAuth();
@@ -53,11 +59,7 @@ export function usePresenceStatus() {
           table: 'user_presence'
         },
         (payload) => {
-          const newData = payload.new as { 
-            user_id: string; 
-            status: PresenceStatus; 
-            last_active: string 
-          };
+          const newData = payload.new as PresencePayload;
           
           setUserStatuses(prev => ({
             ...prev,
@@ -80,7 +82,7 @@ export function usePresenceStatus() {
         if (error) throw error;
         
         const statuses: Record<string, PresenceState> = {};
-        data.forEach(presence => {
+        data.forEach((presence: PresencePayload) => {
           statuses[presence.user_id] = {
             status: presence.status as PresenceStatus,
             lastActive: presence.last_active

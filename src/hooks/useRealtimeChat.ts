@@ -5,10 +5,55 @@ import { NetworkMessage } from '@/types/network';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 
+// Define types for Supabase payload data
+interface SupabaseMessage {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  content: string;
+  timestamp: string;
+  read: boolean;
+  attachment_data?: {
+    items?: Array<{
+      id: string;
+      type: 'image' | 'document' | 'link';
+      url: string;
+      name: string;
+    }>;
+  } | null;
+}
+
+interface PresenceState {
+  user_id: string;
+  typing_to: string | null;
+  last_active: string;
+}
+
 interface UseChatOptions {
   connectionId?: string;
 }
 
+/**
+ * Process attachment data safely from Supabase format to NetworkMessage format
+ */
+const processAttachments = (attachmentData: any) => {
+  if (!attachmentData) return undefined;
+  
+  try {
+    // Check if attachmentData has items property and it's an array
+    if (attachmentData.items && Array.isArray(attachmentData.items)) {
+      return attachmentData.items;
+    }
+    return undefined;
+  } catch (error) {
+    console.error('Error processing attachment data:', error);
+    return undefined;
+  }
+};
+
+/**
+ * Hook for real-time chat functionality using Supabase
+ */
 export function useRealtimeChat({ connectionId }: UseChatOptions = {}) {
   const [messages, setMessages] = useState<NetworkMessage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,17 +77,14 @@ export function useRealtimeChat({ connectionId }: UseChatOptions = {}) {
 
         if (error) throw error;
         
-        const formattedMessages: NetworkMessage[] = data.map(msg => ({
+        const formattedMessages: NetworkMessage[] = data.map((msg: SupabaseMessage) => ({
           id: msg.id,
           senderId: msg.sender_id,
           receiverId: msg.receiver_id,
           content: msg.content,
           timestamp: msg.timestamp,
           read: msg.read,
-          attachments: msg.attachment_data ? 
-            (Array.isArray(msg.attachment_data.items) ? 
-              msg.attachment_data.items : []) 
-            : undefined
+          attachments: processAttachments(msg.attachment_data)
         }));
 
         setMessages(formattedMessages);
@@ -68,7 +110,7 @@ export function useRealtimeChat({ connectionId }: UseChatOptions = {}) {
           filter: `sender_id=eq.${connectionId},receiver_id=eq.${user.id}`
         },
         (payload) => {
-          const newMsg = payload.new as any;
+          const newMsg = payload.new as SupabaseMessage;
           const newMessage: NetworkMessage = {
             id: newMsg.id,
             senderId: newMsg.sender_id,
@@ -76,10 +118,7 @@ export function useRealtimeChat({ connectionId }: UseChatOptions = {}) {
             content: newMsg.content,
             timestamp: newMsg.timestamp,
             read: newMsg.read,
-            attachments: newMsg.attachment_data ? 
-              (Array.isArray(newMsg.attachment_data.items) ? 
-                newMsg.attachment_data.items : [])
-              : undefined
+            attachments: processAttachments(newMsg.attachment_data)
           };
           
           setMessages(prev => [...prev, newMessage]);
@@ -91,12 +130,12 @@ export function useRealtimeChat({ connectionId }: UseChatOptions = {}) {
         { event: 'sync' },
         () => {
           const state = channel.presenceState();
-          const typingUsers = Object.values(state).flat();
+          const typingUsers = Object.values(state).flat() as PresenceState[];
           
           // Find the connection user in the presence state
-          const connectionPresence = typingUsers.find((presence: any) => {
-            return presence.user_id === connectionId && presence.typing_to === user.id;
-          });
+          const connectionPresence = typingUsers.find((presence) => 
+            presence.user_id === connectionId && presence.typing_to === user.id
+          );
           
           setIsTyping(!!connectionPresence);
         }
