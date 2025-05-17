@@ -22,7 +22,7 @@ export function ChallengeContainer({ challenge, userId, onReturn }: ChallengeCon
   };
 
   if (status === "ready") {
-    return <ReadyState onStart={startChallenge} />;
+    return <ReadyState onStart={startChallenge} challengeType={challenge.type} />;
   }
 
   if (status === "active") {

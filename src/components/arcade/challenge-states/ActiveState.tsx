@@ -4,6 +4,7 @@ import ChallengeTimer from "../ChallengeTimer";
 import CameraChallenge from "@/components/arcade/CameraChallenge";
 import QuizChallenge from "@/components/arcade/QuizChallenge";
 import CodeChallenge from "@/components/arcade/CodeChallenge";
+import ARChallenge from "@/components/arcade/ARChallenge";
 import { Button } from "@/components/ui/button";
 
 interface ActiveStateProps {
@@ -54,6 +55,18 @@ export function ActiveState({
       case "code":
         return (
           <CodeChallenge
+            challenge={{
+              id: challenge.id,
+              validation_rules: challenge.validation_rules,
+              points: challenge.points
+            }}
+            onComplete={onComplete}
+          />
+        );
+      
+      case "ar":
+        return (
+          <ARChallenge 
             challenge={{
               id: challenge.id,
               validation_rules: challenge.validation_rules,

@@ -59,7 +59,7 @@ export function useChallengeState(challengeId: string, userId: string) {
 
       if (error) throw error;
 
-      setStatus('completed');
+      setStatus(success ? 'completed' : 'failed');
       setResult({
         success,
         points: pointsEarned,
