@@ -1,9 +1,9 @@
 
-import React, { useRef, useEffect } from "react";
+import React from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { NetworkConnection } from "@/types/network";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, SearchX } from "lucide-react";
 
 interface Message {
   id: string;
@@ -21,6 +21,20 @@ interface MessageListProps {
   suggestedTopics: string[];
   isGeneratingTopics: boolean;
   useSuggestedTopic: (topic: string) => void;
+  isSearchActive?: boolean;
+}
+
+// Helper function to highlight search terms
+function highlightSearchTerm(text: string, searchTerm: string): React.ReactNode {
+  if (!searchTerm) return text;
+  
+  const parts = text.split(new RegExp(`(${searchTerm})`, 'gi'));
+  
+  return parts.map((part, index) => 
+    part.toLowerCase() === searchTerm.toLowerCase() 
+      ? <mark key={index} className="bg-yellow-200 dark:bg-yellow-800">{part}</mark> 
+      : part
+  );
 }
 
 export function SmartMessageList({
@@ -31,7 +45,8 @@ export function SmartMessageList({
   formatTime,
   suggestedTopics,
   isGeneratingTopics,
-  useSuggestedTopic
+  useSuggestedTopic,
+  isSearchActive
 }: MessageListProps) {
   // Group messages by date
   const groupedMessages: { [date: string]: Message[] } = {};
@@ -45,6 +60,13 @@ export function SmartMessageList({
 
   return (
     <div className="flex-1 overflow-y-auto p-4">
+      {messages.length === 0 && isSearchActive && (
+        <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+          <SearchX className="h-12 w-12 mb-2 opacity-50" />
+          <p>No messages found</p>
+        </div>
+      )}
+      
       {Object.entries(groupedMessages).map(([date, dateMessages]) => (
         <div key={date} className="mb-4">
           <div className="flex justify-center mb-4">
@@ -76,7 +98,11 @@ export function SmartMessageList({
                     : 'bg-accent'
                 }`}
               >
-                <p className="break-words">{message.content}</p>
+                <p className="break-words">
+                  {isSearchActive 
+                    ? highlightSearchTerm(message.content, window.location.search.replace('?q=', '')) 
+                    : message.content}
+                </p>
                 <p className={`text-xs mt-1 ${
                   message.sender === 'user' ? 'text-primary-foreground/70' : 'text-muted-foreground'
                 }`}>
@@ -94,7 +120,7 @@ export function SmartMessageList({
       ))}
       <div ref={messagesEndRef} />
 
-      {suggestedTopics.length > 0 && (
+      {suggestedTopics.length > 0 && !isSearchActive && (
         <div className="mb-2">
           <div className="flex items-center mb-2">
             <Sparkles className="h-3.5 w-3.5 mr-1.5 text-primary" />

@@ -16,6 +16,8 @@ export function useSmartChat(connection: NetworkConnection) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [suggestedTopics, setSuggestedTopics] = useState<string[]>([]);
   const [isGeneratingTopics, setIsGeneratingTopics] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredMessages, setFilteredMessages] = useState<Message[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { generate, isLoading } = useLLM();
 
@@ -43,8 +45,24 @@ export function useSmartChat(connection: NetworkConnection) {
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (!searchQuery) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, searchQuery]);
+
+  // Filter messages based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredMessages([]);
+      return;
+    }
+
+    const lowercaseQuery = searchQuery.toLowerCase();
+    const filtered = messages.filter(message => 
+      message.content.toLowerCase().includes(lowercaseQuery)
+    );
+    setFilteredMessages(filtered);
+  }, [messages, searchQuery]);
 
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
@@ -58,6 +76,11 @@ export function useSmartChat(connection: NetworkConnection) {
 
     setMessages(prevMessages => [...prevMessages, newMessage]);
     setInputValue('');
+
+    // Clear search if active
+    if (searchQuery) {
+      setSearchQuery('');
+    }
 
     // Mock response - in a real app, this would be sent through a messaging API
     setTimeout(() => {
@@ -149,10 +172,18 @@ export function useSmartChat(connection: NetworkConnection) {
     }
   };
 
+  const onSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+  };
+
   return {
     inputValue,
     setInputValue,
-    messages,
+    messages: searchQuery ? filteredMessages : messages,
     suggestedTopics,
     isGeneratingTopics,
     messagesEndRef,
@@ -161,6 +192,10 @@ export function useSmartChat(connection: NetworkConnection) {
     generateSmartTopics,
     useSuggestedTopic,
     formatTime,
-    formatDate
+    formatDate,
+    searchQuery,
+    onSearch,
+    hasSearchResults: searchQuery && filteredMessages.length > 0,
+    clearSearch
   };
 }

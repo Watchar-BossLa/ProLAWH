@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/hooks/useAuth';
@@ -34,6 +35,8 @@ interface SendMessageParams {
 export function useRealtimeChat(recipientId: string | null) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredMessages, setFilteredMessages] = useState<ChatMessage[]>([]);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -128,6 +131,20 @@ export function useRealtimeChat(recipientId: string | null) {
       supabase.removeChannel(channel);
     };
   }, [recipientId, user]);
+
+  // Filter messages based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredMessages(messages);
+      return;
+    }
+
+    const lowercaseQuery = searchQuery.toLowerCase();
+    const filtered = messages.filter(message => 
+      message.content.toLowerCase().includes(lowercaseQuery)
+    );
+    setFilteredMessages(filtered);
+  }, [messages, searchQuery]);
 
   const markAsRead = async (messageId: string) => {
     try {
@@ -238,5 +255,20 @@ export function useRealtimeChat(recipientId: string | null) {
     }
   };
 
-  return { messages, sendMessage, isLoading, reactToMessage };
+  // Search function
+  const searchMessages = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  return { 
+    messages: filteredMessages.length > 0 || searchQuery ? filteredMessages : messages, 
+    sendMessage, 
+    isLoading, 
+    reactToMessage, 
+    searchMessages,
+    searchQuery,
+    setSearchQuery,
+    hasSearchResults: searchQuery && filteredMessages.length > 0,
+    clearSearch: () => setSearchQuery('')
+  };
 }

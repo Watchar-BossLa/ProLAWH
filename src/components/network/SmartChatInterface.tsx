@@ -24,13 +24,24 @@ export function SmartChatInterface({ connection, onClose }: SmartChatInterfacePr
     generateSmartTopics,
     useSuggestedTopic,
     formatTime,
-    formatDate
+    formatDate,
+    searchQuery,
+    onSearch,
+    hasSearchResults,
+    clearSearch
   } = useSmartChat(connection);
 
   return (
     <Card className="w-full h-full flex flex-col">
       <CardHeader className="p-0">
-        <SmartChatHeader connection={connection} onClose={onClose} />
+        <SmartChatHeader 
+          connection={connection} 
+          onClose={onClose} 
+          searchQuery={searchQuery}
+          onSearch={onSearch}
+          clearSearch={clearSearch}
+          hasSearchResults={hasSearchResults}
+        />
       </CardHeader>
 
       <CardContent className="flex-1 overflow-hidden p-0 flex flex-col">
@@ -43,6 +54,7 @@ export function SmartChatInterface({ connection, onClose }: SmartChatInterfacePr
           suggestedTopics={suggestedTopics}
           isGeneratingTopics={isGeneratingTopics}
           useSuggestedTopic={useSuggestedTopic}
+          isSearchActive={!!searchQuery}
         />
 
         <SmartMessageInput
