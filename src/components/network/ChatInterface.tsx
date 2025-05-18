@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { NetworkConnection } from "@/types/network";
 import { useRealtimeChat } from "@/hooks/useRealtimeChat";
 import { usePresenceStatus } from "@/hooks/usePresenceStatus";
@@ -30,7 +30,8 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
   const { 
     messages, 
     isLoading, 
-    sendMessage 
+    sendMessage,
+    reactToMessage
   } = useRealtimeChat(connection.id);
   
   const { updateTypingStatus, isUserTypingTo } = usePresenceStatus();
@@ -60,6 +61,10 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
       updateTypingStatus(isTyping, isTyping ? connection.id : null);
     }
   };
+
+  const handleReactToMessage = (messageId: string, emoji: string) => {
+    reactToMessage(messageId, emoji);
+  };
   
   return (
     <div className="flex flex-col h-[600px] border rounded-lg bg-card overflow-hidden">
@@ -72,6 +77,7 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
         connectionAvatar={connection.avatar}
         isLoading={isLoading}
         isTyping={isRecipientTyping}
+        onReactToMessage={handleReactToMessage}
       />
       
       <MessageInput

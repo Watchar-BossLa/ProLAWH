@@ -2,6 +2,7 @@
 import React, { useRef, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MessageAttachment, AttachmentType } from "./MessageAttachment";
+import { MessageReactions, MessageReactionsData } from "./MessageReactions";
 
 interface Message {
   id: string;
@@ -17,6 +18,7 @@ interface Message {
     name: string;
     size?: number;
   }[];
+  reactions?: MessageReactionsData;
 }
 
 interface MessageListProps {
@@ -26,6 +28,7 @@ interface MessageListProps {
   connectionAvatar?: string;
   isLoading: boolean;
   isTyping: boolean;
+  onReactToMessage: (messageId: string, emoji: string) => void;
 }
 
 export function MessageList({ 
@@ -34,7 +37,8 @@ export function MessageList({
   connectionName, 
   connectionAvatar,
   isLoading,
-  isTyping
+  isTyping,
+  onReactToMessage
 }: MessageListProps) {
   const messageEndRef = useRef<HTMLDivElement>(null);
   
@@ -124,33 +128,43 @@ export function MessageList({
                     )}
                   </Avatar>
                 )}
-                <div 
-                  className={`max-w-[80%] rounded-lg p-3 ${
-                    isCurrentUser 
-                      ? "bg-primary text-primary-foreground" 
-                      : "bg-muted"
-                  }`}
-                >
-                  {/* Message content */}
-                  {msg.content && (
-                    <p className="text-sm break-words whitespace-pre-wrap">{msg.content}</p>
-                  )}
+                <div className="flex flex-col max-w-[80%]">
+                  <div 
+                    className={`rounded-lg p-3 ${
+                      isCurrentUser 
+                        ? "bg-primary text-primary-foreground" 
+                        : "bg-muted"
+                    }`}
+                  >
+                    {/* Message content */}
+                    {msg.content && (
+                      <p className="text-sm break-words whitespace-pre-wrap">{msg.content}</p>
+                    )}
+                    
+                    {/* Attachments */}
+                    {msg.attachment_data && msg.attachment_data.length > 0 && (
+                      <div className="mt-2 space-y-2">
+                        {msg.attachment_data.map((attachment) => (
+                          <MessageAttachment 
+                            key={attachment.id} 
+                            attachment={attachment} 
+                          />
+                        ))}
+                      </div>
+                    )}
+                    
+                    <p className="text-xs mt-1 opacity-70">
+                      {formatTime(msg.timestamp)}
+                    </p>
+                  </div>
                   
-                  {/* Attachments */}
-                  {msg.attachment_data && msg.attachment_data.length > 0 && (
-                    <div className="mt-2 space-y-2">
-                      {msg.attachment_data.map((attachment) => (
-                        <MessageAttachment 
-                          key={attachment.id} 
-                          attachment={attachment} 
-                        />
-                      ))}
-                    </div>
-                  )}
-                  
-                  <p className="text-xs mt-1 opacity-70">
-                    {formatTime(msg.timestamp)}
-                  </p>
+                  {/* Message reactions */}
+                  <MessageReactions
+                    messageId={msg.id}
+                    reactions={msg.reactions || {}}
+                    currentUserId={currentUserId}
+                    onReact={onReactToMessage}
+                  />
                 </div>
                 {isCurrentUser && (
                   <Avatar className="h-8 w-8 ml-2 mt-1">

@@ -2,6 +2,17 @@
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
+
+interface Reaction {
+  emoji: string;
+  user_id: string;
+  created_at: string;
+}
+
+type MessageReactionsData = {
+  [emoji: string]: Reaction[];
+};
 
 interface ChatMessage {
   id: string;
@@ -11,6 +22,7 @@ interface ChatMessage {
   timestamp: string;
   read: boolean;
   attachment_data?: any;
+  reactions?: MessageReactionsData;
 }
 
 interface SendMessageParams {
@@ -76,6 +88,23 @@ export function useRealtimeChat(recipientId: string | null) {
           }
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'network_messages',
+          filter: `or(and(sender_id=eq.${user.id},receiver_id=eq.${recipientId}),and(sender_id=eq.${recipientId},receiver_id=eq.${user.id}))`
+        },
+        (payload) => {
+          const updatedMessage = payload.new as ChatMessage;
+          setMessages(prev => 
+            prev.map(msg => 
+              msg.id === updatedMessage.id ? updatedMessage : msg
+            )
+          );
+        }
+      )
       .subscribe();
 
     // Mark all unread messages as read when opening the chat
@@ -123,7 +152,8 @@ export function useRealtimeChat(recipientId: string | null) {
             content,
             timestamp: new Date().toISOString(),
             read: false,
-            attachment_data: attachment_data || null
+            attachment_data: attachment_data || null,
+            reactions: {}
           }
         ])
         .select();
@@ -137,5 +167,78 @@ export function useRealtimeChat(recipientId: string | null) {
     }
   };
 
-  return { messages, sendMessage, isLoading };
+  const reactToMessage = async (messageId: string, emoji: string) => {
+    if (!user) return;
+    
+    try {
+      // Find the message to update
+      const messageToUpdate = messages.find(msg => msg.id === messageId);
+      if (!messageToUpdate) return;
+      
+      // Create a copy of the reactions
+      const updatedReactions = { ...messageToUpdate.reactions } || {};
+      
+      // Check if user already reacted with this emoji
+      const hasUserReactedWithEmoji = updatedReactions[emoji]?.some(
+        reaction => reaction.user_id === user.id
+      );
+      
+      if (hasUserReactedWithEmoji) {
+        // Remove the reaction
+        updatedReactions[emoji] = updatedReactions[emoji].filter(
+          reaction => reaction.user_id !== user.id
+        );
+        
+        // Remove empty emoji arrays
+        if (updatedReactions[emoji].length === 0) {
+          delete updatedReactions[emoji];
+        }
+      } else {
+        // Remove user reaction from any other emoji
+        Object.keys(updatedReactions).forEach(existingEmoji => {
+          updatedReactions[existingEmoji] = updatedReactions[existingEmoji].filter(
+            reaction => reaction.user_id !== user.id
+          );
+          
+          if (updatedReactions[existingEmoji].length === 0) {
+            delete updatedReactions[existingEmoji];
+          }
+        });
+        
+        // Add the new reaction
+        if (!updatedReactions[emoji]) {
+          updatedReactions[emoji] = [];
+        }
+        
+        updatedReactions[emoji].push({
+          emoji,
+          user_id: user.id,
+          created_at: new Date().toISOString()
+        });
+      }
+      
+      // Update the message in the database
+      const { error } = await supabase
+        .from('network_messages')
+        .update({ reactions: updatedReactions })
+        .eq('id', messageId);
+        
+      if (error) throw error;
+      
+      // Update local state
+      setMessages(prev => 
+        prev.map(msg => 
+          msg.id === messageId 
+            ? { ...msg, reactions: updatedReactions } 
+            : msg
+        )
+      );
+      
+    } catch (error) {
+      console.error('Error updating message reaction:', error);
+      toast.error('Failed to update reaction');
+    }
+  };
+
+  return { messages, sendMessage, isLoading, reactToMessage };
 }
