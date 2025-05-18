@@ -1,10 +1,10 @@
 
 import { useState, useRef, useEffect } from "react";
-import { NetworkConnection, NetworkMessage } from "@/types/network";
+import { NetworkConnection } from "@/types/network";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, X, Paperclip, Image } from "lucide-react";
+import { Send, X, Paperclip } from "lucide-react";
 import { useRealtimeChat } from "@/hooks/useRealtimeChat";
 import { usePresenceStatus } from "@/hooks/usePresenceStatus";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,17 +20,16 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
   const messageEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   
+  // Use the corrected hook with proper recipient ID
   const { 
     messages, 
-    loading, 
-    error, 
-    isTyping, 
-    sendMessage,
-    updateTypingStatus 
-  } = useRealtimeChat({ connectionId: connection.id });
+    isLoading, 
+    sendMessage 
+  } = useRealtimeChat(connection.id);
   
-  const { getUserStatus } = usePresenceStatus();
+  const { getUserStatus, updateTypingStatus, isUserTypingTo } = usePresenceStatus();
   const connectionStatus = getUserStatus(connection.id);
+  const isRecipientTyping = user ? isUserTypingTo(connection.id, user.id) : false;
   
   // Auto-scroll to bottom when new messages come in
   useEffect(() => {
@@ -38,16 +37,20 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
   }, [messages]);
   
   const handleSendMessage = async () => {
-    if (message.trim() === "") return;
+    if (!message.trim() || !user) return;
     
     // Disable typing indicator
     updateTypingStatus(false);
     
-    // Send message
-    const sent = await sendMessage(message);
-    if (sent) {
+    // Send message with correct parameters
+    try {
+      await sendMessage({
+        content: message,
+        sender_id: user.id,
+        receiver_id: connection.id
+      });
       setMessage("");
-    } else {
+    } catch (error) {
       toast.error("Failed to send message");
     }
   };
@@ -63,16 +66,16 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
     setMessage(e.target.value);
     
     // Update typing status when the user starts typing
-    if (e.target.value.trim() !== '') {
-      updateTypingStatus(true);
+    if (e.target.value.trim() !== '' && user && connection.id) {
+      updateTypingStatus(true, connection.id);
     } else {
       updateTypingStatus(false);
     }
   };
   
   // Group messages by date
-  const groupMessagesByDate = (messages: NetworkMessage[]) => {
-    const groups: { [date: string]: NetworkMessage[] } = {};
+  const groupMessagesByDate = (messages: any[]) => {
+    const groups: { [date: string]: any[] } = {};
     
     messages.forEach(message => {
       const date = new Date(message.timestamp).toDateString();
@@ -147,13 +150,9 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
       
       {/* Chat messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {loading ? (
+        {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-muted-foreground">Loading messages...</p>
-          </div>
-        ) : error ? (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-red-500">Error loading messages. Please try again.</p>
           </div>
         ) : messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
@@ -169,7 +168,7 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
               </div>
               
               {dateMessages.map((msg) => {
-                const isCurrentUser = user && msg.senderId === user.id;
+                const isCurrentUser = user && msg.sender_id === user.id;
                 return (
                   <div 
                     key={msg.id} 
@@ -209,7 +208,7 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
             </div>
           ))
         )}
-        {isTyping && (
+        {isRecipientTyping && (
           <div className="flex justify-start mb-2">
             <div className="bg-muted rounded-lg px-4 py-2">
               <div className="flex space-x-1">
@@ -232,7 +231,7 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
             value={message}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            disabled={loading}
+            disabled={isLoading}
           />
           <div className="flex flex-col gap-2">
             <Button variant="ghost" size="icon" type="button" className="rounded-full">
@@ -243,7 +242,7 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
               size="icon" 
               onClick={handleSendMessage} 
               className="rounded-full"
-              disabled={loading || message.trim() === ''}
+              disabled={isLoading || message.trim() === ''}
             >
               <Send className="h-4 w-4" />
             </Button>
