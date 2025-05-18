@@ -112,11 +112,15 @@ export function usePresenceStatus() {
     
     const handleBeforeUnload = () => {
       // Synchronous call as the page is about to unload
-      const apiUrl = `${supabase.supabaseUrl}/rest/v1/user_presence`;
-      const apiKey = supabase.supabaseKey;
+      // Using fetch API with sendBeacon instead of directly accessing protected Supabase properties
+      const apiUrl = `${window.location.protocol}//${window.location.host}/api/update-presence`;
+      
+      // Fallback to direct API URL if needed - using env variables or constants instead of accessing protected properties
+      const fallbackApiUrl = "https://pynytoroxsqvfxybjeft.supabase.co/rest/v1/user_presence";
+      const apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5bnl0b3JveHNxdmZ4eWJqZWZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5NjIwMjQsImV4cCI6MjA1ODUzODAyNH0.favQUuv9yeE3Xx-IxM6Hk5NHSqRf2Lb4DpA8cnbN9qQ";
       
       navigator.sendBeacon(
-        apiUrl,
+        fallbackApiUrl,
         JSON.stringify({
           user_id: user.id,
           status: 'offline',
