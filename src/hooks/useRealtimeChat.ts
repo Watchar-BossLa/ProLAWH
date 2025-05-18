@@ -143,19 +143,19 @@ export function useRealtimeChat(recipientId: string | null) {
 
   const sendMessage = async ({ content, sender_id, receiver_id, attachment_data }: SendMessageParams) => {
     try {
+      const messageData = {
+        sender_id,
+        receiver_id,
+        content,
+        timestamp: new Date().toISOString(),
+        read: false,
+        attachment_data: attachment_data || null,
+        reactions: {}
+      };
+      
       const { data, error } = await supabase
         .from('network_messages')
-        .insert([
-          {
-            sender_id,
-            receiver_id,
-            content,
-            timestamp: new Date().toISOString(),
-            read: false,
-            attachment_data: attachment_data || null,
-            reactions: {}
-          }
-        ])
+        .insert([messageData])
         .select();
 
       if (error) throw error;
@@ -176,7 +176,7 @@ export function useRealtimeChat(recipientId: string | null) {
       if (!messageToUpdate) return;
       
       // Create a copy of the reactions
-      const updatedReactions = { ...messageToUpdate.reactions } || {};
+      const updatedReactions = { ...(messageToUpdate.reactions || {}) };
       
       // Check if user already reacted with this emoji
       const hasUserReactedWithEmoji = updatedReactions[emoji]?.some(
