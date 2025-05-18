@@ -13,20 +13,15 @@ interface SupabaseMessage {
   content: string;
   timestamp: string;
   read: boolean;
-  attachment_data?: {
-    items?: Array<{
-      id: string;
-      type: 'image' | 'document' | 'link';
-      url: string;
-      name: string;
-    }>;
-  } | null;
+  created_at: string;
+  attachment_data: any; // Using any here since the Json type from Supabase can vary
 }
 
 interface PresenceState {
   user_id: string;
   typing_to: string | null;
   last_active: string;
+  presence_ref?: string; // From the presenceState() return type
 }
 
 interface UseChatOptions {
@@ -77,7 +72,7 @@ export function useRealtimeChat({ connectionId }: UseChatOptions = {}) {
 
         if (error) throw error;
         
-        const formattedMessages: NetworkMessage[] = data.map((msg: SupabaseMessage) => ({
+        const formattedMessages: NetworkMessage[] = (data as SupabaseMessage[]).map((msg) => ({
           id: msg.id,
           senderId: msg.sender_id,
           receiverId: msg.receiver_id,
@@ -130,11 +125,14 @@ export function useRealtimeChat({ connectionId }: UseChatOptions = {}) {
         { event: 'sync' },
         () => {
           const state = channel.presenceState();
-          const typingUsers = Object.values(state).flat() as PresenceState[];
+          // Cast to unknown first as a safe type conversion practice
+          const typingUsers = Object.values(state).flat() as unknown as PresenceState[];
           
           // Find the connection user in the presence state
           const connectionPresence = typingUsers.find((presence) => 
-            presence.user_id === connectionId && presence.typing_to === user.id
+            presence && typeof presence === 'object' && 
+            'user_id' in presence && presence.user_id === connectionId && 
+            'typing_to' in presence && presence.typing_to === user.id
           );
           
           setIsTyping(!!connectionPresence);

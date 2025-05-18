@@ -11,9 +11,13 @@ interface PresenceState {
 }
 
 interface PresencePayload {
+  id: string;
   user_id: string;
-  status: PresenceStatus;
+  status: string;
   last_active: string;
+  typing_to: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export function usePresenceStatus() {
@@ -64,7 +68,7 @@ export function usePresenceStatus() {
           setUserStatuses(prev => ({
             ...prev,
             [newData.user_id]: {
-              status: newData.status,
+              status: newData.status as PresenceStatus,
               lastActive: newData.last_active
             }
           }));
