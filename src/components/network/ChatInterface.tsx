@@ -4,23 +4,35 @@ import { NetworkConnection } from "@/types/network";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, X, Paperclip } from "lucide-react";
+import { Send, X } from "lucide-react";
 import { useRealtimeChat } from "@/hooks/useRealtimeChat";
 import { usePresenceStatus } from "@/hooks/usePresenceStatus";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { FileUploadButton } from "./chat/FileUploadButton";
+import { MessageAttachment, AttachmentType } from "./chat/MessageAttachment";
+import { v4 as uuidv4 } from "uuid";
 
 interface ChatInterfaceProps {
   connection: NetworkConnection;
   onClose: () => void;
 }
 
+interface AttachmentData {
+  id: string;
+  type: AttachmentType;
+  url: string;
+  name: string;
+  size?: number;
+}
+
 export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
   const [message, setMessage] = useState("");
+  const [pendingAttachments, setPendingAttachments] = useState<AttachmentData[]>([]);
   const messageEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   
-  // Use the corrected hook with proper recipient ID
+  // Use the realtime chat hook with proper recipient ID
   const { 
     messages, 
     isLoading, 
@@ -37,19 +49,22 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
   }, [messages]);
   
   const handleSendMessage = async () => {
-    if (!message.trim() || !user) return;
+    if ((!message.trim() && pendingAttachments.length === 0) || !user) return;
     
     // Disable typing indicator
     updateTypingStatus(false);
     
-    // Send message with correct parameters
+    // Send message with correct parameters and any attachments
     try {
       await sendMessage({
         content: message,
         sender_id: user.id,
-        receiver_id: connection.id
+        receiver_id: connection.id,
+        attachment_data: pendingAttachments.length > 0 ? pendingAttachments : undefined
       });
+      
       setMessage("");
+      setPendingAttachments([]);
     } catch (error) {
       toast.error("Failed to send message");
     }
@@ -71,6 +86,20 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
     } else {
       updateTypingStatus(false);
     }
+  };
+  
+  const handleFileUploaded = (fileData: {
+    id: string;
+    type: AttachmentType;
+    url: string;
+    name: string;
+    size: number;
+  }) => {
+    setPendingAttachments(prev => [...prev, fileData]);
+  };
+  
+  const removePendingAttachment = (id: string) => {
+    setPendingAttachments(prev => prev.filter(attachment => attachment.id !== id));
   };
   
   // Group messages by date
@@ -192,7 +221,23 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
                           : "bg-muted"
                       }`}
                     >
-                      <p className="text-sm break-words whitespace-pre-wrap">{msg.content}</p>
+                      {/* Message content */}
+                      {msg.content && (
+                        <p className="text-sm break-words whitespace-pre-wrap">{msg.content}</p>
+                      )}
+                      
+                      {/* Attachments */}
+                      {msg.attachment_data && msg.attachment_data.length > 0 && (
+                        <div className="mt-2 space-y-2">
+                          {msg.attachment_data.map((attachment: AttachmentData) => (
+                            <MessageAttachment 
+                              key={attachment.id} 
+                              attachment={attachment} 
+                            />
+                          ))}
+                        </div>
+                      )}
+                      
                       <p className="text-xs mt-1 opacity-70">
                         {formatTime(msg.timestamp)}
                       </p>
@@ -222,6 +267,28 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
         <div ref={messageEndRef} />
       </div>
       
+      {/* Pending attachments */}
+      {pendingAttachments.length > 0 && (
+        <div className="border-t px-3 py-2 flex flex-wrap gap-2 bg-muted/20">
+          {pendingAttachments.map((attachment) => (
+            <div 
+              key={attachment.id}
+              className="flex items-center bg-muted rounded-full pl-2 pr-1 py-0.5 text-xs"
+            >
+              <span className="truncate max-w-[150px] mr-1">{attachment.name}</span>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-5 w-5" 
+                onClick={() => removePendingAttachment(attachment.id)}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+      
       {/* Message input */}
       <div className="border-t p-3 bg-muted/20">
         <div className="flex items-end gap-2">
@@ -234,15 +301,16 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
             disabled={isLoading}
           />
           <div className="flex flex-col gap-2">
-            <Button variant="ghost" size="icon" type="button" className="rounded-full">
-              <Paperclip className="h-4 w-4" />
-            </Button>
+            <FileUploadButton 
+              onFileUploaded={handleFileUploaded}
+              disabled={isLoading}
+            />
             <Button 
               variant="default" 
               size="icon" 
               onClick={handleSendMessage} 
               className="rounded-full"
-              disabled={isLoading || message.trim() === ''}
+              disabled={isLoading || (message.trim() === '' && pendingAttachments.length === 0)}
             >
               <Send className="h-4 w-4" />
             </Button>
