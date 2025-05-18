@@ -8,6 +8,8 @@ type PresenceStatus = 'online' | 'away' | 'offline';
 interface PresenceState {
   status: PresenceStatus;
   lastActive?: string;
+  isTyping?: boolean;
+  typingTo?: string | null;
 }
 
 interface PresencePayload {
@@ -41,6 +43,23 @@ export function usePresenceStatus() {
     }
   };
 
+  // Update typing status
+  const updateTypingStatus = async (isTyping: boolean, recipientId: string | null = null) => {
+    if (!user) return;
+    
+    try {
+      await supabase
+        .from('user_presence')
+        .upsert({
+          user_id: user.id,
+          typing_to: isTyping ? recipientId : null,
+          last_active: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+    } catch (error) {
+      console.error('Error updating typing status:', error);
+    }
+  };
+
   useEffect(() => {
     if (!user) return;
 
@@ -69,7 +88,9 @@ export function usePresenceStatus() {
             ...prev,
             [newData.user_id]: {
               status: newData.status as PresenceStatus,
-              lastActive: newData.last_active
+              lastActive: newData.last_active,
+              isTyping: !!newData.typing_to,
+              typingTo: newData.typing_to
             }
           }));
         }
@@ -89,7 +110,9 @@ export function usePresenceStatus() {
         data.forEach((presence: PresencePayload) => {
           statuses[presence.user_id] = {
             status: presence.status as PresenceStatus,
-            lastActive: presence.last_active
+            lastActive: presence.last_active,
+            isTyping: !!presence.typing_to,
+            typingTo: presence.typing_to
           };
         });
         
@@ -146,9 +169,17 @@ export function usePresenceStatus() {
     return userStatuses[userId] || { status: 'offline' };
   };
   
+  // Check if user is typing to a specific recipient
+  const isUserTypingTo = (userId: string, recipientId: string): boolean => {
+    const status = userStatuses[userId];
+    return !!status?.isTyping && status.typingTo === recipientId;
+  };
+  
   return { 
     userStatuses, 
     getUserStatus,
-    updateStatus
+    updateStatus,
+    updateTypingStatus,
+    isUserTypingTo
   };
 }
