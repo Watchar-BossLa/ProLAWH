@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/hooks/useAuth';
@@ -149,8 +148,7 @@ export function useRealtimeChat(recipientId: string | null) {
         content,
         timestamp: new Date().toISOString(),
         read: false,
-        attachment_data: attachment_data || null,
-        reactions: {}
+        attachment_data: attachment_data || null
       };
       
       const { data, error } = await supabase
