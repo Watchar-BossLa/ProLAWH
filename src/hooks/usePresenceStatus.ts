@@ -112,7 +112,8 @@ export function usePresenceStatus() {
     
     const handleBeforeUnload = () => {
       // Synchronous call as the page is about to unload
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/user_presence`;
+      const apiUrl = `${supabase.supabaseUrl}/rest/v1/user_presence`;
+      const apiKey = supabase.supabaseKey;
       
       navigator.sendBeacon(
         apiUrl,

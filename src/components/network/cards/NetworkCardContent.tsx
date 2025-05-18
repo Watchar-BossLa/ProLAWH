@@ -7,6 +7,7 @@ import { NetworkConnectionStrength } from "./NetworkConnectionStrength";
 import { NetworkCardActions } from "./NetworkCardActions";
 import { NetworkCardMentorship } from "./NetworkCardMentorship";
 import { NetworkCardIndustry } from "./NetworkCardIndustry";
+import { NetworkConnectionStatus } from "./NetworkConnectionStatus";
 
 interface NetworkCardContentProps {
   connection: NetworkConnection;
@@ -25,11 +26,14 @@ export function NetworkCardContent({
 }: NetworkCardContentProps) {
   return (
     <CardContent className="grid gap-2">
-      <div className="text-sm">
-        <span className="font-medium">Connection:</span>{" "}
-        <Badge variant="outline" className="capitalize">
-          {connection.connectionType}
-        </Badge>
+      <div className="flex items-center justify-between">
+        <div className="text-sm">
+          <span className="font-medium">Connection:</span>{" "}
+          <Badge variant="outline" className="capitalize">
+            {connection.connectionType}
+          </Badge>
+        </div>
+        <NetworkConnectionStatus userId={connection.id} />
       </div>
       
       <NetworkCardIndustry industry={connection.industry} careerPath={connection.careerPath} />
