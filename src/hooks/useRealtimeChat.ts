@@ -232,11 +232,11 @@ export function useRealtimeChat(recipientId: string | null) {
         });
       }
       
-      // Update the message in the database - fix for the TypeScript error
+      // Update the message in the database
       const { error } = await supabase
         .from('network_messages')
         .update({ 
-          reactions: updatedReactions as any  // Type assertion to fix build error
+          reactions: updatedReactions  
         })
         .eq('id', messageId);
         
