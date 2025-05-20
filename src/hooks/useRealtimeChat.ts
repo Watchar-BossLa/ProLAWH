@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { Json } from '@/integrations/supabase/types';
 
 interface Reaction {
   emoji: string;
@@ -13,6 +14,19 @@ interface Reaction {
 type MessageReactionsData = {
   [emoji: string]: Reaction[];
 };
+
+// Extend the DatabaseMessage type to match what's in our Supabase schema
+interface DatabaseMessage {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  content: string;
+  timestamp: string;
+  read: boolean;
+  attachment_data?: Json;
+  reactions?: MessageReactionsData;
+  created_at?: string;
+}
 
 interface ChatMessage {
   id: string;
@@ -236,8 +250,8 @@ export function useRealtimeChat(recipientId: string | null) {
       const { error } = await supabase
         .from('network_messages')
         .update({ 
-          reactions: updatedReactions  
-        })
+          reactions: updatedReactions
+        } as DatabaseMessage)
         .eq('id', messageId);
         
       if (error) throw error;
