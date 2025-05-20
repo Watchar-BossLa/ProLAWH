@@ -22,17 +22,20 @@ interface MessageListProps {
   isGeneratingTopics: boolean;
   useSuggestedTopic: (topic: string) => void;
   isSearchActive?: boolean;
+  searchQuery?: string;
 }
 
-// Helper function to highlight search terms
+// Helper function to highlight search terms with improved accuracy
 function highlightSearchTerm(text: string, searchTerm: string): React.ReactNode {
-  if (!searchTerm) return text;
+  if (!searchTerm || searchTerm.trim() === '') return text;
   
-  const parts = text.split(new RegExp(`(${searchTerm})`, 'gi'));
+  const escapedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${escapedSearchTerm})`, 'gi');
+  const parts = text.split(regex);
   
   return parts.map((part, index) => 
     part.toLowerCase() === searchTerm.toLowerCase() 
-      ? <mark key={index} className="bg-yellow-200 dark:bg-yellow-800">{part}</mark> 
+      ? <mark key={index} className="bg-yellow-200 dark:bg-yellow-800/70 px-0.5 rounded-sm">{part}</mark> 
       : part
   );
 }
@@ -46,7 +49,8 @@ export function SmartMessageList({
   suggestedTopics,
   isGeneratingTopics,
   useSuggestedTopic,
-  isSearchActive
+  isSearchActive,
+  searchQuery = ""
 }: MessageListProps) {
   // Group messages by date
   const groupedMessages: { [date: string]: Message[] } = {};
@@ -64,6 +68,11 @@ export function SmartMessageList({
         <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
           <SearchX className="h-12 w-12 mb-2 opacity-50" />
           <p>No messages found</p>
+          {searchQuery && (
+            <p className="text-sm mt-1">
+              No results for <span className="font-medium">"{searchQuery}"</span>
+            </p>
+          )}
         </div>
       )}
       
@@ -99,8 +108,8 @@ export function SmartMessageList({
                 }`}
               >
                 <p className="break-words">
-                  {isSearchActive 
-                    ? highlightSearchTerm(message.content, window.location.search.replace('?q=', '')) 
+                  {isSearchActive && searchQuery 
+                    ? highlightSearchTerm(message.content, searchQuery) 
                     : message.content}
                 </p>
                 <p className={`text-xs mt-1 ${

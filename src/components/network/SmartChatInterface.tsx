@@ -55,6 +55,7 @@ export function SmartChatInterface({ connection, onClose }: SmartChatInterfacePr
           isGeneratingTopics={isGeneratingTopics}
           useSuggestedTopic={useSuggestedTopic}
           isSearchActive={!!searchQuery}
+          searchQuery={searchQuery}
         />
 
         <SmartMessageInput
