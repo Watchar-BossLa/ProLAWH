@@ -88,7 +88,7 @@ export function NetworkChatDialog({ activeChatId, activeChatConnection, onClose 
   // Handler for message reactions
   const handleReactToMessage = (messageId: string, emoji: string) => {
     if (user) {
-      reactToMessage(messageId, emoji, user.id);
+      reactToMessage(messageId, emoji);
     }
   };
 
