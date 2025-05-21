@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { TypingIndicator } from "./TypingIndicator";
 import { NetworkConnectionStatus } from "../cards/NetworkConnectionStatus";
 import { useRealtimeChat } from '@/hooks/useRealtimeChat';
+import { MessageReactions } from './MessageReactions';
 
 interface NetworkChatDialogProps {
   activeChatId: string | null;
@@ -25,7 +26,7 @@ export function NetworkChatDialog({ activeChatId, activeChatConnection, onClose 
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   
   // Use the real-time chat hook
-  const { messages, sendMessage, isLoading } = useRealtimeChat(
+  const { messages, sendMessage, isLoading, reactToMessage } = useRealtimeChat(
     activeChatId ? activeChatId : null
   );
 
@@ -84,6 +85,13 @@ export function NetworkChatDialog({ activeChatId, activeChatConnection, onClose 
     }
   };
 
+  // Handler for message reactions
+  const handleReactToMessage = (messageId: string, emoji: string) => {
+    if (user) {
+      reactToMessage(messageId, emoji, user.id);
+    }
+  };
+
   if (!activeChatId || !activeChatConnection) return null;
 
   const isRecipientTyping = user ? isUserTypingTo(activeChatId, user.id) : false;
@@ -121,7 +129,7 @@ export function NetworkChatDialog({ activeChatId, activeChatConnection, onClose 
             messages.map((msg) => (
               <div 
                 key={msg.id} 
-                className={`flex ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
+                className={`flex flex-col ${msg.sender_id === user?.id ? 'items-end' : 'items-start'}`}
               >
                 <div 
                   className={`p-3 rounded-lg max-w-[80%] break-words ${
@@ -132,6 +140,14 @@ export function NetworkChatDialog({ activeChatId, activeChatConnection, onClose 
                 >
                   {msg.content}
                 </div>
+                
+                {/* Add message reactions */}
+                <MessageReactions
+                  messageId={msg.id}
+                  reactions={msg.reactions || {}}
+                  currentUserId={user?.id}
+                  onReact={handleReactToMessage}
+                />
               </div>
             ))
           )}
