@@ -11,7 +11,8 @@ export function useSendMessage() {
         content,
         timestamp: new Date().toISOString(),
         read: false,
-        attachment_data: attachment_data || null
+        attachment_data: attachment_data || null,
+        reactions: {}
       };
       
       const { data, error } = await supabase
@@ -21,7 +22,13 @@ export function useSendMessage() {
 
       if (error) throw error;
 
-      return data[0] as ChatMessage;
+      // Ensure we properly type the response
+      const chatMessage: ChatMessage = {
+        ...data[0],
+        reactions: data[0].reactions || {}
+      };
+
+      return chatMessage;
     } catch (error) {
       console.error('Error sending message:', error);
       return null;

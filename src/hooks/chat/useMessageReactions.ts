@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from 'sonner';
-import { ChatMessage, MessageReactionsData, DatabaseMessage } from '@/types/chat';
+import { ChatMessage, MessageReactionsData } from '@/types/chat';
 
 export function useMessageReactions(messages: ChatMessage[], setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>) {
   const reactToMessage = async (messageId: string, emoji: string, userId: string) => {
@@ -59,8 +59,8 @@ export function useMessageReactions(messages: ChatMessage[], setMessages: React.
       const { error } = await supabase
         .from('network_messages')
         .update({ 
-          reactions: updatedReactions
-        } as DatabaseMessage)
+          reactions: updatedReactions 
+        })
         .eq('id', messageId);
         
       if (error) throw error;
