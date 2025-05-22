@@ -1,4 +1,3 @@
-// Keep existing imports at the top
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './components/theme-provider';
