@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { ChatMessage, DatabaseMessage, MessageReactionsData } from '@/types/chat';
+import { ChatMessage, DatabaseMessage } from '@/types/chat';
 
 export function useMessageFetching(recipientId: string | null, userId: string | null) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -27,18 +27,7 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
 
         if (error) throw error;
 
-        // Convert the database messages to ChatMessage format
-        const chatMessages = data.map(msg => {
-          // Ensure reactions is properly typed as MessageReactionsData
-          const reactions = (msg.reactions as any) || {} as MessageReactionsData;
-          
-          return {
-            ...msg,
-            reactions
-          } as ChatMessage;
-        });
-
-        setMessages(chatMessages);
+        setMessages(data as ChatMessage[]);
         setIsLoading(false);
       } catch (error) {
         console.error('Error fetching messages:', error);
@@ -60,13 +49,7 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
           filter: `or(and(sender_id=eq.${userId},receiver_id=eq.${recipientId}),and(sender_id=eq.${recipientId},receiver_id=eq.${userId}))`
         },
         (payload) => {
-          const newMsg = payload.new;
-          // Ensure reactions is properly typed
-          const newMessage = {
-            ...newMsg,
-            reactions: (newMsg.reactions as any) || {} as MessageReactionsData
-          } as ChatMessage;
-          
+          const newMessage = payload.new as ChatMessage;
           setMessages(prev => [...prev, newMessage]);
           
           // Mark message as read if it's incoming
@@ -84,13 +67,7 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
           filter: `or(and(sender_id=eq.${userId},receiver_id=eq.${recipientId}),and(sender_id=eq.${recipientId},receiver_id=eq.${userId}))`
         },
         (payload) => {
-          const updatedMsg = payload.new;
-          // Ensure reactions is properly typed
-          const updatedMessage = {
-            ...updatedMsg,
-            reactions: (updatedMsg.reactions as any) || {} as MessageReactionsData
-          } as ChatMessage;
-          
+          const updatedMessage = payload.new as ChatMessage;
           setMessages(prev => 
             prev.map(msg => 
               msg.id === updatedMessage.id ? updatedMessage : msg

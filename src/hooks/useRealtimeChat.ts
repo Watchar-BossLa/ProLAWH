@@ -42,9 +42,10 @@ export function useRealtimeChat(recipientId: string | null) {
     sendMessage, 
     isLoading, 
     reactToMessage: handleReactToMessage, 
-    searchQuery,
     searchMessages,
-    clearSearch,
-    hasSearchResults
+    searchQuery,
+    setSearchQuery: searchMessages,
+    hasSearchResults,
+    clearSearch
   };
 }

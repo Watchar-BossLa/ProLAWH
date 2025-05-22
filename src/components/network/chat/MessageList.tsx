@@ -4,14 +4,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MessageAttachment, AttachmentType } from "./MessageAttachment";
 import { MessageReactions, MessageReactionsData } from "./MessageReactions";
 
-interface MessageAttachmentData {
-  id: string;
-  type: AttachmentType;
-  url: string;
-  name: string;
-  size?: number;
-}
-
 interface Message {
   id: string;
   sender_id: string;
@@ -19,7 +11,13 @@ interface Message {
   content: string;
   timestamp: string;
   read: boolean;
-  attachment_data?: MessageAttachmentData[];
+  attachment_data?: {
+    id: string;
+    type: AttachmentType;
+    url: string;
+    name: string;
+    size?: number;
+  }[];
   reactions?: MessageReactionsData;
 }
 
@@ -31,8 +29,6 @@ interface MessageListProps {
   isLoading: boolean;
   isTyping: boolean;
   onReactToMessage: (messageId: string, emoji: string) => void;
-  messagesEndRef: React.RefObject<HTMLDivElement>;
-  searchQuery?: string;
 }
 
 export function MessageList({ 
@@ -42,10 +38,14 @@ export function MessageList({
   connectionAvatar,
   isLoading,
   isTyping,
-  onReactToMessage,
-  messagesEndRef,
-  searchQuery = ""
+  onReactToMessage
 }: MessageListProps) {
+  const messageEndRef = useRef<HTMLDivElement>(null);
+  
+  // Auto-scroll to bottom when new messages come in
+  useEffect(() => {
+    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
   
   // Group messages by date
   const groupMessagesByDate = (messages: Message[]) => {
@@ -81,28 +81,6 @@ export function MessageList({
   
   const formatTime = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
-  // Function to highlight search terms in text
-  const highlightSearchTerms = (text: string, searchTerm: string) => {
-    if (!searchTerm || searchTerm.trim() === '') {
-      return text;
-    }
-    
-    // Split the text by the search term to create an array of parts
-    const parts = text.split(new RegExp(`(${searchTerm})`, 'gi'));
-    
-    return (
-      <>
-        {parts.map((part, index) => 
-          part.toLowerCase() === searchTerm.toLowerCase() ? (
-            <mark key={index} className="bg-yellow-200 dark:bg-yellow-700 px-0.5 rounded">{part}</mark>
-          ) : (
-            part
-          )
-        )}
-      </>
-    );
   };
   
   if (isLoading) {
@@ -158,11 +136,9 @@ export function MessageList({
                         : "bg-muted"
                     }`}
                   >
-                    {/* Message content with search highlighting */}
+                    {/* Message content */}
                     {msg.content && (
-                      <p className="text-sm break-words whitespace-pre-wrap">
-                        {searchQuery ? highlightSearchTerms(msg.content, searchQuery) : msg.content}
-                      </p>
+                      <p className="text-sm break-words whitespace-pre-wrap">{msg.content}</p>
                     )}
                     
                     {/* Attachments */}
@@ -213,7 +189,7 @@ export function MessageList({
         </div>
       )}
       
-      <div ref={messagesEndRef} />
+      <div ref={messageEndRef} />
     </div>
   );
 }

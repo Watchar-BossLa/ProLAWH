@@ -30,20 +30,20 @@ export function useChatHandlers({
 }: ChatHandlersProps) {
   
   const handleSendMessage = async (messageText: string, attachments: AttachmentData[], recipientId?: string) => {
-    if ((!messageText.trim() && attachments.length === 0) || !user || !recipientId) return;
+    if ((!messageText.trim() && attachments.length === 0) || !user) return;
     
     // Disable typing indicator
     updateTypingStatus(false);
     
+    // Send message with correct parameters and any attachments
     try {
       await sendMessage({
         content: messageText,
         sender_id: user.id,
-        receiver_id: recipientId,
+        receiver_id: recipientId || '',
         attachment_data: attachments.length > 0 ? attachments : undefined
       });
     } catch (error) {
-      console.error("Error sending message:", error);
       toast.error("Failed to send message");
     }
   };

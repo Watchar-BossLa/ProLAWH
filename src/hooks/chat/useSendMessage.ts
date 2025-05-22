@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { ChatMessage, SendMessageParams, MessageReactionsData } from '@/types/chat';
+import { ChatMessage, SendMessageParams } from '@/types/chat';
 
 export function useSendMessage() {
   const sendMessage = async ({ content, sender_id, receiver_id, attachment_data }: SendMessageParams) => {
@@ -11,8 +11,7 @@ export function useSendMessage() {
         content,
         timestamp: new Date().toISOString(),
         read: false,
-        attachment_data: attachment_data || null,
-        reactions: {} // Empty object for reactions initially
+        attachment_data: attachment_data || null
       };
       
       const { data, error } = await supabase
@@ -22,13 +21,7 @@ export function useSendMessage() {
 
       if (error) throw error;
 
-      // Ensure we properly type the response
-      const chatMessage: ChatMessage = {
-        ...data[0],
-        reactions: (data[0].reactions as any) || {} as MessageReactionsData
-      };
-
-      return chatMessage;
+      return data[0] as ChatMessage;
     } catch (error) {
       console.error('Error sending message:', error);
       return null;

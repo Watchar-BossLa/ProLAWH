@@ -1,5 +1,5 @@
 
-import React, { useRef } from "react";
+import React from "react";
 import { NetworkConnection } from "@/types/network";
 import { useRealtimeChat } from "@/hooks/useRealtimeChat";
 import { usePresenceStatus } from "@/hooks/usePresenceStatus";
@@ -8,7 +8,6 @@ import { ChatHeader } from "./chat/ChatHeader";
 import { MessageList } from "./chat/MessageList";
 import { MessageInput } from "./chat/MessageInput";
 import { useChatHandlers } from "@/hooks/useChatHandlers";
-import { SearchInput } from "./chat/SearchInput";
 
 interface ChatInterfaceProps {
   connection: NetworkConnection;
@@ -17,17 +16,12 @@ interface ChatInterfaceProps {
 
 export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
   const { user } = useAuth();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const { 
     messages, 
     isLoading, 
     sendMessage,
-    reactToMessage,
-    searchQuery,
-    searchMessages,
-    clearSearch,
-    hasSearchResults
+    reactToMessage
   } = useRealtimeChat(connection.id);
   
   const { updateTypingStatus, isUserTypingTo } = usePresenceStatus();
@@ -54,14 +48,7 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
   
   return (
     <div className="flex flex-col h-[600px] border rounded-lg bg-card overflow-hidden">
-      <ChatHeader 
-        connection={connection} 
-        onClose={onClose} 
-        searchQuery={searchQuery}
-        onSearch={searchMessages}
-        clearSearch={clearSearch}
-        hasSearchResults={hasSearchResults}
-      />
+      <ChatHeader connection={connection} onClose={onClose} />
       
       <MessageList
         messages={messages}
@@ -71,8 +58,6 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
         isLoading={isLoading}
         isTyping={isRecipientTyping}
         onReactToMessage={handleReactToMessage}
-        messagesEndRef={messagesEndRef}
-        searchQuery={searchQuery}
       />
       
       <MessageInput

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from 'sonner';
-import { ChatMessage, MessageReactionsData, Reaction } from '@/types/chat';
+import { ChatMessage, MessageReactionsData, DatabaseMessage } from '@/types/chat';
 
 export function useMessageReactions(messages: ChatMessage[], setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>) {
   const reactToMessage = async (messageId: string, emoji: string, userId: string) => {
@@ -14,7 +14,7 @@ export function useMessageReactions(messages: ChatMessage[], setMessages: React.
       if (!messageToUpdate) return;
       
       // Create a copy of the reactions
-      const updatedReactions: MessageReactionsData = { ...(messageToUpdate.reactions || {}) };
+      const updatedReactions = { ...(messageToUpdate.reactions || {}) };
       
       // Check if user already reacted with this emoji
       const hasUserReactedWithEmoji = updatedReactions[emoji]?.some(
@@ -56,12 +56,11 @@ export function useMessageReactions(messages: ChatMessage[], setMessages: React.
       }
       
       // Update the message in the database
-      // Cast the updatedReactions to Json since Supabase expects that type
       const { error } = await supabase
         .from('network_messages')
         .update({ 
-          reactions: updatedReactions as any
-        })
+          reactions: updatedReactions
+        } as DatabaseMessage)
         .eq('id', messageId);
         
       if (error) throw error;
