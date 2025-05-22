@@ -56,10 +56,11 @@ export function useMessageReactions(messages: ChatMessage[], setMessages: React.
       }
       
       // Update the message in the database
+      // Cast the updatedReactions to Json since Supabase expects that type
       const { error } = await supabase
         .from('network_messages')
         .update({ 
-          reactions: updatedReactions 
+          reactions: updatedReactions as any
         })
         .eq('id', messageId);
         

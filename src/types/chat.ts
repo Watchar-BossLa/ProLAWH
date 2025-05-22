@@ -20,7 +20,7 @@ export interface DatabaseMessage {
   timestamp: string;
   read: boolean;
   attachment_data?: Json;
-  reactions?: MessageReactionsData;
+  reactions?: Json;
   created_at?: string;
 }
 
@@ -33,7 +33,7 @@ export interface ChatMessage {
   timestamp: string;
   read: boolean;
   attachment_data?: any;
-  reactions?: MessageReactionsData;
+  reactions: MessageReactionsData;
 }
 
 export interface SendMessageParams {

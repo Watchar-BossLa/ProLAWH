@@ -144,7 +144,7 @@ export function NetworkChatDialog({ activeChatId, activeChatConnection, onClose 
                 {/* Add message reactions */}
                 <MessageReactions
                   messageId={msg.id}
-                  reactions={msg.reactions || {}}
+                  reactions={msg.reactions}
                   currentUserId={user?.id}
                   onReact={handleReactToMessage}
                 />

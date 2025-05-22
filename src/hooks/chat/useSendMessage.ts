@@ -25,7 +25,7 @@ export function useSendMessage() {
       // Ensure we properly type the response
       const chatMessage: ChatMessage = {
         ...data[0],
-        reactions: data[0].reactions || {}
+        reactions: (data[0].reactions as any) || {}
       };
 
       return chatMessage;
