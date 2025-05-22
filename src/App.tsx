@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from './components/theme-provider';
+import { ThemeProvider } from './components/theme/theme-provider';
 import { AuthProvider } from './contexts/AuthContext';
 import { Toaster } from 'sonner';
 import { useInitSupabase } from './hooks/useInitSupabase';
@@ -9,12 +10,12 @@ import { useInitSupabase } from './hooks/useInitSupabase';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
-import DashboardLayout from './layouts/DashboardLayout';
+import { DashboardLayout } from './components/dashboard/DashboardLayout';
 import ProfilePage from './pages/dashboard/ProfilePage';
 import SettingsPage from './pages/dashboard/SettingsPage';
 import NetworkDashboard from './pages/dashboard/NetworkDashboard';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import NotFoundPage from './pages/NotFoundPage';
+import NotFoundPage from './pages/NotFound';
 
 function App() {
   // Initialize Supabase resources
