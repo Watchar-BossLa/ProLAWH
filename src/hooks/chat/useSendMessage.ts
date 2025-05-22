@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { ChatMessage, SendMessageParams } from '@/types/chat';
+import { ChatMessage, SendMessageParams, MessageReactionsData } from '@/types/chat';
 
 export function useSendMessage() {
   const sendMessage = async ({ content, sender_id, receiver_id, attachment_data }: SendMessageParams) => {
