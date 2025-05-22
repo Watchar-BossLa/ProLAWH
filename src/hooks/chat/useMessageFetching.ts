@@ -29,8 +29,8 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
 
         // Convert the database messages to ChatMessage format
         const chatMessages = data.map(msg => {
-          // Ensure reactions is properly typed
-          const reactions = (msg.reactions as any) || {};
+          // Ensure reactions is properly typed as MessageReactionsData
+          const reactions = (msg.reactions as any) || {} as MessageReactionsData;
           
           return {
             ...msg,
@@ -64,7 +64,7 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
           // Ensure reactions is properly typed
           const newMessage = {
             ...newMsg,
-            reactions: (newMsg.reactions as any) || {}
+            reactions: (newMsg.reactions as any) || {} as MessageReactionsData
           } as ChatMessage;
           
           setMessages(prev => [...prev, newMessage]);
@@ -88,7 +88,7 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
           // Ensure reactions is properly typed
           const updatedMessage = {
             ...updatedMsg,
-            reactions: (updatedMsg.reactions as any) || {}
+            reactions: (updatedMsg.reactions as any) || {} as MessageReactionsData
           } as ChatMessage;
           
           setMessages(prev => 

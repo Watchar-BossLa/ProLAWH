@@ -12,7 +12,7 @@ export function useSendMessage() {
         timestamp: new Date().toISOString(),
         read: false,
         attachment_data: attachment_data || null,
-        reactions: {}
+        reactions: {} // Empty object for reactions initially
       };
       
       const { data, error } = await supabase
@@ -25,7 +25,7 @@ export function useSendMessage() {
       // Ensure we properly type the response
       const chatMessage: ChatMessage = {
         ...data[0],
-        reactions: (data[0].reactions as any) || {}
+        reactions: (data[0].reactions as any) || {} as MessageReactionsData
       };
 
       return chatMessage;

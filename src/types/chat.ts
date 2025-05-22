@@ -7,6 +7,7 @@ export interface Reaction {
   created_at: string;
 }
 
+// Type for our frontend representation of reactions
 export type MessageReactionsData = {
   [emoji: string]: Reaction[];
 };
@@ -20,7 +21,7 @@ export interface DatabaseMessage {
   timestamp: string;
   read: boolean;
   attachment_data?: Json;
-  reactions?: Json;
+  reactions?: Json; // This needs to be Json for Supabase compatibility
   created_at?: string;
 }
 
@@ -33,7 +34,7 @@ export interface ChatMessage {
   timestamp: string;
   read: boolean;
   attachment_data?: any;
-  reactions: MessageReactionsData;
+  reactions: MessageReactionsData; // We ensure this is always the correct type in our app
 }
 
 export interface SendMessageParams {
