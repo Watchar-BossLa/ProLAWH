@@ -14,6 +14,7 @@ import { DashboardLayout } from './components/dashboard/DashboardLayout';
 import ProfilePage from './pages/dashboard/ProfilePage';
 import SettingsPage from './pages/dashboard/SettingsPage';
 import NetworkDashboard from './pages/dashboard/NetworkDashboard';
+import QuorumForgeDashboard from './pages/dashboard/QuorumForgeDashboard';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import NotFoundPage from './pages/NotFound';
 
@@ -39,6 +40,7 @@ function App() {
               <Route path="profile" element={<ProfilePage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="network" element={<NetworkDashboard />} />
+              <Route path="quorumforge" element={<QuorumForgeDashboard />} />
             </Route>
             
             <Route path="*" element={<NotFoundPage />} />
