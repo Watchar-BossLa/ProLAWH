@@ -7,75 +7,263 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Enhanced recommendations with more specific career guidance
+// Enhanced recommendation engines with more specific and detailed career guidance data
 const skillGapRecommendations = [
   {
-    recommendation: "Based on industry trends, developing Rust programming skills would strengthen your backend expertise. This could increase your job opportunities by 24% over the next 6 months, particularly in high-performance systems.",
+    recommendation: "Consider learning Rust programming to expand your backend expertise. Companies like Dropbox and Cloudflare are actively hiring Rust developers, with a salary premium of 15-20% over similar roles.",
     relevance_score: 0.92,
-    skills: ["Rust", "Systems Programming", "Performance Optimization"]
+    skills: ["Rust", "Systems Programming", "Performance Optimization"],
+    resources: [
+      { type: "course", name: "Rust Fundamentals", url: "https://www.rust-lang.org/learn" },
+      { type: "community", name: "Rust Programming Forum", url: "https://users.rust-lang.org/" }
+    ]
   },
   {
-    recommendation: "Your profile shows strong potential for enhancing your cloud architecture skills. Focus on AWS Solution Architect certification to increase your market value by approximately 15-20%.",
+    recommendation: "Developing expertise in green energy infrastructure software would significantly boost your marketability in renewable sectors. Solar and wind energy companies are seeking developers with both technical and domain knowledge.",
     relevance_score: 0.89,
-    skills: ["AWS", "Cloud Architecture", "Infrastructure as Code"]
+    skills: ["Renewable Energy", "Green Infrastructure", "Sustainability Software"],
+    resources: [
+      { type: "certification", name: "Renewable Energy Software Development", url: "https://www.example.org/cert" },
+      { type: "project", name: "Open Source Energy Management Systems", url: "https://github.com/topics/energy-management" }
+    ]
   },
   {
-    recommendation: "There's a growing demand for developers with AI/ML integration experience. Consider focusing on TensorFlow or PyTorch to complement your existing skills. AI skills command a 26% premium in the job market.",
-    relevance_score: 0.87,
-    skills: ["TensorFlow", "PyTorch", "Machine Learning"]
-  },
-  {
-    recommendation: "Kubernetes expertise would significantly enhance your DevOps capabilities. Companies are increasingly seeking professionals who can manage container orchestration efficiently.",
+    recommendation: "Adding data visualization skills with D3.js would complement your current stack and open opportunities in climate analytics and environmental reporting platforms.",
     relevance_score: 0.85,
-    skills: ["Kubernetes", "Container Orchestration", "DevOps"]
+    skills: ["D3.js", "Data Visualization", "Environmental Analytics"],
+    resources: [
+      { type: "tutorial", name: "D3.js for Environmental Data", url: "https://observablehq.com/@d3/gallery" },
+      { type: "tool", name: "Environmental Data Visualization Toolkit", url: "https://www.example.com/toolkit" }
+    ]
+  },
+  {
+    recommendation: "Cloud carbon footprint optimization is an emerging skill highly valued by companies committed to sustainability goals. Learning tools like Cloud Carbon Footprint would position you as a specialist in this niche.",
+    relevance_score: 0.83,
+    skills: ["Cloud Sustainability", "Carbon Footprint Reduction", "Green Computing"],
+    resources: [
+      { type: "guide", name: "Cloud Carbon Footprint Implementation", url: "https://www.cloudcarbonfootprint.org/docs/getting-started" },
+      { type: "community", name: "Green Software Foundation", url: "https://greensoftware.foundation/" }
+    ]
   }
 ];
 
 const jobMatchRecommendations = [
   {
-    recommendation: "Your profile shows a strong match (88%) for Senior Backend Developer positions at fintech companies. Consider applying to Stripe, Square, or similar companies focused on payment systems and financial technology.",
+    recommendation: "Your profile shows strong alignment with Sustainability Solution Architect roles. Companies like Salesforce, Microsoft, and Google have created these positions to build their environmental impact platforms.",
     relevance_score: 0.91,
-    skills: ["API Development", "Payment Systems", "Financial Technology"]
+    skills: ["Cloud Architecture", "Sustainability Systems", "Enterprise Solutions"],
+    resources: [
+      { type: "job_board", name: "Climate Tech Careers", url: "https://climatebase.org/" },
+      { type: "networking", name: "Climate Action Tech Community", url: "https://climateaction.tech/" }
+    ]
   },
   {
-    recommendation: "There's high demand for Green Technology Engineers with your skill profile. Companies like Tesla, Sunrun, and Bloom Energy are actively recruiting for sustainability-focused development roles.",
+    recommendation: "Consider roles in Carbon Accounting Software Development. These positions combine software engineering with environmental impact measurement and are growing at 35% annually.",
     relevance_score: 0.88,
-    skills: ["Green Technology", "Sustainable Engineering", "Energy Systems"]
+    skills: ["Carbon Accounting", "Emissions Tracking", "Environmental Reporting"],
+    resources: [
+      { type: "course", name: "Carbon Accounting Fundamentals", url: "https://www.example.edu/carbon-accounting" },
+      { type: "tool", name: "Greenhouse Gas Protocol Tools", url: "https://ghgprotocol.org/calculation-tools" }
+    ]
   },
   {
-    recommendation: "Your skills match well with Tech Lead positions at healthcare startups. Consider exploring opportunities at digital health companies focused on patient care and medical data systems.",
-    relevance_score: 0.86,
-    skills: ["Healthcare Technology", "Data Privacy", "HIPAA Compliance"]
+    recommendation: "Circular Economy Software Engineer positions are emerging in manufacturing and supply chain companies. Your background would be valuable for companies reimagining product lifecycles and waste reduction.",
+    relevance_score: 0.87,
+    skills: ["Circular Economy", "Supply Chain Optimization", "Waste Reduction Systems"],
+    resources: [
+      { type: "report", name: "Circular Economy Tech Opportunities", url: "https://www.example.org/circular-tech" },
+      { type: "community", name: "Circular Economy Developers", url: "https://www.example.net/circular-devs" }
+    ]
   },
   {
-    recommendation: "With your background, transitioning to Blockchain Development roles would be strategic. Web3 companies are seeking developers with distributed systems experience to build the next generation of decentralized applications.",
+    recommendation: "Green FinTech is rapidly expanding, with roles for developers who can build sustainable investment platforms, carbon credit marketplaces, and climate risk assessment tools.",
     relevance_score: 0.84,
-    skills: ["Blockchain", "Smart Contracts", "Web3"]
+    skills: ["FinTech", "Sustainable Finance", "Carbon Markets"],
+    resources: [
+      { type: "conference", name: "Green FinTech Summit", url: "https://www.example.com/green-fintech" },
+      { type: "newsletter", name: "Sustainable FinTech Weekly", url: "https://www.example.org/sustainable-fintech-news" }
+    ]
   }
 ];
 
 const mentorshipRecommendations = [
   {
-    recommendation: "You would benefit from connecting with mentors who have experience transitioning from backend to full-stack development. This matches your career trajectory and would provide valuable guidance on expanding your technical scope.",
-    relevance_score: 0.90,
-    skills: ["Full-Stack Development", "Career Transition", "Technical Leadership"]
+    recommendation: "Connecting with a mentor specializing in Climate Tech Entrepreneurship would be valuable for your career trajectory. Look for professionals who have founded or scaled sustainability-focused startups.",
+    relevance_score: 0.94,
+    skills: ["Climate Tech", "Entrepreneurship", "Startup Growth"],
+    resources: [
+      { type: "platform", name: "Climate Tech Mentorship Network", url: "https://www.example.org/climate-mentors" },
+      { type: "event", name: "Sustainability Founders Meetup", url: "https://www.example.com/eco-founders" }
+    ]
   },
   {
-    recommendation: "Based on your interests in sustainability, connecting with a Green Tech mentor would help you align your technical skills with environmental impact objectives. This could open new career paths in climate tech.",
-    relevance_score: 0.87,
-    skills: ["Green Tech", "Sustainability", "Environmental Impact"]
+    recommendation: "A mentor with experience in both technology leadership and environmental science would help bridge the knowledge gap between technical implementation and sustainability impact.",
+    relevance_score: 0.89,
+    skills: ["Technical Leadership", "Environmental Science", "Impact Assessment"],
+    resources: [
+      { type: "directory", name: "Tech for Planet Mentors", url: "https://www.example.net/tech-planet-mentors" },
+      { type: "program", name: "Green Tech Leadership Mentorship", url: "https://www.example.edu/green-tech-mentors" }
+    ]
   },
   {
-    recommendation: "Your career would benefit from mentorship with an experienced Engineering Manager who could guide your progression toward technical leadership roles and help develop your team management skills.",
-    relevance_score: 0.86,
-    skills: ["Engineering Management", "Team Leadership", "Career Growth"]
-  },
-  {
-    recommendation: "A mentor with startup experience would be valuable for your profile, especially someone who has navigated the transition from large tech companies to early-stage environments.",
+    recommendation: "Seek mentorship from professionals in Carbon Removal Technology. This rapidly evolving field combines software engineering with climate science and would complement your current skill set.",
     relevance_score: 0.85,
-    skills: ["Startup Environment", "Entrepreneurship", "Scaling Teams"]
+    skills: ["Carbon Removal", "Climate Technology", "Environmental Engineering"],
+    resources: [
+      { type: "network", name: "Carbon Tech Connect", url: "https://www.example.org/carbon-connect" },
+      { type: "fellowship", name: "Climate Solutions Fellowship", url: "https://www.example.com/climate-fellows" }
+    ]
+  },
+  {
+    recommendation: "A mentor who specializes in ESG (Environmental, Social, Governance) Data Systems would provide valuable insights into how technology is reshaping corporate sustainability reporting and compliance.",
+    relevance_score: 0.83,
+    skills: ["ESG Reporting", "Sustainability Metrics", "Compliance Systems"],
+    resources: [
+      { type: "association", name: "ESG Technology Alliance", url: "https://www.example.net/esg-tech" },
+      { type: "webinar", name: "ESG Data Systems Masterclass", url: "https://www.example.edu/esg-data-webinar" }
+    ]
   }
 ];
+
+async function generateRecommendation(supabase, user) {
+  try {
+    // Get user's existing recommendations to avoid duplication and balance types
+    const { data: existingRecs, error: recsError } = await supabase
+      .from('career_recommendations')
+      .select('type, recommendation')
+      .eq('user_id', user.id);
+    
+    if (recsError) throw recsError;
+    
+    // Count existing recommendation types to balance the distribution
+    const typeCounts = {
+      skill_gap: 0,
+      job_match: 0,
+      mentor_suggest: 0
+    };
+    
+    existingRecs?.forEach((rec) => {
+      if (rec.type in typeCounts) {
+        typeCounts[rec.type]++;
+      }
+    });
+    
+    // Determine which type to generate based on current distribution
+    // Prioritize types with fewer existing recommendations
+    const totalRecs = Object.values(typeCounts).reduce((sum, count) => sum + count, 0);
+    const typeWeights = {
+      skill_gap: 1 - (typeCounts.skill_gap / (totalRecs + 1) || 0),
+      job_match: 1 - (typeCounts.job_match / (totalRecs + 1) || 0),
+      mentor_suggest: 1 - (typeCounts.mentor_suggest / (totalRecs + 1) || 0)
+    };
+    
+    // Normalize weights
+    const totalWeight = Object.values(typeWeights).reduce((sum, weight) => sum + weight, 0);
+    Object.keys(typeWeights).forEach(key => {
+      typeWeights[key] = typeWeights[key] / totalWeight;
+    });
+    
+    // Random selection based on weights
+    let selectedType;
+    const random = Math.random();
+    let cumulativeWeight = 0;
+    
+    for (const [type, weight] of Object.entries(typeWeights)) {
+      cumulativeWeight += weight;
+      if (random <= cumulativeWeight) {
+        selectedType = type;
+        break;
+      }
+    }
+    
+    // Select recommendation source based on type
+    let recommendationSource;
+    switch (selectedType) {
+      case 'skill_gap':
+        recommendationSource = skillGapRecommendations;
+        break;
+      case 'job_match':
+        recommendationSource = jobMatchRecommendations;
+        break;
+      case 'mentor_suggest':
+        recommendationSource = mentorshipRecommendations;
+        break;
+      default:
+        recommendationSource = skillGapRecommendations;
+    }
+    
+    // Try to find a recommendation that doesn't already exist
+    const existingTexts = new Set(existingRecs?.map(rec => rec.recommendation) || []);
+    let recommendation = null;
+    
+    // First try to find a non-duplicate
+    const uniqueRecs = recommendationSource.filter(rec => !existingTexts.has(rec.recommendation));
+    
+    if (uniqueRecs.length > 0) {
+      // If we have unique recommendations available, select one randomly
+      recommendation = uniqueRecs[Math.floor(Math.random() * uniqueRecs.length)];
+    } else {
+      // If all have been used, select any but add a prefix to make it unique
+      recommendation = {...recommendationSource[Math.floor(Math.random() * recommendationSource.length)]};
+      const prefixes = [
+        "Our latest analysis shows that ",
+        "Recent industry trends indicate that ",
+        "Based on your updated profile, ",
+        "New data suggests that "
+      ];
+      const selectedPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+      recommendation.recommendation = selectedPrefix + recommendation.recommendation.toLowerCase();
+    }
+    
+    // Get user's green skills to personalize the recommendation if available
+    const { data: userSkills, error: skillsError } = await supabase
+      .from('user_green_skills')
+      .select('green_skills!inner(name, category)')
+      .eq('user_id', user.id)
+      .limit(5);
+    
+    // If we have user skills, try to personalize the recommendation slightly
+    if (!skillsError && userSkills?.length > 0) {
+      // We could use this data to further personalize recommendations
+      // For now, just logging it for demonstration
+      console.log("User has skills in:", userSkills.map(s => s.green_skills.name).join(", "));
+    }
+    
+    // Create the recommendation record
+    const { data: newRec, error: createError } = await supabase
+      .from('career_recommendations')
+      .insert({
+        user_id: user.id,
+        type: selectedType,
+        recommendation: recommendation.recommendation,
+        skills: recommendation.skills || [],
+        resources: recommendation.resources || [],
+        relevance_score: recommendation.relevance_score || 0.8,
+        status: 'pending'
+      })
+      .select()
+      .single();
+    
+    if (createError) throw createError;
+    
+    // Log the activity
+    await supabase
+      .from('user_activity_logs')
+      .insert({
+        user_id: user.id,
+        activity_type: 'career_twin_recommendation_generated',
+        metadata: { 
+          recommendation_type: selectedType,
+          recommendation_id: newRec.id 
+        }
+      });
+    
+    return newRec;
+  } catch (error) {
+    console.error("Error generating recommendation:", error);
+    throw error;
+  }
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -84,6 +272,7 @@ serve(async (req) => {
   }
 
   try {
+    // Initialize Supabase client with the user's session token
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -100,103 +289,14 @@ serve(async (req) => {
     if (userError || !user) {
       throw new Error(userError?.message || 'Authentication required');
     }
-
-    // Get user's skills to make recommendations more relevant
-    const { data: userSkills, error: skillsError } = await supabaseClient
-      .from('user_green_skills')
-      .select('*')
-      .eq('user_id', user.id);
-
-    // Get existing recommendations to avoid duplicates
-    const { data: existingRecs, error: recsError } = await supabaseClient
-      .from('career_recommendations')
-      .select('recommendation')
-      .eq('user_id', user.id);
-
-    // Choose recommendation type randomly but weighted toward areas with fewer recommendations
-    const existingTypes = existingRecs 
-      ? existingRecs.reduce((counts: Record<string, number>, rec: any) => {
-          const type = rec.type || '';
-          counts[type] = (counts[type] || 0) + 1;
-          return counts;
-        }, {})
-      : {};
     
-    const skillGapCount = existingTypes['skill_gap'] || 0;
-    const jobMatchCount = existingTypes['job_match'] || 0;
-    const mentorSuggestCount = existingTypes['mentor_suggest'] || 0;
-    
-    // Weight inversely to current counts (more recommendations of types that have fewer)
-    const totalWeight = 3 + jobMatchCount + skillGapCount + mentorSuggestCount;
-    const skillGapWeight = (jobMatchCount + mentorSuggestCount) / totalWeight;
-    const jobMatchWeight = (skillGapCount + mentorSuggestCount) / totalWeight;
-    const mentorSuggestWeight = (skillGapCount + jobMatchCount) / totalWeight;
-    
-    // Choose type based on weighted random selection
-    const randomValue = Math.random();
-    let recommendationType: string;
-    let recommendation: any;
-    
-    if (randomValue < skillGapWeight) {
-      recommendationType = 'skill_gap';
-      recommendation = skillGapRecommendations[Math.floor(Math.random() * skillGapRecommendations.length)];
-    } else if (randomValue < skillGapWeight + jobMatchWeight) {
-      recommendationType = 'job_match';
-      recommendation = jobMatchRecommendations[Math.floor(Math.random() * jobMatchRecommendations.length)];
-    } else {
-      recommendationType = 'mentor_suggest';
-      recommendation = mentorshipRecommendations[Math.floor(Math.random() * mentorshipRecommendations.length)];
-    }
+    // Generate a personalized recommendation
+    const recommendation = await generateRecommendation(supabaseClient, user);
 
-    // Check if this exact recommendation already exists
-    const isDuplicate = existingRecs?.some(
-      (rec: any) => rec.recommendation === recommendation.recommendation
-    );
-    
-    // If duplicate, try to find another one or modify slightly
-    if (isDuplicate) {
-      // Simple modification - add a prefix to make it unique
-      const prefixes = [
-        "Our latest analysis suggests that ",
-        "Based on recent market trends, ",
-        "According to updated career data, "
-      ];
-      const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-      recommendation.recommendation = prefix + recommendation.recommendation.toLowerCase();
-    }
-
-    // Insert the recommendation
-    const { data, error } = await supabaseClient
-      .from('career_recommendations')
-      .insert({
-        user_id: user.id,
-        type: recommendationType,
-        recommendation: recommendation.recommendation,
-        relevance_score: recommendation.relevance_score,
-        skills: recommendation.skills,
-        status: 'pending'
-      })
-      .select();
-
-    if (error) throw error;
-
-    // Log user activity
-    await supabaseClient
-      .from('user_activity_logs')
-      .insert({
-        user_id: user.id,
-        activity_type: 'career_twin_recommendation_generated',
-        metadata: { 
-          recommendation_type: recommendationType,
-          recommendation_id: data[0].id
-        }
-      });
-
-    // Return the newly created recommendation
     return new Response(
       JSON.stringify({ 
         success: true, 
-        data: data[0],
+        data: recommendation,
         message: "New career recommendation generated successfully" 
       }),
       {
