@@ -8,6 +8,7 @@ import { CareerInsightCards } from "@/components/career/dashboard/CareerInsightC
 import { RecentCareerInsights } from "@/components/career/dashboard/RecentCareerInsights";
 import { RecommendationsTabContent } from "@/components/career/dashboard/RecommendationsTabContent";
 import { ImplementationPlansTab } from "@/components/career/dashboard/ImplementationPlansTab";
+import { CareerVisualizationDashboard } from "@/components/career/visualization/CareerVisualizationDashboard";
 
 export default function CareerTwinPage() {
   const [activeTab, setActiveTab] = useState("insights");
@@ -73,6 +74,7 @@ export default function CareerTwinPage() {
         <TabsList>
           <TabsTrigger value="insights">Insights</TabsTrigger>
           <TabsTrigger value="recommendations">Recommendations ({recommendations?.length || 0})</TabsTrigger>
+          <TabsTrigger value="visualization">Visualization</TabsTrigger>
           <TabsTrigger value="implementation">Implementation Plans</TabsTrigger>
         </TabsList>
         
@@ -98,6 +100,10 @@ export default function CareerTwinPage() {
             onGenerateRecommendation={handleGenerateRecommendation}
             isGenerating={generateRecommendation.isPending}
           />
+        </TabsContent>
+        
+        <TabsContent value="visualization">
+          <CareerVisualizationDashboard />
         </TabsContent>
         
         <TabsContent value="implementation" className="space-y-4">
