@@ -36,7 +36,7 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
           timestamp: msg.timestamp,
           read: msg.read,
           attachment_data: msg.attachment_data,
-          reactions: msg.reactions as ChatMessage['reactions']
+          reactions: msg.reactions as ChatMessage['reactions'] || {}
         }));
 
         setMessages(chatMessages);
@@ -61,7 +61,18 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
           filter: `or(and(sender_id=eq.${userId},receiver_id=eq.${recipientId}),and(sender_id=eq.${recipientId},receiver_id=eq.${userId}))`
         },
         (payload) => {
-          const newMessage = payload.new as ChatMessage;
+          const newMsg = payload.new as DatabaseMessage;
+          const newMessage: ChatMessage = {
+            id: newMsg.id,
+            sender_id: newMsg.sender_id,
+            receiver_id: newMsg.receiver_id,
+            content: newMsg.content,
+            timestamp: newMsg.timestamp,
+            read: newMsg.read,
+            attachment_data: newMsg.attachment_data,
+            reactions: newMsg.reactions as ChatMessage['reactions'] || {}
+          };
+          
           setMessages(prev => [...prev, newMessage]);
           
           // Mark message as read if it's incoming
@@ -79,7 +90,18 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
           filter: `or(and(sender_id=eq.${userId},receiver_id=eq.${recipientId}),and(sender_id=eq.${recipientId},receiver_id=eq.${userId}))`
         },
         (payload) => {
-          const updatedMessage = payload.new as ChatMessage;
+          const updatedMsg = payload.new as DatabaseMessage;
+          const updatedMessage: ChatMessage = {
+            id: updatedMsg.id,
+            sender_id: updatedMsg.sender_id,
+            receiver_id: updatedMsg.receiver_id,
+            content: updatedMsg.content,
+            timestamp: updatedMsg.timestamp,
+            read: updatedMsg.read,
+            attachment_data: updatedMsg.attachment_data,
+            reactions: updatedMsg.reactions as ChatMessage['reactions'] || {}
+          };
+          
           setMessages(prev => 
             prev.map(msg => 
               msg.id === updatedMessage.id ? updatedMessage : msg

@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { ChatMessage, SendMessageParams } from '@/types/chat';
+import { ChatMessage, SendMessageParams, DatabaseMessage } from '@/types/chat';
 
 export function useSendMessage() {
   const sendMessage = async ({ content, sender_id, receiver_id, attachment_data }: SendMessageParams) => {
@@ -21,16 +21,21 @@ export function useSendMessage() {
 
       if (error) throw error;
 
+      if (!data || data.length === 0) {
+        throw new Error('No data returned from message insert');
+      }
+
       // Convert the database response to ChatMessage type
+      const dbMessage = data[0] as DatabaseMessage;
       const chatMessage: ChatMessage = {
-        id: data[0].id,
-        sender_id: data[0].sender_id,
-        receiver_id: data[0].receiver_id,
-        content: data[0].content,
-        timestamp: data[0].timestamp,
-        read: data[0].read,
-        attachment_data: data[0].attachment_data,
-        reactions: data[0].reactions as ChatMessage['reactions']
+        id: dbMessage.id,
+        sender_id: dbMessage.sender_id,
+        receiver_id: dbMessage.receiver_id,
+        content: dbMessage.content,
+        timestamp: dbMessage.timestamp,
+        read: dbMessage.read,
+        attachment_data: dbMessage.attachment_data,
+        reactions: dbMessage.reactions as ChatMessage['reactions'] || {}
       };
 
       return chatMessage;

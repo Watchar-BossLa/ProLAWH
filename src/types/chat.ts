@@ -1,17 +1,17 @@
 
-import { Json } from '@/integrations/supabase/types';
-
+// Define the shape of a reaction
 export interface Reaction {
   emoji: string;
   user_id: string;
   created_at: string;
 }
 
-export type MessageReactionsData = {
+// Map of emoji to array of reactions
+export interface MessageReactionsData {
   [emoji: string]: Reaction[];
-};
+}
 
-// Database representation of a message
+// Message as stored in the database
 export interface DatabaseMessage {
   id: string;
   sender_id: string;
@@ -19,12 +19,12 @@ export interface DatabaseMessage {
   content: string;
   timestamp: string;
   read: boolean;
-  attachment_data?: Json;
-  reactions?: MessageReactionsData;
+  attachment_data: any;
+  reactions: any;
   created_at?: string;
 }
 
-// Frontend representation of a message
+// Message as used in the frontend
 export interface ChatMessage {
   id: string;
   sender_id: string;
@@ -33,7 +33,7 @@ export interface ChatMessage {
   timestamp: string;
   read: boolean;
   attachment_data?: any;
-  reactions?: MessageReactionsData;
+  reactions: MessageReactionsData;
 }
 
 export interface SendMessageParams {

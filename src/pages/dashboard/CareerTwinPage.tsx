@@ -1,56 +1,55 @@
 
-import { useEffect } from "react";
-import { useCareerTwin, CareerRecommendation } from "@/hooks/useCareerTwin";
-import { CareerTwinRecommendationCard } from "@/components/career/CareerTwinRecommendationCard";
+import { useState } from "react";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "@/hooks/use-toast";
-import { Brain, Lightbulb, BarChart2, PlusCircle } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { pageTransitions } from "@/lib/transitions";
-import { CareerTwinInsightsDashboard } from "@/components/career/CareerTwinInsightsDashboard";
-import { useAuth } from "@/hooks/useAuth";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Brain, RefreshCw, ChevronRight } from "lucide-react";
+import { CareerTwinRecommendationCard } from "@/components/career/CareerTwinRecommendationCard";
+import { useCareerTwin } from "@/hooks/useCareerTwin";
+import { toast } from "sonner";
 
 export default function CareerTwinPage() {
-  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState("insights");
   const { 
     recommendations, 
     isLoading, 
-    error,
-    refetch,
-    generateRecommendation,
+    generateRecommendation, 
     updateRecommendation,
     createImplementationPlan,
     trackActivity
   } = useCareerTwin();
-
-  useEffect(() => {
-    if (user) {
-      // Track page view when component mounts
-      trackActivity("page_view");
-    }
-  }, [user]);
-
-  const handleGenerate = async () => {
-    try {
-      await generateRecommendation.mutateAsync();
-      trackActivity("generate_recommendation");
-    } catch (error: any) {
-      // Error handling is done in the hook
-    }
-  };
-
-  const handleStatusUpdate = async (id: string, status: CareerRecommendation["status"]) => {
+  
+  // Filter recommendations by status
+  const pendingRecommendations = recommendations?.filter(rec => rec.status === 'pending') || [];
+  const acceptedRecommendations = recommendations?.filter(rec => rec.status === 'accepted') || [];
+  const implementedRecommendations = recommendations?.filter(rec => rec.status === 'implemented') || [];
+  
+  const handleStatusUpdate = async (id: string, status: string) => {
     try {
       await updateRecommendation.mutateAsync({ id, status });
-      trackActivity("update_status", { recommendation_id: id, new_status: status });
-    } catch (error: any) {
-      // Error handling is done in the hook
+      trackActivity('status_update', { recommendation_id: id, new_status: status });
+    } catch (error) {
+      console.error('Failed to update recommendation status:', error);
     }
   };
-
-  const handleCreatePlan = async (recommendationId: string, data: any) => {
+  
+  const handleCreatePlan = async (
+    recommendationId: string, 
+    data: { title: string; description: string; steps: string[] }
+  ) => {
     try {
       await createImplementationPlan.mutateAsync({
         recommendationId,
@@ -58,202 +57,279 @@ export default function CareerTwinPage() {
         description: data.description,
         steps: data.steps
       });
-      trackActivity("create_plan", { recommendation_id: recommendationId });
-    } catch (error: any) {
-      // Error handling is done in the hook
+      trackActivity('implementation_plan_created', { recommendation_id: recommendationId });
+    } catch (error) {
+      console.error('Failed to create implementation plan:', error);
+    }
+  };
+  
+  const handleGenerateRecommendation = async () => {
+    try {
+      await generateRecommendation.mutateAsync();
+      toast.success("New career recommendation generated!");
+      trackActivity('manual_generation');
+    } catch (error) {
+      toast.error("Failed to generate recommendation. Please try again.");
+      console.error('Failed to generate recommendation:', error);
     }
   };
 
-  // Group recommendations by type
-  const skillGapRecs = recommendations?.filter(r => r.type === 'skill_gap') || [];
-  const jobMatchRecs = recommendations?.filter(r => r.type === 'job_match') || [];
-  const mentorRecs = recommendations?.filter(r => r.type === 'mentor_suggest') || [];
-  
-  if (error) {
-    return (
-      <div className="container mx-auto p-6">
-        <Alert variant="destructive">
-          <AlertTitle>Error Loading Career Twin</AlertTitle>
-          <AlertDescription>{(error as Error).message}</AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
   return (
-    <div className={`container mx-auto p-6 space-y-8 ${pageTransitions.initial}`}>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <Brain className="h-8 w-8 text-primary" />
-          <div>
-            <h1 className="text-3xl font-bold">AI Career Twin</h1>
-            <p className="text-muted-foreground">
-              Personalized career guidance based on your skills and interests
-            </p>
-          </div>
+    <div className="space-y-8">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">AI Career Twin</h1>
+          <p className="text-muted-foreground">
+            Your personalized AI assistant for career guidance, skill development, 
+            and professional growth in the green economy.
+          </p>
         </div>
         
         <Button 
-          onClick={handleGenerate}
+          onClick={handleGenerateRecommendation}
           disabled={generateRecommendation.isPending}
-          className="md:w-auto w-full"
         >
           {generateRecommendation.isPending ? (
-            <>
-              <Skeleton className="h-4 w-4 mr-2 rounded-full animate-spin" />
-              Generating...
-            </>
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
           ) : (
-            <>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Generate New Insight
-            </>
+            <Brain className="h-4 w-4 mr-2" />
           )}
+          Generate New Recommendation
         </Button>
       </div>
       
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="mb-6">
-          <TabsTrigger value="all">All Insights</TabsTrigger>
-          <TabsTrigger value="skills" className="flex items-center gap-1">
-            <GraduationCap className="h-4 w-4" />
-            Skills
-            {skillGapRecs.length > 0 && <span className="ml-1 bg-primary/10 text-xs px-1.5 rounded-full">{skillGapRecs.length}</span>}
-          </TabsTrigger>
-          <TabsTrigger value="jobs" className="flex items-center gap-1">
-            <Briefcase className="h-4 w-4" />
-            Jobs
-            {jobMatchRecs.length > 0 && <span className="ml-1 bg-primary/10 text-xs px-1.5 rounded-full">{jobMatchRecs.length}</span>}
-          </TabsTrigger>
-          <TabsTrigger value="mentors" className="flex items-center gap-1">
-            <Users className="h-4 w-4" />
-            Mentors
-            {mentorRecs.length > 0 && <span className="ml-1 bg-primary/10 text-xs px-1.5 rounded-full">{mentorRecs.length}</span>}
-          </TabsTrigger>
-          <TabsTrigger value="insights">
-            <BarChart2 className="h-4 w-4 mr-1" />
-            Dashboard
-          </TabsTrigger>
+      <Tabs defaultValue="insights" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="insights">Insights</TabsTrigger>
+          <TabsTrigger value="recommendations">Recommendations ({recommendations?.length || 0})</TabsTrigger>
+          <TabsTrigger value="implementation">Implementation Plans</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="all">
-          {isLoading ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="p-6 rounded-lg border">
-                  <div className="flex justify-between items-start mb-4">
-                    <Skeleton className="h-6 w-32" />
-                    <Skeleton className="h-5 w-16" />
-                  </div>
-                  <Skeleton className="h-4 w-full mb-2" />
-                  <Skeleton className="h-4 w-3/4 mb-6" />
-                  <div className="flex justify-end gap-2">
-                    <Skeleton className="h-8 w-20" />
-                    <Skeleton className="h-8 w-20" />
-                  </div>
+        <TabsContent value="insights" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-xl">Skill Gap Analysis</CardTitle>
+                <CardDescription>
+                  Identify missing skills for your career advancement
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pb-3">
+                <p className="text-sm text-muted-foreground">
+                  Our AI analyzes your current skills against in-demand market requirements, 
+                  identifying gaps and recommending personalized learning paths.
+                </p>
+              </CardContent>
+              <CardFooter>
+                <Button variant="ghost" size="sm" className="w-full" onClick={() => setActiveTab("recommendations")}>
+                  View Analysis
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </CardFooter>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-xl">Job Match Finder</CardTitle>
+                <CardDescription>
+                  Discover green economy roles aligned with your profile
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pb-3">
+                <p className="text-sm text-muted-foreground">
+                  Find career opportunities in sustainable industries that match your 
+                  skills, experience, and personal interests.
+                </p>
+              </CardContent>
+              <CardFooter>
+                <Button variant="ghost" size="sm" className="w-full" onClick={() => setActiveTab("recommendations")}>
+                  Explore Matches
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </CardFooter>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-xl">Mentorship Suggestions</CardTitle>
+                <CardDescription>
+                  Connect with experts aligned to your career goals
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pb-3">
+                <p className="text-sm text-muted-foreground">
+                  Get recommendations for mentors with expertise in your target sectors,
+                  helping accelerate your professional development.
+                </p>
+              </CardContent>
+              <CardFooter>
+                <Button variant="ghost" size="sm" className="w-full" onClick={() => setActiveTab("recommendations")}>
+                  Find Mentors
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Career Insights</CardTitle>
+              <CardDescription>
+                AI-generated recommendations based on your profile and market trends
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="flex items-center justify-center py-10">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
-              ))}
-            </div>
-          ) : recommendations?.length === 0 ? (
-            <div className="text-center py-12 border rounded-lg">
-              <Lightbulb className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Recommendations Yet</h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Click the "Generate New Insight" button to receive personalized career recommendations
-                based on your skill profile.
-              </p>
-              <Button onClick={handleGenerate}>Generate First Insight</Button>
-            </div>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 animate-in fade-in-50 duration-500">
-              {recommendations?.map((recommendation) => (
-                <CareerTwinRecommendationCard
-                  key={recommendation.id}
-                  recommendation={recommendation}
-                  onStatusUpdate={handleStatusUpdate}
-                  onCreatePlan={handleCreatePlan}
-                />
-              ))}
-            </div>
-          )}
+              ) : recommendations && recommendations.length > 0 ? (
+                <div className="space-y-4">
+                  {recommendations.slice(0, 3).map(recommendation => (
+                    <CareerTwinRecommendationCard
+                      key={recommendation.id}
+                      recommendation={recommendation}
+                      onStatusUpdate={handleStatusUpdate}
+                      onCreatePlan={handleCreatePlan}
+                    />
+                  ))}
+                  
+                  {recommendations.length > 3 && (
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => setActiveTab("recommendations")}
+                    >
+                      View All Recommendations ({recommendations.length})
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <Alert>
+                  <AlertDescription>
+                    No career recommendations found. Generate your first recommendation to get started.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
         
-        <TabsContent value="skills">
-          <div className="grid gap-4 md:grid-cols-2">
-            {skillGapRecs.length === 0 ? (
-              <div className="text-center py-8 border rounded-lg col-span-2">
-                <GraduationCap className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                <h3 className="font-medium mb-1">No Skill Recommendations</h3>
-                <p className="text-muted-foreground text-sm">
-                  Generate new insights to receive skill development recommendations
-                </p>
+        <TabsContent value="recommendations" className="space-y-6">
+          {/* Pending Recommendations */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Pending Recommendations</h3>
+              <div className="text-sm text-muted-foreground">{pendingRecommendations.length} items</div>
+            </div>
+            
+            {pendingRecommendations.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {pendingRecommendations.map(recommendation => (
+                  <CareerTwinRecommendationCard
+                    key={recommendation.id}
+                    recommendation={recommendation}
+                    onStatusUpdate={handleStatusUpdate}
+                    onCreatePlan={handleCreatePlan}
+                  />
+                ))}
               </div>
             ) : (
-              skillGapRecs.map((recommendation) => (
-                <CareerTwinRecommendationCard
-                  key={recommendation.id}
-                  recommendation={recommendation}
-                  onStatusUpdate={handleStatusUpdate}
-                  onCreatePlan={handleCreatePlan}
-                />
-              ))
+              <Alert>
+                <AlertDescription>
+                  No pending recommendations. All recommendations have been reviewed.
+                </AlertDescription>
+              </Alert>
             )}
+          </div>
+          
+          {/* Accepted Recommendations */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Accepted Recommendations</h3>
+              <div className="text-sm text-muted-foreground">{acceptedRecommendations.length} items</div>
+            </div>
+            
+            {acceptedRecommendations.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {acceptedRecommendations.map(recommendation => (
+                  <CareerTwinRecommendationCard
+                    key={recommendation.id}
+                    recommendation={recommendation}
+                    onStatusUpdate={handleStatusUpdate}
+                    onCreatePlan={handleCreatePlan}
+                  />
+                ))}
+              </div>
+            ) : (
+              <Alert>
+                <AlertDescription>
+                  No accepted recommendations yet. Review your pending recommendations.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+          
+          {/* Implemented Recommendations */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Implemented Recommendations</h3>
+              <div className="text-sm text-muted-foreground">{implementedRecommendations.length} items</div>
+            </div>
+            
+            {implementedRecommendations.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {implementedRecommendations.map(recommendation => (
+                  <CareerTwinRecommendationCard
+                    key={recommendation.id}
+                    recommendation={recommendation}
+                    onStatusUpdate={handleStatusUpdate}
+                  />
+                ))}
+              </div>
+            ) : (
+              <Alert>
+                <AlertDescription>
+                  No implemented recommendations. Mark recommendations as implemented when completed.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+          
+          <div className="flex justify-center pt-4">
+            <Button 
+              onClick={handleGenerateRecommendation}
+              disabled={generateRecommendation.isPending}
+              className="flex items-center"
+            >
+              {generateRecommendation.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-2" />
+              )}
+              Generate New Recommendation
+            </Button>
           </div>
         </TabsContent>
         
-        <TabsContent value="jobs">
-          <div className="grid gap-4 md:grid-cols-2">
-            {jobMatchRecs.length === 0 ? (
-              <div className="text-center py-8 border rounded-lg col-span-2">
-                <Briefcase className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                <h3 className="font-medium mb-1">No Job Match Recommendations</h3>
-                <p className="text-muted-foreground text-sm">
-                  Generate new insights to receive job opportunity matches
-                </p>
-              </div>
-            ) : (
-              jobMatchRecs.map((recommendation) => (
-                <CareerTwinRecommendationCard
-                  key={recommendation.id}
-                  recommendation={recommendation}
-                  onStatusUpdate={handleStatusUpdate}
-                  onCreatePlan={handleCreatePlan}
-                />
-              ))
-            )}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="mentors">
-          <div className="grid gap-4 md:grid-cols-2">
-            {mentorRecs.length === 0 ? (
-              <div className="text-center py-8 border rounded-lg col-span-2">
-                <Users className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                <h3 className="font-medium mb-1">No Mentorship Recommendations</h3>
-                <p className="text-muted-foreground text-sm">
-                  Generate new insights to receive mentorship suggestions
-                </p>
-              </div>
-            ) : (
-              mentorRecs.map((recommendation) => (
-                <CareerTwinRecommendationCard
-                  key={recommendation.id}
-                  recommendation={recommendation}
-                  onStatusUpdate={handleStatusUpdate}
-                  onCreatePlan={handleCreatePlan}
-                />
-              ))
-            )}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="insights">
-          <CareerTwinInsightsDashboard recommendations={recommendations || []} />
+        <TabsContent value="implementation" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Implementation Plans</CardTitle>
+              <CardDescription>
+                Track and manage your career development action plans
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Alert>
+                <AlertDescription>
+                  Implementation plans feature coming soon. Create implementation plans from your recommendations.
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
   );
 }
-
-// Import missing icons
-import { Users, Briefcase, GraduationCap } from 'lucide-react';
