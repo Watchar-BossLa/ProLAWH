@@ -2,15 +2,18 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useLearningData } from "@/hooks/useLearningData";
 import { CourseCard } from "@/components/learning/CourseCard";
-import { LearningPathDetails } from "@/components/learning/LearningPathDetails";
+import { LearningPathCard } from "@/components/learning/LearningPathCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { LucideSchool, AlertCircle } from "lucide-react";
+import { LucideSchool, AlertCircle, Search } from "lucide-react";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
 
 export default function LearningDashboard() {
   const { user } = useAuth();
-  const { courses, learningPaths, isLoading } = useLearningData();
+  const { courses, learningPaths, userEnrollments, isLoading } = useLearningData();
+  const [searchQuery, setSearchQuery] = useState("");
 
   if (!user) {
     return (
@@ -22,6 +25,32 @@ export default function LearningDashboard() {
     );
   }
 
+  // Filter learning paths and courses by search query
+  const filteredPaths = learningPaths?.filter(path => 
+    path.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (path.description && path.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  const filteredCourses = courses?.filter(course => 
+    course.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (course.description && course.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  // Get enrollment status for paths
+  const getPathEnrollmentStatus = (pathId: string) => {
+    const enrollment = userEnrollments?.find(
+      (e) => e.learning_path_id === pathId
+    );
+    return enrollment
+      ? { is_enrolled: true, progress_percentage: enrollment.progress_percentage || 0 }
+      : { is_enrolled: false, progress_percentage: 0 };
+  };
+
+  // Count courses in each path
+  const getPathCoursesCount = (pathId: string) => {
+    return learningPaths?.find(p => p.id === pathId)?.courses?.length || 0;
+  };
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center gap-3 mb-8">
@@ -32,6 +61,17 @@ export default function LearningDashboard() {
         </div>
       </div>
       
+      {/* Search */}
+      <div className="relative mb-6">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+        <Input
+          placeholder="Search learning paths and courses..."
+          className="pl-10"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+      
       <Tabs defaultValue="paths" className="w-full space-y-6">
         <TabsList>
           <TabsTrigger value="paths">Learning Paths</TabsTrigger>
@@ -40,26 +80,34 @@ export default function LearningDashboard() {
 
         <TabsContent value="paths">
           {isLoading ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {[1, 2].map((i) => (
-                <Skeleton key={i} className="h-[400px] rounded-lg" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-[350px] rounded-lg" />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {learningPaths?.map((path) => (
-                <LearningPathDetails key={path.id} path={path} />
-              ))}
-              {learningPaths?.length === 0 && (
+            <>
+              {filteredPaths && filteredPaths.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredPaths.map((path) => (
+                    <LearningPathCard 
+                      key={path.id} 
+                      path={path} 
+                      enrollmentStatus={getPathEnrollmentStatus(path.id)}
+                      coursesCount={getPathCoursesCount(path.id)}
+                    />
+                  ))}
+                </div>
+              ) : (
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>No learning paths available</AlertTitle>
                   <AlertDescription>
-                    Please check back later for new content.
+                    {searchQuery ? "No learning paths match your search criteria." : "Please check back later for new content."}
                   </AlertDescription>
                 </Alert>
               )}
-            </div>
+            </>
           )}
         </TabsContent>
 
@@ -70,18 +118,20 @@ export default function LearningDashboard() {
                 <Skeleton key={i} className="h-[300px] rounded-lg" />
               ))
             ) : (
-              courses?.map((course) => (
+              filteredCourses?.map((course) => (
                 <CourseCard key={course.id} course={course} />
               ))
             )}
-            {!isLoading && courses?.length === 0 && (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>No courses available</AlertTitle>
-                <AlertDescription>
-                  Please check back later for new courses.
-                </AlertDescription>
-              </Alert>
+            {!isLoading && (!filteredCourses || filteredCourses.length === 0) && (
+              <div className="col-span-full">
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>No courses available</AlertTitle>
+                  <AlertDescription>
+                    {searchQuery ? "No courses match your search criteria." : "Please check back later for new courses."}
+                  </AlertDescription>
+                </Alert>
+              </div>
             )}
           </div>
         </TabsContent>

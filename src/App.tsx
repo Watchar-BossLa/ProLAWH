@@ -23,6 +23,7 @@ import NetworkDashboard from "./pages/dashboard/NetworkDashboard";
 import NetworkConnectionProfile from "./pages/dashboard/NetworkConnectionProfile";
 import { AuthProvider } from "./hooks/useAuth";
 import LearningDashboard from "./pages/dashboard/LearningDashboard";
+import LearningPathPage from "./pages/dashboard/LearningPathPage";
 import CourseDetailsPage from "./pages/dashboard/CourseDetailsPage";
 import SkillsAndBadgesPage from "./pages/dashboard/SkillsAndBadgesPage";
 import { AdminLayout } from "@/components/admin/AdminLayout";
@@ -63,6 +64,7 @@ const App = () => (
                   <Route index element={<DashboardHome />} />
                   <Route path="learning" element={<LearningDashboard />} />
                   <Route path="learning/course/:courseId" element={<CourseDetailsPage />} />
+                  <Route path="learning/path/:pathId" element={<LearningPathPage />} />
                   <Route path="skills" element={<SkillsAndBadgesPage />} />
                   <Route path="mentorship" element={<MentorshipDashboard />} />
                   <Route path="mentorship/:mentorshipId" element={<MentorshipDetailPage />} />

@@ -1277,6 +1277,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          reactions: Json | null
           read: boolean
           receiver_id: string
           sender_id: string
@@ -1287,6 +1288,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          reactions?: Json | null
           read?: boolean
           receiver_id: string
           sender_id: string
@@ -1297,6 +1299,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          reactions?: Json | null
           read?: boolean
           receiver_id?: string
           sender_id?: string
