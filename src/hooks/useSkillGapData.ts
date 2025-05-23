@@ -1,49 +1,47 @@
 
-import { useMemo } from 'react';
-import { useGreenSkills, GreenSkill } from '@/hooks/useGreenSkills';
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "./useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
-export interface SkillCategory {
+export interface SkillGapItem {
   subject: string;
   userLevel: number;
   marketDemand: number;
+  isGreenSkill?: boolean;
+  growthRate?: number;
 }
 
 export function useSkillGapData() {
-  const { data: greenSkills = [] } = useGreenSkills();
+  const { user } = useAuth();
 
-  const skillGapData = useMemo(() => {
-    // Get unique categories from green skills
-    const uniqueCategories = Array.from(new Set(greenSkills.map(skill => skill.category)));
-    
-    // Calculate user skills and market demand by category
-    const result = uniqueCategories.map(category => {
-      const categorySkills = greenSkills.filter(skill => skill.category === category);
+  // In a real app, this would query the database
+  const { data } = useQuery({
+    queryKey: ['skill-gap-data', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
       
-      // Calculate average CO2 reduction potential as proxy for user skill level
-      const totalUserLevel = categorySkills.reduce((sum, skill) => {
-        return sum + (skill.co2_reduction_potential || 0);
-      }, 0);
+      // Simulated data - in a real app, this would be a database call
+      // Example: const { data, error } = await supabase.from('user_skills').select('*').eq('user_id', user.id);
       
-      // Calculate average market growth rate for category
-      const totalMarketDemand = categorySkills.reduce((sum, skill) => {
-        return sum + (skill.market_growth_rate || 0);
-      }, 0);
-      
-      const userLevel = categorySkills.length > 0 
-        ? Math.min(Math.round(totalUserLevel / categorySkills.length), 10) : 0;
-        
-      const marketDemand = categorySkills.length > 0 
-        ? Math.min(Math.round(totalMarketDemand / categorySkills.length / 5), 10) : 0;
-      
-      return {
-        subject: category,
-        userLevel,
-        marketDemand
-      };
-    });
-    
-    return result;
-  }, [greenSkills]);
-  
-  return skillGapData;
+      return [
+        { subject: "React", userLevel: 7, marketDemand: 9, isGreenSkill: false, growthRate: 5 },
+        { subject: "TypeScript", userLevel: 6, marketDemand: 8, isGreenSkill: false, growthRate: 8 },
+        { subject: "Node.js", userLevel: 5, marketDemand: 7, isGreenSkill: false, growthRate: 6 },
+        { subject: "Cloud Architecture", userLevel: 4, marketDemand: 9, isGreenSkill: true, growthRate: 12 },
+        { subject: "Machine Learning", userLevel: 3, marketDemand: 8, isGreenSkill: false, growthRate: 15 },
+        { subject: "Data Analysis", userLevel: 6, marketDemand: 8, isGreenSkill: false, growthRate: 9 },
+        { subject: "Sustainable Development", userLevel: 5, marketDemand: 8, isGreenSkill: true, growthRate: 14 },
+        { subject: "UI Design", userLevel: 7, marketDemand: 7, isGreenSkill: false, growthRate: 4 },
+        { subject: "API Design", userLevel: 8, marketDemand: 7, isGreenSkill: false, growthRate: 3 },
+        { subject: "DevOps", userLevel: 4, marketDemand: 9, isGreenSkill: false, growthRate: 10 },
+        { subject: "Renewable Energy Tech", userLevel: 2, marketDemand: 7, isGreenSkill: true, growthRate: 18 }
+      ] as SkillGapItem[];
+    },
+    enabled: !!user,
+    // Non-production app can use longer staleTime
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  return data || [];
 }

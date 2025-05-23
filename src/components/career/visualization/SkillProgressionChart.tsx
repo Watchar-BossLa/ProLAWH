@@ -1,5 +1,5 @@
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { 
   Area, 
   AreaChart, 
@@ -7,42 +7,169 @@ import {
   ResponsiveContainer, 
   Tooltip, 
   XAxis, 
-  YAxis 
+  YAxis,
+  LineChart,
+  Line
 } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useSkillGapData } from "@/hooks/useSkillGapData";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const PRESET_SKILLS = ["React", "TypeScript", "Machine Learning", "Cloud Architecture", "UX Design"];
+const FUTURE_MONTHS = 6; // Number of future months to project
 
 export function SkillProgressionChart() {
-  // This would come from API in a real application
-  const progressData = useMemo(() => [
-    { month: 'Jan', current: 2, projected: 2 },
-    { month: 'Feb', current: 3, projected: 3 },
-    { month: 'Mar', current: 3.5, projected: 4 },
-    { month: 'Apr', current: 4, projected: 5 },
-    { month: 'May', current: null, projected: 6 },
-    { month: 'Jun', current: null, projected: 7 },
-    { month: 'Jul', current: null, projected: 7.5 },
-    { month: 'Aug', current: null, projected: 8 },
-  ], []);
+  const skillGapData = useSkillGapData();
+  const [viewType, setViewType] = useState<'overview' | 'specific'>('overview');
+  const [selectedSkill, setSelectedSkill] = useState<string>(PRESET_SKILLS[0]);
+  
+  // Generate progression data for overview and specific skills
+  const progressData = useMemo(() => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const currentMonth = new Date().getMonth();
+    const startMonth = currentMonth - 3 < 0 ? currentMonth + 9 : currentMonth - 3; // Show 3 months back
+    
+    const pastMonths = months.slice(startMonth, startMonth + 3);
+    const futureMonths = [];
+    for (let i = 0; i < FUTURE_MONTHS; i++) {
+      const monthIndex = (startMonth + 3 + i) % 12;
+      futureMonths.push(months[monthIndex]);
+    }
+    
+    const allMonths = [...pastMonths, ...futureMonths];
+    
+    // Get average user level from skill gap data for starting point
+    const avgUserLevel = skillGapData.length 
+      ? skillGapData.reduce((sum, skill) => sum + skill.userLevel, 0) / skillGapData.length 
+      : 5;
+    
+    const avgMarketDemand = skillGapData.length 
+      ? skillGapData.reduce((sum, skill) => sum + skill.marketDemand, 0) / skillGapData.length 
+      : 7;
+    
+    // Generate overview data
+    const overviewData = allMonths.map((month, index) => {
+      const isPast = index < 3;
+      const growthRate = 0.8; // Points gained per month
+      
+      // For past months, simulate slightly lower progress
+      const pastProgress = avgUserLevel - (3 - index) * (growthRate * 0.7);
+      // For future months, project based on current level + growth rate
+      const futureProgress = avgUserLevel + (index - 2) * growthRate;
+      
+      return {
+        month,
+        current: isPast ? Math.max(0, Math.min(10, pastProgress.toFixed(1))) : null,
+        projected: Math.max(0, Math.min(10, isPast ? pastProgress.toFixed(1) : futureProgress.toFixed(1))),
+        marketAverage: Math.min(10, avgMarketDemand + (index - 2) * 0.1).toFixed(1),
+      };
+    });
+    
+    // Generate individual skill data
+    const skillsData = PRESET_SKILLS.map(skill => {
+      // Find this skill in the skill gap data or use default values
+      const skillInfo = skillGapData.find(s => s.subject === skill);
+      const initialLevel = skillInfo ? skillInfo.userLevel : Math.floor(Math.random() * 5) + 2;
+      const marketLevel = skillInfo ? skillInfo.marketDemand : Math.floor(Math.random() * 3) + 7;
+      
+      // Calculate individual growth rate based on gap
+      const gap = marketLevel - initialLevel;
+      const growthRate = gap > 3 ? 0.9 : gap > 1 ? 0.7 : 0.5;
+      
+      return allMonths.map((month, index) => {
+        const isPast = index < 3;
+        const pastProgress = initialLevel - (3 - index) * (growthRate * 0.6);
+        const futureProgress = initialLevel + (index - 2) * growthRate;
+        
+        return {
+          month,
+          skill,
+          current: isPast ? Math.max(0, Math.min(10, pastProgress.toFixed(1))) : null,
+          projected: Math.max(0, Math.min(10, isPast ? pastProgress.toFixed(1) : futureProgress.toFixed(1))),
+          marketLevel: Math.min(10, marketLevel).toFixed(1),
+        };
+      });
+    });
+    
+    return {
+      overview: overviewData,
+      skills: Object.fromEntries(PRESET_SKILLS.map((skill, i) => [skill, skillsData[i]]))
+    };
+  }, [skillGapData]);
 
-  const chartConfig = {
+  const chartConfig = useMemo(() => ({
     current: { label: "Current Progress", color: "#10b981" },
     projected: { label: "Projected Growth", color: "#6366f1" },
-  };
+    marketAverage: { label: "Market Average", color: "#f43f5e" },
+    marketLevel: { label: "Market Demand", color: "#f43f5e" },
+  }), []);
+
+  const currentData = viewType === 'overview' 
+    ? progressData.overview 
+    : progressData.skills[selectedSkill];
+
+  // Calculate when skill will meet market demand
+  const marketCrossoverPoint = useMemo(() => {
+    if (viewType === 'specific' && currentData) {
+      const marketLevel = parseFloat(currentData[0].marketLevel);
+      let monthsToMarket = FUTURE_MONTHS;
+      
+      for (let i = 0; i < currentData.length; i++) {
+        if (parseFloat(currentData[i].projected) >= marketLevel) {
+          monthsToMarket = i;
+          break;
+        }
+      }
+      
+      return {
+        months: monthsToMarket,
+        achieved: monthsToMarket < FUTURE_MONTHS
+      };
+    }
+    return null;
+  }, [currentData, viewType]);
 
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle>Skill Progression</CardTitle>
-        <CardDescription>
-          Your current and projected skill growth over time
-        </CardDescription>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div>
+            <CardTitle>Skill Progression</CardTitle>
+            <CardDescription>
+              {viewType === 'overview' 
+                ? 'Your overall skill growth trajectory' 
+                : `Projecting growth for ${selectedSkill}`}
+            </CardDescription>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-2">
+            <ToggleGroup type="single" value={viewType} onValueChange={(val) => val && setViewType(val as 'overview' | 'specific')}>
+              <ToggleGroupItem value="overview" size="sm">Overall</ToggleGroupItem>
+              <ToggleGroupItem value="specific" size="sm">By Skill</ToggleGroupItem>
+            </ToggleGroup>
+            
+            {viewType === 'specific' && (
+              <Select value={selectedSkill} onValueChange={setSelectedSkill}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Select skill" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PRESET_SKILLS.map(skill => (
+                    <SelectItem key={skill} value={skill}>{skill}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="h-64">
           <ChartContainer config={chartConfig}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={progressData}>
+              <AreaChart data={currentData}>
                 <defs>
                   <linearGradient id="colorCurrent" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
@@ -74,10 +201,46 @@ export function SkillProgressionChart() {
                   fillOpacity={1} 
                   fill="url(#colorProjected)" 
                 />
+                {viewType === 'overview' ? (
+                  <Line
+                    type="monotone"
+                    dataKey="marketAverage"
+                    stroke="#f43f5e"
+                    strokeWidth={2}
+                    dot={false}
+                    strokeDasharray="5 5"
+                  />
+                ) : (
+                  <Line
+                    type="monotone"
+                    dataKey="marketLevel"
+                    stroke="#f43f5e"
+                    strokeWidth={2}
+                    dot={false}
+                    strokeDasharray="5 5"
+                  />
+                )}
               </AreaChart>
             </ResponsiveContainer>
           </ChartContainer>
         </div>
+        
+        {viewType === 'specific' && marketCrossoverPoint && (
+          <div className="mt-4 pt-2 border-t">
+            <p className="text-sm">
+              <span className="font-medium">Market Gap Analysis:</span>{' '}
+              {marketCrossoverPoint.achieved ? (
+                <span className="text-green-500">
+                  You will reach market demand in approximately {marketCrossoverPoint.months} month{marketCrossoverPoint.months !== 1 ? 's' : ''}
+                </span>
+              ) : (
+                <span className="text-amber-500">
+                  You need to accelerate your learning to reach market demand within 6 months
+                </span>
+              )}
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
