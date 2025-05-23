@@ -46,13 +46,14 @@ export default function LearningPathPage() {
 
   const handleEnroll = () => {
     if (pathId) {
-      enroll({ learningPathId: pathId })
-        .then(() => {
+      enroll({ learningPathId: pathId }, {
+        onSuccess: () => {
           toast.success("Successfully enrolled in learning path");
-        })
-        .catch((error) => {
+        },
+        onError: (error: Error) => {
           toast.error(`Failed to enroll: ${error.message}`);
-        });
+        }
+      });
     }
   };
 

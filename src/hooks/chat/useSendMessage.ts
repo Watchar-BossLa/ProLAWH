@@ -21,7 +21,19 @@ export function useSendMessage() {
 
       if (error) throw error;
 
-      return data[0] as ChatMessage;
+      // Convert the database response to ChatMessage type
+      const chatMessage: ChatMessage = {
+        id: data[0].id,
+        sender_id: data[0].sender_id,
+        receiver_id: data[0].receiver_id,
+        content: data[0].content,
+        timestamp: data[0].timestamp,
+        read: data[0].read,
+        attachment_data: data[0].attachment_data,
+        reactions: data[0].reactions as ChatMessage['reactions']
+      };
+
+      return chatMessage;
     } catch (error) {
       console.error('Error sending message:', error);
       return null;

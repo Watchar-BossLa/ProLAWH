@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, BookOpen, ArrowRight, GraduationCap } from "lucide-react";
@@ -33,7 +32,7 @@ export function LearningPathCard({ path, enrollmentStatus, coursesCount = 0 }: L
           />
           {isEnrolled && (
             <div className="absolute top-2 right-2">
-              <Badge variant={progress === 100 ? "success" : "secondary"} className="text-xs">
+              <Badge variant={progress === 100 ? "secondary" : "secondary"} className={`text-xs ${progress === 100 ? "bg-green-500 hover:bg-green-600" : ""}`}>
                 {progress === 100 ? "Completed" : `${progress}% Complete`}
               </Badge>
             </div>

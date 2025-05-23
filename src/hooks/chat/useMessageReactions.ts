@@ -59,8 +59,8 @@ export function useMessageReactions(messages: ChatMessage[], setMessages: React.
       const { error } = await supabase
         .from('network_messages')
         .update({ 
-          reactions: updatedReactions
-        } as DatabaseMessage)
+          reactions: updatedReactions 
+        })
         .eq('id', messageId);
         
       if (error) throw error;

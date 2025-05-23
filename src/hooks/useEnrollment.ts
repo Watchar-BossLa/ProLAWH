@@ -4,12 +4,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 
+type EnrollParams = {
+  courseId?: string;
+  learningPathId?: string;
+};
+
+interface MutationCallbacks {
+  onSuccess?: () => void;
+  onError?: (error: Error) => void;
+}
+
 export function useEnrollment() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
   const enrollMutation = useMutation({
-    mutationFn: async ({ courseId, learningPathId }: { courseId?: string; learningPathId?: string }) => {
+    mutationFn: async ({ courseId, learningPathId }: EnrollParams) => {
       if (!user?.id) {
         throw new Error("You must be logged in to enroll");
       }
@@ -25,19 +35,25 @@ export function useEnrollment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["enrollments"] });
       queryClient.invalidateQueries({ queryKey: ["courses"] });
-      toast({
-        title: "Successfully enrolled",
-        description: "You can now start learning!",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Failed to enroll",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
+      queryClient.invalidateQueries({ queryKey: ["learning-path-enrollment"] });
+      queryClient.invalidateQueries({ queryKey: ["user-enrollments"] });
+      queryClient.invalidateQueries({ queryKey: ["learning-paths"] });
+    }
   });
 
-  return { enroll: enrollMutation.mutate, isEnrolling: enrollMutation.isPending };
+  const enroll = (params: EnrollParams, callbacks?: MutationCallbacks) => {
+    return enrollMutation.mutate(params, {
+      onSuccess: () => {
+        callbacks?.onSuccess?.();
+      },
+      onError: (error: any) => {
+        callbacks?.onError?.(error);
+      }
+    });
+  };
+
+  return { 
+    enroll,
+    isEnrolling: enrollMutation.isPending 
+  };
 }

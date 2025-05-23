@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -88,7 +87,7 @@ export function NetworkChatDialog({ activeChatId, activeChatConnection, onClose 
   // Handler for message reactions
   const handleReactToMessage = (messageId: string, emoji: string) => {
     if (user) {
-      reactToMessage(messageId, emoji, user.id);
+      reactToMessage(messageId, emoji);
     }
   };
 

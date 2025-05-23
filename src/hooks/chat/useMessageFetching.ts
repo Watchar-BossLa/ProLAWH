@@ -27,7 +27,19 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
 
         if (error) throw error;
 
-        setMessages(data as ChatMessage[]);
+        // Convert database messages to ChatMessage type
+        const chatMessages = data.map(msg => ({
+          id: msg.id,
+          sender_id: msg.sender_id,
+          receiver_id: msg.receiver_id,
+          content: msg.content,
+          timestamp: msg.timestamp,
+          read: msg.read,
+          attachment_data: msg.attachment_data,
+          reactions: msg.reactions as ChatMessage['reactions']
+        }));
+
+        setMessages(chatMessages);
         setIsLoading(false);
       } catch (error) {
         console.error('Error fetching messages:', error);
