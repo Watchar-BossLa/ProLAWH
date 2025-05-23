@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Tabs,
@@ -37,7 +36,7 @@ export default function CareerTwinPage() {
   const acceptedRecommendations = recommendations?.filter(rec => rec.status === 'accepted') || [];
   const implementedRecommendations = recommendations?.filter(rec => rec.status === 'implemented') || [];
   
-  const handleStatusUpdate = async (id: string, status: string) => {
+  const handleStatusUpdate = async (id: string, status: "pending" | "accepted" | "rejected" | "implemented") => {
     try {
       await updateRecommendation.mutateAsync({ id, status });
       trackActivity('status_update', { recommendation_id: id, new_status: status });

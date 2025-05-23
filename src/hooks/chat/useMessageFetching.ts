@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { ChatMessage, DatabaseMessage } from '@/types/chat';
+import { ChatMessage, DatabaseMessage, MessageReactionsData } from '@/types/chat';
 
 export function useMessageFetching(recipientId: string | null, userId: string | null) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -36,7 +36,8 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
           timestamp: msg.timestamp,
           read: msg.read,
           attachment_data: msg.attachment_data,
-          reactions: msg.reactions as ChatMessage['reactions'] || {}
+          // Safely convert Json to MessageReactionsData
+          reactions: (msg.reactions as object || {}) as MessageReactionsData
         }));
 
         setMessages(chatMessages);
@@ -70,7 +71,8 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
             timestamp: newMsg.timestamp,
             read: newMsg.read,
             attachment_data: newMsg.attachment_data,
-            reactions: newMsg.reactions as ChatMessage['reactions'] || {}
+            // Safely convert Json to MessageReactionsData
+            reactions: (newMsg.reactions as object || {}) as MessageReactionsData
           };
           
           setMessages(prev => [...prev, newMessage]);
@@ -99,7 +101,8 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
             timestamp: updatedMsg.timestamp,
             read: updatedMsg.read,
             attachment_data: updatedMsg.attachment_data,
-            reactions: updatedMsg.reactions as ChatMessage['reactions'] || {}
+            // Safely convert Json to MessageReactionsData
+            reactions: (updatedMsg.reactions as object || {}) as MessageReactionsData
           };
           
           setMessages(prev => 
