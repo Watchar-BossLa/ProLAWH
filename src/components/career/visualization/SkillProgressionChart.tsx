@@ -20,6 +20,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 const PRESET_SKILLS = ["React", "TypeScript", "Machine Learning", "Cloud Architecture", "UX Design"];
 const FUTURE_MONTHS = 6; // Number of future months to project
 
+interface OverviewDataPoint {
+  month: string;
+  current: number | null;
+  projected: number;
+  marketAverage: number;
+}
+
+interface SkillDataPoint {
+  month: string;
+  skill: string;
+  current: number | null;
+  projected: number;
+  marketLevel: number;
+}
+
 export function SkillProgressionChart() {
   const skillGapData = useSkillGapData();
   const [viewType, setViewType] = useState<'overview' | 'specific'>('overview');
@@ -50,7 +65,7 @@ export function SkillProgressionChart() {
       : 7;
     
     // Generate overview data
-    const overviewData = allMonths.map((month, index) => {
+    const overviewData: OverviewDataPoint[] = allMonths.map((month, index) => {
       const isPast = index < 3;
       const growthRate = 0.8; // Points gained per month
       
@@ -61,14 +76,16 @@ export function SkillProgressionChart() {
       
       return {
         month,
-        current: isPast ? Math.max(0, Math.min(10, pastProgress.toFixed(1))) : null,
-        projected: Math.max(0, Math.min(10, isPast ? pastProgress.toFixed(1) : futureProgress.toFixed(1))),
-        marketAverage: Math.min(10, avgMarketDemand + (index - 2) * 0.1).toFixed(1),
+        current: isPast ? Math.max(0, Math.min(10, pastProgress)) : null,
+        projected: Math.max(0, Math.min(10, isPast ? pastProgress : futureProgress)),
+        marketAverage: Math.min(10, avgMarketDemand + (index - 2) * 0.1),
       };
     });
     
     // Generate individual skill data
-    const skillsData = PRESET_SKILLS.map(skill => {
+    const skillsData: Record<string, SkillDataPoint[]> = {};
+    
+    PRESET_SKILLS.forEach(skill => {
       // Find this skill in the skill gap data or use default values
       const skillInfo = skillGapData.find(s => s.subject === skill);
       const initialLevel = skillInfo ? skillInfo.userLevel : Math.floor(Math.random() * 5) + 2;
@@ -78,7 +95,7 @@ export function SkillProgressionChart() {
       const gap = marketLevel - initialLevel;
       const growthRate = gap > 3 ? 0.9 : gap > 1 ? 0.7 : 0.5;
       
-      return allMonths.map((month, index) => {
+      skillsData[skill] = allMonths.map((month, index) => {
         const isPast = index < 3;
         const pastProgress = initialLevel - (3 - index) * (growthRate * 0.6);
         const futureProgress = initialLevel + (index - 2) * growthRate;
@@ -86,16 +103,16 @@ export function SkillProgressionChart() {
         return {
           month,
           skill,
-          current: isPast ? Math.max(0, Math.min(10, pastProgress.toFixed(1))) : null,
-          projected: Math.max(0, Math.min(10, isPast ? pastProgress.toFixed(1) : futureProgress.toFixed(1))),
-          marketLevel: Math.min(10, marketLevel).toFixed(1),
+          current: isPast ? Math.max(0, Math.min(10, pastProgress)) : null,
+          projected: Math.max(0, Math.min(10, isPast ? pastProgress : futureProgress)),
+          marketLevel: Math.min(10, marketLevel),
         };
       });
     });
     
     return {
       overview: overviewData,
-      skills: Object.fromEntries(PRESET_SKILLS.map((skill, i) => [skill, skillsData[i]]))
+      skills: skillsData
     };
   }, [skillGapData]);
 
@@ -113,11 +130,12 @@ export function SkillProgressionChart() {
   // Calculate when skill will meet market demand
   const marketCrossoverPoint = useMemo(() => {
     if (viewType === 'specific' && currentData) {
-      const marketLevel = parseFloat(currentData[0].marketLevel);
+      const skillData = currentData as SkillDataPoint[];
+      const marketLevel = skillData[0]?.marketLevel || 0;
       let monthsToMarket = FUTURE_MONTHS;
       
-      for (let i = 0; i < currentData.length; i++) {
-        if (parseFloat(currentData[i].projected) >= marketLevel) {
+      for (let i = 0; i < skillData.length; i++) {
+        if (skillData[i].projected >= marketLevel) {
           monthsToMarket = i;
           break;
         }
