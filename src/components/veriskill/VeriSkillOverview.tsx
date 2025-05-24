@@ -1,125 +1,108 @@
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Wallet, Target, Coins, Shield, ArrowRight, Globe2, Binary } from "lucide-react";
+import { 
+  Wallet, 
+  Shield, 
+  Network,
+  Coins,
+  BookOpen,
+  BarChart3
+} from "lucide-react";
+import { WalletSetup } from "./wallet/WalletSetup";
+import { CredentialsList } from "./wallet/CredentialsList";
 
 export function VeriSkillOverview() {
-  const features = [
-    {
-      title: "Digital Identity Wallet",
-      description: "Self-sovereign identity with Shamir secret sharing for key recovery",
-      icon: <Wallet className="h-8 w-8 text-blue-500" />,
-      tags: ["DID", "Web3", "Identity"]
-    },
-    {
-      title: "AI-Powered Talent Matching",
-      description: "Vector-based search connects talent with opportunities globally",
-      icon: <Target className="h-8 w-8 text-purple-500" />,
-      tags: ["AI", "Vector DB", "Matching"]
-    },
-    {
-      title: "Stablecoin Payment Rails",
-      description: "Cross-chain payments with escrow and yield generation",
-      icon: <Coins className="h-8 w-8 text-green-500" />,
-      tags: ["USDC", "Escrow", "Yield"]
-    },
-    {
-      title: "Compliance & Privacy",
-      description: "Built-in compliance with EU CRA, NIS2, GDPR, and NIST SP 800-226",
-      icon: <Shield className="h-8 w-8 text-red-500" />,
-      tags: ["Zero-Trust", "Encryption", "Privacy"]
-    }
-  ];
-
-  const metrics = [
-    { label: "Verification Speed", value: "< 500ms", trend: "improving" },
-    { label: "Global RPS", value: "10K+", trend: "stable" },
-    { label: "API Availability", value: "99.99%", trend: "stable" },
-    { label: "Carbon Footprint", value: "Low", trend: "improving" }
-  ];
-
   return (
     <div className="space-y-6">
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-2xl">VeriSkill Network Platform</CardTitle>
-            <CardDescription>
-              Decentralized skill passport + gig matching + stablecoin payment rail for the global south
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="prose max-w-none dark:prose-invert">
-              <p>
-                VeriSkill Network is a modular, failure-tolerant platform designed to bridge the global skills gap 
-                through verifiable credentials, AI-powered talent matching, and seamless cross-chain payments.
-              </p>
-              <p>
-                Built with sustainable languages (Python, Rust, Go) and zero-trust architecture, 
-                the platform ensures maximum security, privacy, and environmental sustainability.
-              </p>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <div className="flex items-center text-sm text-muted-foreground gap-2">
-              <Globe2 className="h-4 w-4" />
-              <span>Platform Status: Operational</span>
-            </div>
-            <Button variant="outline" onClick={() => window.open('https://veriskill.network', '_blank')}>
-              Learn More <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </CardFooter>
-        </Card>
+      <div className="text-center space-y-4">
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full">
+          <Network className="h-5 w-5 text-primary" />
+          <span className="font-medium">VeriSkill Network</span>
+          <Badge variant="secondary">Alpha</Badge>
+        </div>
         
-        {features.map((feature, i) => (
-          <Card key={i} className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {feature.icon}
-                  <CardTitle>{feature.title}</CardTitle>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <CardDescription className="text-base mb-4">{feature.description}</CardDescription>
-              <div className="flex flex-wrap gap-2">
-                {feature.tags.map((tag, j) => (
-                  <Badge key={j} variant="secondary">{tag}</Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        <h1 className="text-3xl font-bold">Decentralized Skill Passport</h1>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
+          Your skills, verified and portable across the digital economy. 
+          Issue, store, and share W3C verifiable credentials with complete self-sovereignty.
+        </p>
       </div>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Binary className="h-5 w-5" /> 
-            Platform Metrics
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {metrics.map((metric, i) => (
-              <div key={i} className="flex flex-col items-center p-4 border rounded-lg">
-                <span className="text-sm text-muted-foreground">{metric.label}</span>
-                <span className="text-2xl font-bold">{metric.value}</span>
-                <span className={`text-xs ${
-                  metric.trend === "improving" ? "text-green-500" : 
-                  metric.trend === "declining" ? "text-red-500" : "text-blue-500"
-                }`}>
-                  {metric.trend === "improving" ? "↑" : 
-                   metric.trend === "declining" ? "↓" : "→"} {metric.trend}
-                </span>
-              </div>
-            ))}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="text-center p-6 border rounded-lg">
+          <Wallet className="h-8 w-8 mx-auto mb-3 text-blue-500" />
+          <h3 className="font-semibold mb-2">Digital Wallet</h3>
+          <p className="text-sm text-muted-foreground">
+            Self-sovereign identity with Ed25519 cryptography and recovery options
+          </p>
+        </div>
+        
+        <div className="text-center p-6 border rounded-lg">
+          <Shield className="h-8 w-8 mx-auto mb-3 text-green-500" />
+          <h3 className="font-semibold mb-2">Verifiable Credentials</h3>
+          <p className="text-sm text-muted-foreground">
+            W3C-compliant certificates anchored on Polygon blockchain
+          </p>
+        </div>
+        
+        <div className="text-center p-6 border rounded-lg">
+          <Coins className="h-8 w-8 mx-auto mb-3 text-purple-500" />
+          <h3 className="font-semibold mb-2">Gig Marketplace</h3>
+          <p className="text-sm text-muted-foreground">
+            Stablecoin escrow with skill-based matching and yield sharing
+          </p>
+        </div>
+      </div>
+
+      <Tabs defaultValue="wallet" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="wallet" className="flex items-center gap-2">
+            <Wallet className="h-4 w-4" />
+            Wallet
+          </TabsTrigger>
+          <TabsTrigger value="credentials" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            Credentials
+          </TabsTrigger>
+          <TabsTrigger value="marketplace" className="flex items-center gap-2">
+            <Coins className="h-4 w-4" />
+            Marketplace
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Analytics
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="wallet" className="space-y-4">
+          <WalletSetup />
+        </TabsContent>
+
+        <TabsContent value="credentials" className="space-y-4">
+          <CredentialsList />
+        </TabsContent>
+
+        <TabsContent value="marketplace" className="space-y-4">
+          <div className="text-center py-12">
+            <Coins className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-xl font-semibold mb-2">Gig Marketplace</h3>
+            <p className="text-muted-foreground">
+              Coming soon: Decentralized freelance marketplace with stablecoin payments
+            </p>
           </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-4">
+          <div className="text-center py-12">
+            <BarChart3 className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-xl font-semibold mb-2">Skill Analytics</h3>
+            <p className="text-muted-foreground">
+              Coming soon: Market demand insights and skill value tracking
+            </p>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
