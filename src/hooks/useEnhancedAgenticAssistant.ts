@@ -1,8 +1,7 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from '@/hooks/use-toast';
-import { EnhancedAIAgent, SwarmCoordination, AgentReasoningChain, ReinforcementLearningState } from './types/enhancedAgenticTypes';
+import { EnhancedAIAgent, SwarmCoordination, AgentReasoningChain, ReinforcementLearningState, BaseAIAgent } from './types/enhancedAgenticTypes';
 
 export function useEnhancedAgenticAssistant() {
   const [enhancedAgents, setEnhancedAgents] = useState<EnhancedAIAgent[]>([]);
@@ -11,6 +10,46 @@ export function useEnhancedAgenticAssistant() {
   const [learningStates, setLearningStates] = useState<ReinforcementLearningState[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Transform BaseAIAgent to EnhancedAIAgent
+  const transformToEnhancedAgent = (baseAgent: BaseAIAgent): EnhancedAIAgent => {
+    return {
+      ...baseAgent,
+      domain_expertise: baseAgent.personality_profile?.specialization_areas || [],
+      reasoning_engine: {
+        type: 'hybrid',
+        confidence_threshold: 0.8,
+        reasoning_depth: 3,
+        chain_of_thought: true
+      },
+      coordination_config: {
+        swarm_enabled: true,
+        coordination_protocols: ['consensus', 'hierarchical'],
+        peer_agents: [],
+        collective_intelligence: true
+      },
+      reinforcement_learning: {
+        reward_model: {
+          type: 'user_satisfaction_based',
+          weights: { accuracy: 0.4, speed: 0.3, user_feedback: 0.3 }
+        },
+        policy_network: {
+          layers: 3,
+          neurons_per_layer: 128,
+          activation: 'relu'
+        },
+        experience_buffer: [],
+        learning_rate: 0.01,
+        exploration_rate: 0.15
+      },
+      performance_metrics: {
+        success_rate: 0.85,
+        user_satisfaction: 0.88,
+        task_completion_time: 2.5,
+        reasoning_accuracy: 0.92
+      }
+    };
+  };
 
   // Initialize enhanced AI agents with advanced capabilities
   const initializeEnhancedAgents = useCallback(async () => {
@@ -132,9 +171,13 @@ export function useEnhancedAgenticAssistant() {
 
         if (error) throw error;
         
-        setEnhancedAgents(newAgents || []);
+        // Transform to enhanced agents
+        const transformedAgents = (newAgents || []).map(transformToEnhancedAgent);
+        setEnhancedAgents(transformedAgents);
       } else {
-        setEnhancedAgents(existingAgents);
+        // Transform existing agents to enhanced agents
+        const transformedAgents = existingAgents.map(transformToEnhancedAgent);
+        setEnhancedAgents(transformedAgents);
       }
     } catch (error) {
       console.error('Error initializing enhanced agents:', error);
