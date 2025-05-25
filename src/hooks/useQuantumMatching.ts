@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from '@/hooks/use-toast';
@@ -119,7 +118,18 @@ export function useQuantumMatching() {
 
       if (error) throw error;
 
-      setEntanglements(savedEntanglements || []);
+      // Convert database response to proper type
+      const typedEntanglements: SkillEntanglement[] = (savedEntanglements || []).map(item => ({
+        id: item.id,
+        skill_a_id: item.skill_a_id,
+        skill_b_id: item.skill_b_id,
+        entanglement_strength: item.entanglement_strength,
+        entanglement_type: item.entanglement_type,
+        correlation_matrix: item.correlation_matrix,
+        measurement_history: Array.isArray(item.measurement_history) ? item.measurement_history : []
+      }));
+
+      setEntanglements(typedEntanglements);
     } catch (error) {
       console.error('Error building entanglement network:', error);
     }
