@@ -15,7 +15,8 @@ import {
   Zap,
   Atom,
   MessageSquare,
-  LucideIcon
+  LucideIcon,
+  Bot
 } from "lucide-react";
 
 export interface MenuItem {
@@ -81,6 +82,11 @@ export const menuItems: MenuItem[] = [
     title: "AI & Quantum",
     icon: Atom,
     items: [
+      {
+        title: "Enhanced AI Dashboard",
+        icon: Bot,
+        href: "/dashboard/enhanced-ai",
+      },
       {
         title: "Quantum Matching",
         icon: Atom,

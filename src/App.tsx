@@ -26,6 +26,7 @@ const SkillsAndBadgesPage = lazy(() => import("./pages/dashboard/SkillsAndBadges
 const OpportunityMarketplace = lazy(() => import("./pages/dashboard/OpportunityMarketplace"));
 const SkillStakingPage = lazy(() => import("./pages/dashboard/SkillStakingPage"));
 const QuorumForgeDashboard = lazy(() => import("./pages/dashboard/QuorumForgeDashboard"));
+const EnhancedAIDashboard = lazy(() => import("./pages/dashboard/EnhancedAIDashboard"));
 
 const queryClient = new QueryClient();
 
@@ -117,6 +118,11 @@ const App = () => (
             <Route path="veriskill" element={
               <Suspense fallback={<div>Loading...</div>}>
                 <VeriSkillNetworkPage />
+              </Suspense>
+            } />
+            <Route path="enhanced-ai" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <EnhancedAIDashboard />
               </Suspense>
             } />
           </Route>
