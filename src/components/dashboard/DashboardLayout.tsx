@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
-import { ThemeSwitcher } from "@/components/theme/theme-switcher";
+import { AdvancedThemeSwitcher } from "@/components/theme/advanced-theme-switcher";
 import { 
   Sidebar,
   SidebarProvider,
@@ -51,8 +51,8 @@ export function DashboardLayout() {
         </Sidebar>
         
         <div className="flex-1 overflow-auto">
-          <div className="flex justify-end p-4 border-b">
-            <ThemeSwitcher />
+          <div className="flex justify-end p-4 border-b gap-2">
+            <AdvancedThemeSwitcher />
           </div>
           <div className="p-4">
             <Outlet />
