@@ -14,6 +14,7 @@ import {
   Network,
   Zap,
   Atom,
+  MessageSquare,
   LucideIcon
 } from "lucide-react";
 
@@ -54,6 +55,27 @@ export const menuItems: MenuItem[] = [
     title: "Network",
     icon: Network,
     href: "/dashboard/network",
+  },
+  {
+    title: "Social & Collaboration",
+    icon: MessageSquare,
+    items: [
+      {
+        title: "Study Groups",
+        icon: Users,
+        href: "/dashboard/study-groups",
+      },
+      {
+        title: "Collaboration Hub",
+        icon: MessageSquare,
+        href: "/dashboard/collaboration",
+      },
+      {
+        title: "Community",
+        icon: Trophy,
+        href: "/dashboard/community",
+      },
+    ]
   },
   {
     title: "AI & Quantum",

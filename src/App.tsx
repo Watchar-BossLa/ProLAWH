@@ -1,104 +1,133 @@
 
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "@/components/theme/theme-provider";
 import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import AuthPage from "./pages/auth/AuthPage";
-import ProfilePage from "./pages/profile/ProfilePage";
-import { DashboardLayout } from "./components/dashboard/DashboardLayout";
-import { DashboardHome } from "./components/dashboard/DashboardHome";
-import DashboardPlaceholder from "./pages/dashboard/DashboardPlaceholder";
-import CareerTwinPage from "./pages/dashboard/CareerTwinPage";
-import ArcadePage from "./pages/dashboard/ArcadePage";
-import ChallengePage from "./pages/dashboard/ChallengePage";
-import SkillStakingPage from "./pages/dashboard/SkillStakingPage";
-import GreenSkillsPage from "./pages/dashboard/GreenSkillsPage";
-import StudyBeePage from "./pages/dashboard/StudyBeePage";
-import OpportunityMarketplace from "./pages/dashboard/OpportunityMarketplace";
-import NetworkDashboard from "./pages/dashboard/NetworkDashboard";
-import NetworkConnectionProfile from "./pages/dashboard/NetworkConnectionProfile";
-import { AuthProvider } from "./hooks/useAuth";
-import LearningDashboard from "./pages/dashboard/LearningDashboard";
-import LearningPathPage from "./pages/dashboard/LearningPathPage";
-import CourseDetailsPage from "./pages/dashboard/CourseDetailsPage";
-import SkillsAndBadgesPage from "./pages/dashboard/SkillsAndBadgesPage";
-import { AdminLayout } from "@/components/admin/AdminLayout";
-import AdminDashboard from "@/pages/admin/AdminDashboard";
-import UsersPage from "./pages/admin/UsersPage";
-import AnalyticsPage from "./pages/admin/AnalyticsPage";
-import PaymentsPage from "./pages/admin/PaymentsPage";
-import SettingsPage from "./pages/admin/SettingsPage";
-import MentorshipDashboard from "./pages/dashboard/MentorshipDashboard";
-import MentorshipDetailPage from "./pages/dashboard/MentorshipDetailPage";
-import { QuorumForgeProvider } from "./hooks/useQuorumForge";
-import QuorumForgeDashboard from "./pages/dashboard/QuorumForgeDashboard";
-import VeriSkillNetworkPage from "./pages/dashboard/VeriSkillNetworkPage";
-import QuantumMatchingPage from "./pages/dashboard/QuantumMatchingPage";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-    },
-  },
-});
+// Lazy load dashboard pages for better performance
+const DashboardHome = lazy(() => import("./pages/dashboard/DashboardHome"));
+const LearningDashboard = lazy(() => import("./pages/dashboard/LearningDashboard"));
+const SkillsDashboard = lazy(() => import("./pages/dashboard/SkillsDashboard"));
+const MentorshipDashboard = lazy(() => import("./pages/dashboard/MentorshipDashboard"));
+const OpportunitiesDashboard = lazy(() => import("./pages/dashboard/OpportunitiesDashboard"));
+const NetworkDashboard = lazy(() => import("./pages/dashboard/NetworkDashboard"));
+const StudyGroupsPage = lazy(() => import("./pages/dashboard/StudyGroupsPage"));
+const CollaborationPage = lazy(() => import("./pages/dashboard/CollaborationPage"));
+const CommunityPage = lazy(() => import("./pages/dashboard/CommunityPage"));
+const QuantumMatchingDashboard = lazy(() => import("./pages/dashboard/QuantumMatchingDashboard"));
+const CareerTwinDashboard = lazy(() => import("./pages/dashboard/CareerTwinDashboard"));
+const GreenSkillsDashboard = lazy(() => import("./pages/dashboard/GreenSkillsDashboard"));
+const StakingDashboard = lazy(() => import("./pages/dashboard/StakingDashboard"));
+const ArcadeDashboard = lazy(() => import("./pages/dashboard/ArcadeDashboard"));
+const StudyBeeDashboard = lazy(() => import("./pages/dashboard/StudyBeeDashboard"));
+const QuorumForgeDashboard = lazy(() => import("./pages/dashboard/QuorumForgeDashboard"));
+const VeriSkillDashboard = lazy(() => import("./pages/dashboard/VeriSkillDashboard"));
+
+const queryClient = new QueryClient();
 
 const App = () => (
-  <ThemeProvider>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <QuorumForgeProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<AuthPage />} />
-                
-                <Route path="/dashboard" element={<DashboardLayout />}>
-                  <Route index element={<DashboardHome />} />
-                  <Route path="learning" element={<LearningDashboard />} />
-                  <Route path="learning/course/:courseId" element={<CourseDetailsPage />} />
-                  <Route path="learning/path/:pathId" element={<LearningPathPage />} />
-                  <Route path="skills" element={<SkillsAndBadgesPage />} />
-                  <Route path="mentorship" element={<MentorshipDashboard />} />
-                  <Route path="mentorship/:mentorshipId" element={<MentorshipDetailPage />} />
-                  <Route path="opportunities" element={<OpportunityMarketplace />} />
-                  <Route path="arcade" element={<ArcadePage />} />
-                  <Route path="arcade/challenge/:challengeId" element={<ChallengePage />} />
-                  <Route path="career-twin" element={<CareerTwinPage />} />
-                  <Route path="green-skills" element={<GreenSkillsPage />} />
-                  <Route path="staking" element={<SkillStakingPage />} />
-                  <Route path="study-bee" element={<StudyBeePage />} />
-                  <Route path="network" element={<NetworkDashboard />} />
-                  <Route path="network/:connectionId" element={<NetworkConnectionProfile />} />
-                  <Route path="quorumforge" element={<QuorumForgeDashboard />} />
-                  <Route path="veriskill" element={<VeriSkillNetworkPage />} />
-                  <Route path="quantum-matching" element={<QuantumMatchingPage />} />
-                </Route>
-                
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/admin" element={<AdminLayout />}>
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="users" element={<UsersPage />} />
-                  <Route path="analytics" element={<AnalyticsPage />} />
-                  <Route path="payments" element={<PaymentsPage />} />
-                  <Route path="settings" element={<SettingsPage />} />
-                </Route>
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </QuorumForgeProvider>
-      </AuthProvider>
-    </QueryClientProvider>
-  </ThemeProvider>
-)
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route index element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <DashboardHome />
+              </Suspense>
+            } />
+            <Route path="learning" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <LearningDashboard />
+              </Suspense>
+            } />
+            <Route path="skills" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <SkillsDashboard />
+              </Suspense>
+            } />
+            <Route path="mentorship" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <MentorshipDashboard />
+              </Suspense>
+            } />
+            <Route path="opportunities" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <OpportunitiesDashboard />
+              </Suspense>
+            } />
+            <Route path="network" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <NetworkDashboard />
+              </Suspense>
+            } />
+            <Route path="study-groups" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <StudyGroupsPage />
+              </Suspense>
+            } />
+            <Route path="collaboration" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <CollaborationPage />
+              </Suspense>
+            } />
+            <Route path="community" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <CommunityPage />
+              </Suspense>
+            } />
+            <Route path="quantum-matching" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <QuantumMatchingDashboard />
+              </Suspense>
+            } />
+            <Route path="career-twin" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <CareerTwinDashboard />
+              </Suspense>
+            } />
+            <Route path="green-skills" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <GreenSkillsDashboard />
+              </Suspense>
+            } />
+            <Route path="staking" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <StakingDashboard />
+              </Suspense>
+            } />
+            <Route path="arcade" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <ArcadeDashboard />
+              </Suspense>
+            } />
+            <Route path="study-bee" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <StudyBeeDashboard />
+              </Suspense>
+            } />
+            <Route path="quorumforge" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <QuorumForgeDashboard />
+              </Suspense>
+            } />
+            <Route path="veriskill" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <VeriSkillDashboard />
+              </Suspense>
+            } />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
-export default App
+export default App;
