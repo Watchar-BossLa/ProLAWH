@@ -8,6 +8,7 @@ export function useAgenticAssistant() {
   const [agents, setAgents] = useState<AIAgent[]>([]);
   const [actions, setActions] = useState<AgentAction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Initialize user's AI agents
   const initializeAgents = useCallback(async () => {
@@ -72,6 +73,133 @@ export function useAgenticAssistant() {
       toast({
         title: "Error",
         description: "Failed to initialize AI agents",
+        variant: "destructive"
+      });
+    }
+  }, []);
+
+  // Initialize specific agent type
+  const initializeAgent = useCallback(async (
+    agentType: 'career_twin' | 'skill_advisor' | 'network_facilitator' | 'opportunity_scout',
+    userSkills: string[],
+    careerGoals: string[]
+  ) => {
+    setIsProcessing(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Check if agent already exists
+      const { data: existingAgent } = await supabase
+        .from('ai_agents')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('agent_type', agentType)
+        .single();
+
+      if (!existingAgent) {
+        const agentConfig = {
+          user_id: user.id,
+          agent_type: agentType,
+          personality_profile: {
+            communication_style: agentType === 'career_twin' ? 'encouraging' : 'analytical',
+            proactivity_level: 0.8,
+            specialization_areas: [agentType.replace('_', ' ')],
+            learning_preferences: ['adaptive']
+          },
+          knowledge_state: { 
+            initialized: true,
+            user_skills: userSkills,
+            career_goals: careerGoals
+          },
+          goal_hierarchy: { primary: agentType },
+          learning_parameters: { learning_rate: 0.1 },
+          conversation_context: [],
+          autonomy_level: 4
+        };
+
+        const { data: newAgent, error } = await supabase
+          .from('ai_agents')
+          .insert(agentConfig)
+          .select()
+          .single();
+
+        if (error) throw error;
+        
+        setAgents(prev => [...prev, convertToAIAgent(newAgent)]);
+      }
+    } catch (error) {
+      console.error('Error initializing agent:', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  }, []);
+
+  // Generate proactive action
+  const generateProactiveAction = useCallback(async (
+    agent: AIAgent,
+    actionType: string,
+    context: any
+  ) => {
+    setIsProcessing(true);
+    try {
+      const actionData = {
+        agent_id: agent.id,
+        user_id: agent.user_id,
+        action_type: 'proactive_nudge',
+        action_data: {
+          title: `${actionType} Suggestion`,
+          message: `Based on your recent activity, I have a suggestion for you.`,
+          action_items: ['Review the suggestion', 'Take action if relevant']
+        },
+        reasoning: { context, agent_type: agent.agent_type },
+        confidence_score: 0.8,
+        urgency_level: 3,
+        status: 'pending'
+      };
+
+      const { data: newAction, error } = await supabase
+        .from('agent_actions')
+        .insert(actionData)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      setActions(prev => [convertToAgentAction(newAction), ...prev]);
+    } catch (error) {
+      console.error('Error generating proactive action:', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  }, []);
+
+  // Process user feedback
+  const processUserFeedback = useCallback(async (
+    actionId: string,
+    feedback: 'positive' | 'negative'
+  ) => {
+    try {
+      const status = feedback === 'positive' ? 'acted_upon' : 'dismissed';
+      
+      const { error } = await supabase
+        .from('agent_actions')
+        .update({
+          status,
+          user_feedback: { feedback, timestamp: new Date().toISOString() },
+          effectiveness_score: feedback === 'positive' ? 0.9 : 0.1,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', actionId);
+
+      if (error) throw error;
+      
+      await fetchActions();
+    } catch (error) {
+      console.error('Error processing feedback:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process feedback",
         variant: "destructive"
       });
     }
@@ -189,6 +317,10 @@ export function useAgenticAssistant() {
     agents,
     actions,
     isLoading,
+    isProcessing,
+    initializeAgent,
+    generateProactiveAction,
+    processUserFeedback,
     markActionAsActedUpon,
     dismissAction,
     refetchActions: fetchActions
