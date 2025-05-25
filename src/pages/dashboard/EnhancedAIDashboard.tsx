@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { SwarmCoordinationEngine } from "@/components/ai/enhanced/SwarmCoordinationEngine";
 import { ReinforcementLearningDashboard } from "@/components/ai/enhanced/ReinforcementLearningDashboard";
 import { DomainSpecializedAgents } from "@/components/ai/enhanced/DomainSpecializedAgents";
+import { MultiAgentCoordinationEngine } from "@/components/ai/enhanced/MultiAgentCoordinationEngine";
+import { AdaptiveLearningEngine } from "@/components/ai/enhanced/AdaptiveLearningEngine";
 import { useEnhancedAgenticAssistant } from "@/hooks/useEnhancedAgenticAssistant";
 import { 
   Brain, 
@@ -16,7 +18,9 @@ import {
   GitMerge,
   Target,
   Users,
-  BarChart3
+  BarChart3,
+  Activity,
+  MessageSquare
 } from "lucide-react";
 
 export default function EnhancedAIDashboard() {
@@ -76,13 +80,13 @@ export default function EnhancedAIDashboard() {
             Enhanced AI & ML Dashboard
           </h1>
           <p className="text-muted-foreground mt-1">
-            Advanced agentic systems with swarm intelligence, reinforcement learning, and specialized reasoning
+            Advanced agentic systems with swarm intelligence, reinforcement learning, and sophisticated coordination
           </p>
         </div>
       </div>
 
-      {/* System Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Enhanced System Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Agents</CardTitle>
@@ -91,7 +95,7 @@ export default function EnhancedAIDashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{enhancedAgents.length}</div>
             <p className="text-xs text-muted-foreground">
-              Enhanced with advanced reasoning
+              Enhanced reasoning & coordination
             </p>
           </CardContent>
         </Card>
@@ -132,20 +136,35 @@ export default function EnhancedAIDashboard() {
               {learningStates.reduce((total, state) => total + state.learning_episode, 0)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Reinforcement learning cycles
+              RL optimization cycles
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Consensus Rate</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">87%</div>
+            <p className="text-xs text-muted-foreground">
+              Multi-agent agreement
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Main Content Tabs */}
+      {/* Enhanced Main Content Tabs */}
       <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="agents">Specialized Agents</TabsTrigger>
-          <TabsTrigger value="swarm">Swarm Intelligence</TabsTrigger>
-          <TabsTrigger value="learning">Reinforcement Learning</TabsTrigger>
-          <TabsTrigger value="reasoning">Advanced Reasoning</TabsTrigger>
+          <TabsTrigger value="agents">Agents</TabsTrigger>
+          <TabsTrigger value="coordination">Coordination</TabsTrigger>
+          <TabsTrigger value="swarm">Swarm Intel</TabsTrigger>
+          <TabsTrigger value="learning">RL Engine</TabsTrigger>
+          <TabsTrigger value="adaptive">Adaptive Learning</TabsTrigger>
+          <TabsTrigger value="reasoning">Reasoning</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -276,6 +295,10 @@ export default function EnhancedAIDashboard() {
           <DomainSpecializedAgents />
         </TabsContent>
 
+        <TabsContent value="coordination">
+          <MultiAgentCoordinationEngine />
+        </TabsContent>
+
         <TabsContent value="swarm">
           <SwarmCoordinationEngine 
             agents={enhancedAgents}
@@ -288,6 +311,10 @@ export default function EnhancedAIDashboard() {
             agentId="primary-agent"
             onOptimizationAction={handleOptimizationAction}
           />
+        </TabsContent>
+
+        <TabsContent value="adaptive">
+          <AdaptiveLearningEngine />
         </TabsContent>
 
         <TabsContent value="reasoning" className="space-y-6">
