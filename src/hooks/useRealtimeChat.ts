@@ -26,6 +26,12 @@ interface SendMessageParams {
   reply_to?: string;
 }
 
+interface TypingPresence {
+  typing?: boolean;
+  user_id?: string;
+  presence_ref: string;
+}
+
 export function useRealtimeChat(connectionId: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
@@ -128,20 +134,20 @@ export function useRealtimeChat(connectionId: string) {
           )
           .subscribe();
 
-        // Subscribe to typing indicators
+        // Subscribe to typing indicators with proper type handling
         const typingChannel = supabase
           .channel(`typing:${connectionId}`)
           .on('presence', { event: 'sync' }, () => {
             const state = typingChannel.presenceState();
             const typing = Object.keys(state).filter(key => {
-              const presence = state[key][0];
-              return presence && presence.typing === true;
+              const presences = state[key] as TypingPresence[];
+              return presences && presences.length > 0 && presences.some(p => p.typing === true);
             });
             setTypingUsers(typing);
           })
           .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-            const presence = newPresences[0];
-            if (presence && presence.typing) {
+            const presences = newPresences as TypingPresence[];
+            if (presences && presences.some(p => p.typing === true)) {
               setTypingUsers(prev => [...prev, key]);
             }
           })
