@@ -32,7 +32,7 @@ export function useQuantumMatching() {
   const [skillVectors, setSkillVectors] = useState<QuantumSkillVector[]>([]);
 
   // Generate quantum-enhanced matches
-  const generateQuantumMatches = useCallback(async (targetType: string) => {
+  const generateQuantumMatches = useCallback(async (targetType: 'job' | 'project' | 'mentor' | 'peer') => {
     setIsLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -68,7 +68,7 @@ export function useQuantumMatching() {
           classical_score: match.classical_score,
           superposition_state: match.superposition_state,
           measurement_confidence: match.measurement_confidence,
-          entanglementFactors: match.entanglement_factors
+          entanglement_factors: match.entanglement_factors
         })))
         .select();
 

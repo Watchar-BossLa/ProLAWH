@@ -111,10 +111,10 @@ export function useAgenticAssistant() {
 
   // Subscribe to real-time updates
   useEffect(() => {
-    const { data: { user } } = supabase.auth.getUser();
-    
-    user.then(({ data: userData }) => {
-      if (!userData?.user) return;
+    const setupSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) return;
 
       const actionsSubscription = supabase
         .channel('agent_actions_changes')
@@ -122,7 +122,7 @@ export function useAgenticAssistant() {
           event: '*',
           schema: 'public',
           table: 'agent_actions',
-          filter: `user_id=eq.${userData.user.id}`
+          filter: `user_id=eq.${user.id}`
         }, () => {
           fetchActions();
         })
@@ -131,7 +131,9 @@ export function useAgenticAssistant() {
       return () => {
         actionsSubscription.unsubscribe();
       };
-    });
+    };
+
+    setupSubscription();
   }, [fetchActions]);
 
   // Mark action as acted upon
