@@ -21,7 +21,8 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
     messages, 
     isLoading, 
     sendMessage,
-    reactToMessage
+    addReaction,
+    removeReaction
   } = useRealtimeChat(connection.id);
   
   const { updateTypingStatus, isUserTypingTo } = usePresenceStatus();
@@ -34,8 +35,15 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
   } = useChatHandlers({
     user,
     updateTypingStatus,
-    sendMessage,
-    reactToMessage
+    sendMessage: async (params: any) => {
+      await sendMessage({
+        content: params.content,
+        type: 'text'
+      });
+    },
+    reactToMessage: async (messageId: string, emoji: string) => {
+      await addReaction(messageId, emoji);
+    }
   });
   
   const onSendMessage = (messageText: string, attachments: any[]) => {

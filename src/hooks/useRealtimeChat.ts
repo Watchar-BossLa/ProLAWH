@@ -36,7 +36,7 @@ export function useRealtimeChat(connectionId: string) {
   useEffect(() => {
     const initializeChat = async () => {
       try {
-        // Fetch existing messages
+        // Fetch existing messages from chat_messages table
         const { data: messagesData, error: messagesError } = await supabase
           .from('chat_messages')
           .select(`
@@ -58,7 +58,7 @@ export function useRealtimeChat(connectionId: string) {
           sender_name: msg.profiles?.full_name || 'Unknown',
           sender_avatar: msg.profiles?.avatar_url,
           timestamp: msg.created_at,
-          type: msg.message_type || 'text',
+          type: (msg.message_type as 'text' | 'file' | 'image') || 'text',
           file_url: msg.file_url,
           file_name: msg.file_name,
           reactions: msg.reactions || {},

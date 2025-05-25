@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -25,8 +26,8 @@ export function NetworkChatDialog({ activeChatId, activeChatConnection, onClose 
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   
   // Use the real-time chat hook
-  const { messages, sendMessage, isLoading, reactToMessage } = useRealtimeChat(
-    activeChatId ? activeChatId : null
+  const { messages, sendMessage, isLoading, addReaction } = useRealtimeChat(
+    activeChatId ? activeChatId : ""
   );
 
   // Scroll to bottom when new messages arrive
@@ -72,8 +73,7 @@ export function NetworkChatDialog({ activeChatId, activeChatConnection, onClose 
     
     sendMessage({
       content: message,
-      sender_id: user.id,
-      receiver_id: activeChatId,
+      type: 'text'
     });
     
     // Clear message and typing status
@@ -87,7 +87,7 @@ export function NetworkChatDialog({ activeChatId, activeChatConnection, onClose 
   // Handler for message reactions
   const handleReactToMessage = (messageId: string, emoji: string) => {
     if (user) {
-      reactToMessage(messageId, emoji);
+      addReaction(messageId, emoji);
     }
   };
 
