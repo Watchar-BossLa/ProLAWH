@@ -4,25 +4,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MessageAttachment, AttachmentType } from "./MessageAttachment";
 import { MessageReactions, MessageReactionsData } from "./MessageReactions";
 
-interface Message {
+interface ChatMessage {
   id: string;
   sender_id: string;
-  receiver_id: string;
   content: string;
   timestamp: string;
-  read: boolean;
-  attachment_data?: {
-    id: string;
-    type: AttachmentType;
-    url: string;
-    name: string;
-    size?: number;
-  }[];
+  type: 'text' | 'file' | 'image';
+  file_url?: string;
+  file_name?: string;
   reactions?: MessageReactionsData;
+  sender_name: string;
+  sender_avatar?: string;
 }
 
 interface MessageListProps {
-  messages: Message[];
+  messages: ChatMessage[];
   currentUserId: string | undefined;
   connectionName: string;
   connectionAvatar?: string;
@@ -42,14 +38,12 @@ export function MessageList({
 }: MessageListProps) {
   const messageEndRef = useRef<HTMLDivElement>(null);
   
-  // Auto-scroll to bottom when new messages come in
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
   
-  // Group messages by date
-  const groupMessagesByDate = (messages: Message[]) => {
-    const groups: { [date: string]: Message[] } = {};
+  const groupMessagesByDate = (messages: ChatMessage[]) => {
+    const groups: { [date: string]: ChatMessage[] } = {};
     
     messages.forEach(message => {
       const date = new Date(message.timestamp).toDateString();
@@ -119,11 +113,11 @@ export function MessageList({
               >
                 {!isCurrentUser && (
                   <Avatar className="h-8 w-8 mr-2 mt-1">
-                    {connectionAvatar ? (
-                      <AvatarImage src={connectionAvatar} alt={connectionName} />
+                    {msg.sender_avatar ? (
+                      <AvatarImage src={msg.sender_avatar} alt={msg.sender_name} />
                     ) : (
                       <AvatarFallback className="bg-primary/10 text-primary">
-                        {connectionName.substring(0, 2).toUpperCase()}
+                        {msg.sender_name.substring(0, 2).toUpperCase()}
                       </AvatarFallback>
                     )}
                   </Avatar>
@@ -136,20 +130,20 @@ export function MessageList({
                         : "bg-muted"
                     }`}
                   >
-                    {/* Message content */}
                     {msg.content && (
                       <p className="text-sm break-words whitespace-pre-wrap">{msg.content}</p>
                     )}
                     
-                    {/* Attachments */}
-                    {msg.attachment_data && msg.attachment_data.length > 0 && (
-                      <div className="mt-2 space-y-2">
-                        {msg.attachment_data.map((attachment) => (
-                          <MessageAttachment 
-                            key={attachment.id} 
-                            attachment={attachment} 
-                          />
-                        ))}
+                    {msg.file_url && (
+                      <div className="mt-2">
+                        <MessageAttachment 
+                          attachment={{
+                            id: msg.id,
+                            type: msg.type as AttachmentType,
+                            url: msg.file_url,
+                            name: msg.file_name || 'File'
+                          }} 
+                        />
                       </div>
                     )}
                     
@@ -158,7 +152,6 @@ export function MessageList({
                     </p>
                   </div>
                   
-                  {/* Message reactions */}
                   <MessageReactions
                     messageId={msg.id}
                     reactions={msg.reactions || {}}

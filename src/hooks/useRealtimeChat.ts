@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
-interface Message {
+interface ChatMessage {
   id: string;
   content: string;
   sender_id: string;
@@ -27,42 +27,47 @@ interface SendMessageParams {
 }
 
 export function useRealtimeChat(connectionId: string) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [onlineStatus, setOnlineStatus] = useState<'online' | 'away' | 'offline'>('offline');
   const [isLoading, setIsLoading] = useState(true);
 
   // Initialize chat and subscribe to real-time updates
   useEffect(() => {
+    if (!connectionId) return;
+
     const initializeChat = async () => {
       try {
         // Fetch existing messages from chat_messages table
         const { data: messagesData, error: messagesError } = await supabase
           .from('chat_messages')
-          .select(`
-            *,
-            profiles:sender_id (
-              full_name,
-              avatar_url
-            )
-          `)
+          .select('*')
           .eq('connection_id', connectionId)
           .order('created_at', { ascending: true });
 
         if (messagesError) throw messagesError;
 
-        const formattedMessages: Message[] = messagesData?.map(msg => ({
+        // Get sender profiles separately
+        const senderIds = [...new Set(messagesData?.map(msg => msg.sender_id) || [])];
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .in('id', senderIds);
+
+        const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+        const formattedMessages: ChatMessage[] = messagesData?.map(msg => ({
           id: msg.id,
           content: msg.content,
           sender_id: msg.sender_id,
-          sender_name: msg.profiles?.full_name || 'Unknown',
-          sender_avatar: msg.profiles?.avatar_url,
+          sender_name: profilesMap.get(msg.sender_id)?.full_name || 'Unknown',
+          sender_avatar: profilesMap.get(msg.sender_id)?.avatar_url,
           timestamp: msg.created_at,
           type: (msg.message_type as 'text' | 'file' | 'image') || 'text',
-          file_url: msg.file_url,
-          file_name: msg.file_name,
-          reactions: msg.reactions || {},
-          reply_to: msg.reply_to_id
+          file_url: msg.file_url || undefined,
+          file_name: msg.file_name || undefined,
+          reactions: (msg.reactions as Record<string, string[]>) || {},
+          reply_to: msg.reply_to_id || undefined
         })) || [];
 
         setMessages(formattedMessages);
@@ -79,13 +84,22 @@ export function useRealtimeChat(connectionId: string) {
               table: 'chat_messages',
               filter: `connection_id=eq.${connectionId}`
             },
-            (payload) => {
+            async (payload) => {
               const newMessage = payload.new as any;
+              
+              // Get sender profile
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('full_name, avatar_url')
+                .eq('id', newMessage.sender_id)
+                .single();
+
               setMessages(prev => [...prev, {
                 id: newMessage.id,
                 content: newMessage.content,
                 sender_id: newMessage.sender_id,
-                sender_name: 'User', // Will be updated with profile data
+                sender_name: profile?.full_name || 'User',
+                sender_avatar: profile?.avatar_url,
                 timestamp: newMessage.created_at,
                 type: newMessage.message_type || 'text',
                 file_url: newMessage.file_url,
@@ -119,13 +133,15 @@ export function useRealtimeChat(connectionId: string) {
           .channel(`typing:${connectionId}`)
           .on('presence', { event: 'sync' }, () => {
             const state = typingChannel.presenceState();
-            const typing = Object.keys(state).filter(key => 
-              state[key][0]?.typing === true
-            );
+            const typing = Object.keys(state).filter(key => {
+              const presence = state[key][0];
+              return presence && presence.typing === true;
+            });
             setTypingUsers(typing);
           })
           .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-            if (newPresences[0]?.typing) {
+            const presence = newPresences[0];
+            if (presence && presence.typing) {
               setTypingUsers(prev => [...prev, key]);
             }
           })
@@ -139,7 +155,7 @@ export function useRealtimeChat(connectionId: string) {
           .channel(`presence:${connectionId}`)
           .on('presence', { event: 'sync' }, () => {
             const state = presenceChannel.presenceState();
-            const isOnline = Object.keys(state).length > 1; // More than current user
+            const isOnline = Object.keys(state).length > 1;
             setOnlineStatus(isOnline ? 'online' : 'offline');
           })
           .subscribe();
@@ -208,44 +224,6 @@ export function useRealtimeChat(connectionId: string) {
     }
   }, [connectionId]);
 
-  const uploadFile = useCallback(async (file: File) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      // Upload file to Supabase Storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `chat-files/${user.id}/${fileName}`;
-
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('chat-files')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('chat-files')
-        .getPublicUrl(filePath);
-
-      // Send message with file
-      await sendMessage({
-        content: `Shared a file: ${file.name}`,
-        type: file.type.startsWith('image/') ? 'image' : 'file',
-        file_url: publicUrl,
-        file_name: file.name
-      });
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      toast({
-        title: "Error",
-        description: "Failed to upload file",
-        variant: "destructive"
-      });
-    }
-  }, [sendMessage]);
-
   const addReaction = useCallback(async (messageId: string, emoji: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -257,19 +235,32 @@ export function useRealtimeChat(connectionId: string) {
       const currentReactions = message.reactions || {};
       const emojiReactions = currentReactions[emoji] || [];
       
-      if (!emojiReactions.includes(user.id)) {
-        const updatedReactions = {
+      let updatedReactions: Record<string, string[]>;
+      
+      if (emojiReactions.includes(user.id)) {
+        // Remove reaction
+        updatedReactions = {
+          ...currentReactions,
+          [emoji]: emojiReactions.filter(id => id !== user.id)
+        };
+        
+        if (updatedReactions[emoji].length === 0) {
+          delete updatedReactions[emoji];
+        }
+      } else {
+        // Add reaction
+        updatedReactions = {
           ...currentReactions,
           [emoji]: [...emojiReactions, user.id]
         };
-
-        const { error } = await supabase
-          .from('chat_messages')
-          .update({ reactions: updatedReactions })
-          .eq('id', messageId);
-
-        if (error) throw error;
       }
+
+      const { error } = await supabase
+        .from('chat_messages')
+        .update({ reactions: updatedReactions })
+        .eq('id', messageId);
+
+      if (error) throw error;
     } catch (error) {
       console.error('Error adding reaction:', error);
     }
@@ -291,7 +282,6 @@ export function useRealtimeChat(connectionId: string) {
         [emoji]: emojiReactions.filter(id => id !== user.id)
       };
 
-      // Remove emoji key if no reactions left
       if (updatedReactions[emoji].length === 0) {
         delete updatedReactions[emoji];
       }
@@ -307,16 +297,43 @@ export function useRealtimeChat(connectionId: string) {
     }
   }, [messages]);
 
-  const markAsRead = useCallback(async () => {
+  const uploadFile = useCallback(async (file: File) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) throw new Error('User not authenticated');
 
-      // Mark messages as read (implement read status tracking)
-      // This would require additional database schema for read receipts
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('chat-files')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('chat-files')
+        .getPublicUrl(filePath);
+
+      await sendMessage({
+        content: `Shared a file: ${file.name}`,
+        type: file.type.startsWith('image/') ? 'image' : 'file',
+        file_url: publicUrl,
+        file_name: file.name
+      });
     } catch (error) {
-      console.error('Error marking messages as read:', error);
+      console.error('Error uploading file:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload file",
+        variant: "destructive"
+      });
     }
+  }, [sendMessage]);
+
+  const markAsRead = useCallback(async () => {
+    // Placeholder for read status tracking
   }, []);
 
   return {

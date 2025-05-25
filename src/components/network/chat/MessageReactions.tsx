@@ -5,9 +5,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Smile, Heart, ThumbsUp, Laugh, Angry } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
+export interface MessageReactionsData {
+  [emoji: string]: string[];
+}
+
 interface MessageReactionsProps {
   messageId: string;
-  reactions: Record<string, string[]>;
+  reactions: MessageReactionsData;
   currentUserId?: string;
   onReact: (messageId: string, emoji: string) => void;
 }
@@ -28,29 +32,17 @@ export function MessageReactions({
 }: MessageReactionsProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  // Count total reactions
-  const totalReactions = Object.values(reactions)
-    .reduce((sum, reactors) => sum + reactors.length, 0);
-  
-  // Check if user has already reacted with any emoji
-  const hasUserReacted = currentUserId ? 
-    Object.values(reactions).some(
-      reactors => reactors.includes(currentUserId)
-    ) : false;
-  
   const handleEmojiClick = (emoji: string) => {
     onReact(messageId, emoji);
     setIsOpen(false);
   };
 
   const handleReactionClick = (emoji: string) => {
-    // Toggle reaction - in a real app, check if user has already reacted
     onReact(messageId, emoji);
   };
 
   return (
     <div className="flex items-center gap-1 mt-1">
-      {/* Display existing reaction counts */}
       {Object.entries(reactions).map(([emoji, userIds]) => {
         if (userIds.length === 0) return null;
         
@@ -69,7 +61,6 @@ export function MessageReactions({
         );
       })}
       
-      {/* Reaction button */}
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button 

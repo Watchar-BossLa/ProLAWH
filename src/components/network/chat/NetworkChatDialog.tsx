@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { TypingIndicator } from "./TypingIndicator";
 import { NetworkConnectionStatus } from "../cards/NetworkConnectionStatus";
 import { useRealtimeChat } from '@/hooks/useRealtimeChat';
-import { MessageReactions } from './MessageReactions';
+import { MessageReactions, MessageReactionsData } from './MessageReactions';
 
 interface NetworkChatDialogProps {
   activeChatId: string | null;
@@ -25,29 +25,24 @@ export function NetworkChatDialog({ activeChatId, activeChatConnection, onClose 
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   
-  // Use the real-time chat hook
   const { messages, sendMessage, isLoading, addReaction } = useRealtimeChat(
     activeChatId ? activeChatId : ""
   );
 
-  // Scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Handle typing status
   const handleTyping = () => {
     if (!isTyping && activeChatId && user) {
       setIsTyping(true);
       updateTypingStatus(true, activeChatId);
     }
     
-    // Clear previous timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
     
-    // Set a new timeout to stop typing indicator
     typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
       if (activeChatId && user) {
@@ -56,7 +51,6 @@ export function NetworkChatDialog({ activeChatId, activeChatConnection, onClose 
     }, 2000);
   };
 
-  // Clear typing timeout on unmount
   useEffect(() => {
     return () => {
       if (typingTimeoutRef.current) {
@@ -76,7 +70,6 @@ export function NetworkChatDialog({ activeChatId, activeChatConnection, onClose 
       type: 'text'
     });
     
-    // Clear message and typing status
     setMessage("");
     setIsTyping(false);
     if (activeChatId) {
@@ -84,7 +77,6 @@ export function NetworkChatDialog({ activeChatId, activeChatConnection, onClose 
     }
   };
 
-  // Handler for message reactions
   const handleReactToMessage = (messageId: string, emoji: string) => {
     if (user) {
       addReaction(messageId, emoji);
@@ -140,7 +132,6 @@ export function NetworkChatDialog({ activeChatId, activeChatConnection, onClose 
                   {msg.content}
                 </div>
                 
-                {/* Add message reactions */}
                 <MessageReactions
                   messageId={msg.id}
                   reactions={msg.reactions || {}}
