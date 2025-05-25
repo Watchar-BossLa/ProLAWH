@@ -1,42 +1,22 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-
-interface ChatMessage {
-  id: string;
-  content: string;
-  sender_id: string;
-  sender_name: string;
-  sender_avatar?: string;
-  timestamp: string;
-  type: 'text' | 'file' | 'image';
-  file_url?: string;
-  file_name?: string;
-  reactions: Record<string, string[]>;
-  thread_id?: string;
-  reply_to?: string;
-}
-
-interface SendMessageParams {
-  content: string;
-  type: 'text' | 'file' | 'image';
-  file_url?: string;
-  file_name?: string;
-  reply_to?: string;
-}
-
-interface TypingPresence {
-  typing?: boolean;
-  user_id?: string;
-  presence_ref: string;
-}
+import { ChatMessage, SendMessageParams } from './chat/types';
+import { useSendMessage } from './chat/useSendMessage';
+import { useMessageReactions } from './chat/useMessageReactions';
+import { useTypingIndicator } from './chat/useTypingIndicator';
+import { useFileUpload } from './chat/useFileUpload';
+import { useOnlineStatus } from './chat/useOnlineStatus';
 
 export function useRealtimeChat(connectionId: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [typingUsers, setTypingUsers] = useState<string[]>([]);
-  const [onlineStatus, setOnlineStatus] = useState<'online' | 'away' | 'offline'>('offline');
   const [isLoading, setIsLoading] = useState(true);
+
+  const { sendMessage } = useSendMessage(connectionId);
+  const { addReaction, removeReaction } = useMessageReactions(messages);
+  const { typingUsers, sendTypingIndicator } = useTypingIndicator(connectionId);
+  const { uploadFile } = useFileUpload(sendMessage);
+  const { onlineStatus } = useOnlineStatus(connectionId);
 
   // Initialize chat and subscribe to real-time updates
   useEffect(() => {
@@ -134,42 +114,8 @@ export function useRealtimeChat(connectionId: string) {
           )
           .subscribe();
 
-        // Subscribe to typing indicators with proper type handling
-        const typingChannel = supabase
-          .channel(`typing:${connectionId}`)
-          .on('presence', { event: 'sync' }, () => {
-            const state = typingChannel.presenceState();
-            const typing = Object.keys(state).filter(key => {
-              const presences = state[key] as TypingPresence[];
-              return presences && presences.length > 0 && presences.some(p => p.typing === true);
-            });
-            setTypingUsers(typing);
-          })
-          .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-            const presences = newPresences as TypingPresence[];
-            if (presences && presences.some(p => p.typing === true)) {
-              setTypingUsers(prev => [...prev, key]);
-            }
-          })
-          .on('presence', { event: 'leave' }, ({ key }) => {
-            setTypingUsers(prev => prev.filter(user => user !== key));
-          })
-          .subscribe();
-
-        // Subscribe to online status
-        const presenceChannel = supabase
-          .channel(`presence:${connectionId}`)
-          .on('presence', { event: 'sync' }, () => {
-            const state = presenceChannel.presenceState();
-            const isOnline = Object.keys(state).length > 1;
-            setOnlineStatus(isOnline ? 'online' : 'offline');
-          })
-          .subscribe();
-
         return () => {
           messagesChannel.unsubscribe();
-          typingChannel.unsubscribe();
-          presenceChannel.unsubscribe();
         };
       } catch (error) {
         console.error('Error initializing chat:', error);
@@ -184,159 +130,6 @@ export function useRealtimeChat(connectionId: string) {
 
     initializeChat();
   }, [connectionId]);
-
-  const sendMessage = useCallback(async (params: SendMessageParams) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const { error } = await supabase
-        .from('chat_messages')
-        .insert({
-          connection_id: connectionId,
-          sender_id: user.id,
-          content: params.content,
-          message_type: params.type,
-          file_url: params.file_url,
-          file_name: params.file_name,
-          reply_to_id: params.reply_to
-        });
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error sending message:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send message",
-        variant: "destructive"
-      });
-    }
-  }, [connectionId]);
-
-  const sendTypingIndicator = useCallback(async (isTyping: boolean) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const channel = supabase.channel(`typing:${connectionId}`);
-      
-      if (isTyping) {
-        await channel.track({ typing: true, user_id: user.id });
-      } else {
-        await channel.untrack();
-      }
-    } catch (error) {
-      console.error('Error sending typing indicator:', error);
-    }
-  }, [connectionId]);
-
-  const addReaction = useCallback(async (messageId: string, emoji: string) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const message = messages.find(m => m.id === messageId);
-      if (!message) return;
-
-      const currentReactions = message.reactions || {};
-      const emojiReactions = currentReactions[emoji] || [];
-      
-      let updatedReactions: Record<string, string[]>;
-      
-      if (emojiReactions.includes(user.id)) {
-        // Remove reaction
-        updatedReactions = {
-          ...currentReactions,
-          [emoji]: emojiReactions.filter(id => id !== user.id)
-        };
-        
-        if (updatedReactions[emoji].length === 0) {
-          delete updatedReactions[emoji];
-        }
-      } else {
-        // Add reaction
-        updatedReactions = {
-          ...currentReactions,
-          [emoji]: [...emojiReactions, user.id]
-        };
-      }
-
-      const { error } = await supabase
-        .from('chat_messages')
-        .update({ reactions: updatedReactions })
-        .eq('id', messageId);
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error adding reaction:', error);
-    }
-  }, [messages]);
-
-  const removeReaction = useCallback(async (messageId: string, emoji: string) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const message = messages.find(m => m.id === messageId);
-      if (!message) return;
-
-      const currentReactions = message.reactions || {};
-      const emojiReactions = currentReactions[emoji] || [];
-      
-      const updatedReactions = {
-        ...currentReactions,
-        [emoji]: emojiReactions.filter(id => id !== user.id)
-      };
-
-      if (updatedReactions[emoji].length === 0) {
-        delete updatedReactions[emoji];
-      }
-
-      const { error } = await supabase
-        .from('chat_messages')
-        .update({ reactions: updatedReactions })
-        .eq('id', messageId);
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error removing reaction:', error);
-    }
-  }, [messages]);
-
-  const uploadFile = useCallback(async (file: File) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `${user.id}/${fileName}`;
-
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('chat-files')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('chat-files')
-        .getPublicUrl(filePath);
-
-      await sendMessage({
-        content: `Shared a file: ${file.name}`,
-        type: file.type.startsWith('image/') ? 'image' : 'file',
-        file_url: publicUrl,
-        file_name: file.name
-      });
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      toast({
-        title: "Error",
-        description: "Failed to upload file",
-        variant: "destructive"
-      });
-    }
-  }, [sendMessage]);
 
   const markAsRead = useCallback(async () => {
     // Placeholder for read status tracking

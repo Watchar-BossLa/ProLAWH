@@ -1,49 +1,37 @@
 
+import { useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { ChatMessage, SendMessageParams, DatabaseMessage } from '@/types/chat';
+import { toast } from '@/hooks/use-toast';
+import { SendMessageParams } from './types';
 
-export function useSendMessage() {
-  const sendMessage = async ({ content, sender_id, receiver_id, attachment_data }: SendMessageParams) => {
+export function useSendMessage(connectionId: string) {
+  const sendMessage = useCallback(async (params: SendMessageParams) => {
     try {
-      const messageData = {
-        sender_id,
-        receiver_id,
-        content,
-        timestamp: new Date().toISOString(),
-        read: false,
-        attachment_data: attachment_data || null
-      };
-      
-      const { data, error } = await supabase
-        .from('network_messages')
-        .insert([messageData])
-        .select();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { error } = await supabase
+        .from('chat_messages')
+        .insert({
+          connection_id: connectionId,
+          sender_id: user.id,
+          content: params.content,
+          message_type: params.type,
+          file_url: params.file_url,
+          file_name: params.file_name,
+          reply_to_id: params.reply_to
+        });
 
       if (error) throw error;
-
-      if (!data || data.length === 0) {
-        throw new Error('No data returned from message insert');
-      }
-
-      // Convert the database response to ChatMessage type
-      const dbMessage = data[0] as DatabaseMessage;
-      const chatMessage: ChatMessage = {
-        id: dbMessage.id,
-        sender_id: dbMessage.sender_id,
-        receiver_id: dbMessage.receiver_id,
-        content: dbMessage.content,
-        timestamp: dbMessage.timestamp,
-        read: dbMessage.read,
-        attachment_data: dbMessage.attachment_data,
-        reactions: dbMessage.reactions as ChatMessage['reactions'] || {}
-      };
-
-      return chatMessage;
     } catch (error) {
       console.error('Error sending message:', error);
-      return null;
+      toast({
+        title: "Error",
+        description: "Failed to send message",
+        variant: "destructive"
+      });
     }
-  };
+  }, [connectionId]);
 
   return { sendMessage };
 }

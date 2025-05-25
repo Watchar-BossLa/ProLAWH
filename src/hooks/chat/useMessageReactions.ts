@@ -1,84 +1,81 @@
 
-import { useState } from 'react';
+import { useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from 'sonner';
-import { ChatMessage, MessageReactionsData, Reaction } from '@/types/chat';
+import { ChatMessage } from './types';
 
-export function useMessageReactions(messages: ChatMessage[], setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>) {
-  const reactToMessage = async (messageId: string, emoji: string, userId: string) => {
-    if (!userId) return;
-    
+export function useMessageReactions(messages: ChatMessage[]) {
+  const addReaction = useCallback(async (messageId: string, emoji: string) => {
     try {
-      // Find the message to update
-      const messageToUpdate = messages.find(msg => msg.id === messageId);
-      if (!messageToUpdate) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const message = messages.find(m => m.id === messageId);
+      if (!message) return;
+
+      const currentReactions = message.reactions || {};
+      const emojiReactions = currentReactions[emoji] || [];
       
-      // Create a copy of the reactions
-      const updatedReactions: MessageReactionsData = { ...(messageToUpdate.reactions || {}) };
+      let updatedReactions: Record<string, string[]>;
       
-      // Check if user already reacted with this emoji
-      const hasUserReactedWithEmoji = updatedReactions[emoji]?.some(
-        reaction => reaction.user_id === userId
-      );
-      
-      if (hasUserReactedWithEmoji) {
-        // Remove the reaction
-        updatedReactions[emoji] = updatedReactions[emoji].filter(
-          reaction => reaction.user_id !== userId
-        );
+      if (emojiReactions.includes(user.id)) {
+        // Remove reaction
+        updatedReactions = {
+          ...currentReactions,
+          [emoji]: emojiReactions.filter(id => id !== user.id)
+        };
         
-        // Remove empty emoji arrays
         if (updatedReactions[emoji].length === 0) {
           delete updatedReactions[emoji];
         }
       } else {
-        // Remove user reaction from any other emoji
-        Object.keys(updatedReactions).forEach(existingEmoji => {
-          updatedReactions[existingEmoji] = updatedReactions[existingEmoji].filter(
-            reaction => reaction.user_id !== userId
-          );
-          
-          if (updatedReactions[existingEmoji].length === 0) {
-            delete updatedReactions[existingEmoji];
-          }
-        });
-        
-        // Add the new reaction
-        if (!updatedReactions[emoji]) {
-          updatedReactions[emoji] = [];
-        }
-        
-        updatedReactions[emoji].push({
-          emoji,
-          user_id: userId,
-          created_at: new Date().toISOString()
-        });
+        // Add reaction
+        updatedReactions = {
+          ...currentReactions,
+          [emoji]: [...emojiReactions, user.id]
+        };
       }
-      
-      // Update the message in the database
-      const { error } = await supabase
-        .from('network_messages')
-        .update({ 
-          reactions: updatedReactions as any
-        })
-        .eq('id', messageId);
-        
-      if (error) throw error;
-      
-      // Update local state
-      setMessages(prev => 
-        prev.map(msg => 
-          msg.id === messageId 
-            ? { ...msg, reactions: updatedReactions } 
-            : msg
-        )
-      );
-      
-    } catch (error) {
-      console.error('Error updating message reaction:', error);
-      toast.error('Failed to update reaction');
-    }
-  };
 
-  return { reactToMessage };
+      const { error } = await supabase
+        .from('chat_messages')
+        .update({ reactions: updatedReactions })
+        .eq('id', messageId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error adding reaction:', error);
+    }
+  }, [messages]);
+
+  const removeReaction = useCallback(async (messageId: string, emoji: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const message = messages.find(m => m.id === messageId);
+      if (!message) return;
+
+      const currentReactions = message.reactions || {};
+      const emojiReactions = currentReactions[emoji] || [];
+      
+      const updatedReactions = {
+        ...currentReactions,
+        [emoji]: emojiReactions.filter(id => id !== user.id)
+      };
+
+      if (updatedReactions[emoji].length === 0) {
+        delete updatedReactions[emoji];
+      }
+
+      const { error } = await supabase
+        .from('chat_messages')
+        .update({ reactions: updatedReactions })
+        .eq('id', messageId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error removing reaction:', error);
+    }
+  }, [messages]);
+
+  return { addReaction, removeReaction };
 }
