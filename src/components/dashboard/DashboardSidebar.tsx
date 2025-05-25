@@ -1,109 +1,223 @@
 
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useAdmin } from "@/hooks/useAdmin";
-import { 
-  Book, 
-  GraduationCap, 
+import {
+  LayoutDashboard,
+  BookOpen,
+  Trophy,
   Users,
-  Network, 
-  Trophy, 
-  Briefcase, 
-  BarChart, 
-  LucideIcon, 
-  Home, 
-  Settings,
-  Leaf,
-  ShieldCheck,
+  Briefcase,
+  Star,
+  Gamepad2,
   Brain,
-  Wallet
-} from 'lucide-react';
+  Leaf,
+  Coins,
+  Target,
+  Network,
+  Zap,
+  Atom,
+  ChevronDown,
+  ChevronRight
+} from "lucide-react";
+import {
+  SidebarContent,
+  SidebarGroup,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+} from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
-interface NavItemProps {
-  icon: LucideIcon;
-  label: string;
-  href: string;
-  isActive?: boolean;
-}
-
-const NavItem = ({ icon: Icon, label, href, isActive }: NavItemProps) => {
-  return (
-    <Link 
-      to={href}
-      className={cn(
-        "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-        isActive 
-          ? "bg-primary text-primary-foreground" 
-          : "hover:bg-secondary"
-      )}
-    >
-      <Icon className="h-5 w-5" />
-      <span>{label}</span>
-    </Link>
-  );
-};
+const menuItems = [
+  {
+    title: "Dashboard",
+    icon: LayoutDashboard,
+    href: "/dashboard",
+  },
+  {
+    title: "Learning",
+    icon: BookOpen,
+    href: "/dashboard/learning",
+  },
+  {
+    title: "Skills & Badges",
+    icon: Trophy,
+    href: "/dashboard/skills",
+  },
+  {
+    title: "Mentorship",
+    icon: Users,
+    href: "/dashboard/mentorship",
+  },
+  {
+    title: "Opportunities",
+    icon: Briefcase,
+    href: "/dashboard/opportunities",
+  },
+  {
+    title: "Network",
+    icon: Network,
+    href: "/dashboard/network",
+  },
+  {
+    title: "AI & Quantum",
+    icon: Atom,
+    items: [
+      {
+        title: "Quantum Matching",
+        icon: Atom,
+        href: "/dashboard/quantum-matching",
+      },
+      {
+        title: "Career Twin",
+        icon: Brain,
+        href: "/dashboard/career-twin",
+      },
+    ]
+  },
+  {
+    title: "Green Economy",
+    icon: Leaf,
+    items: [
+      {
+        title: "Green Skills",
+        icon: Leaf,
+        href: "/dashboard/green-skills",
+      },
+      {
+        title: "Skill Staking",
+        icon: Coins,
+        href: "/dashboard/staking",
+      },
+    ]
+  },
+  {
+    title: "Platforms",
+    icon: Zap,
+    items: [
+      {
+        title: "Arcade",
+        icon: Gamepad2,
+        href: "/dashboard/arcade",
+      },
+      {
+        title: "StudyBee",
+        icon: Target,
+        href: "/dashboard/study-bee",
+      },
+      {
+        title: "QuorumForge",
+        icon: Zap,
+        href: "/dashboard/quorumforge",
+      },
+      {
+        title: "VeriSkill",
+        icon: Star,
+        href: "/dashboard/veriskill",
+      },
+    ]
+  },
+];
 
 export function DashboardSidebar() {
   const location = useLocation();
-  const currentPath = location.pathname;
-  const { isAdmin, isLoading } = useAdmin();
+  const [openSections, setOpenSections] = useState<string[]>(['AI & Quantum']); // Default open
 
-  const navItems = [
-    { icon: Home, label: "Dashboard", href: "/dashboard" },
-    { icon: Network, label: "Network", href: "/dashboard/network" },
-    { icon: Book, label: "Learning Paths", href: "/dashboard/learning" },
-    { icon: GraduationCap, label: "Skills & Badges", href: "/dashboard/skills" },
-    { icon: Users, label: "Mentorship", href: "/dashboard/mentorship" },
-    { icon: Briefcase, label: "Opportunities", href: "/dashboard/opportunities" },
-    { icon: Trophy, label: "Nano-Arcade", href: "/dashboard/arcade" },
-    { icon: BarChart, label: "Career Twin", href: "/dashboard/career-twin" },
-    { icon: Leaf, label: "Green Skills", href: "/dashboard/green-skills" },
-    { icon: Book, label: "Study Bee", href: "/dashboard/study-bee" },
-    { icon: Brain, label: "QuorumForge OS", href: "/dashboard/quorumforge" },
-    { icon: Wallet, label: "VeriSkill Network", href: "/dashboard/veriskill" },
-    { icon: Settings, label: "Settings", href: "/profile" }
-  ];
-  
+  const toggleSection = (title: string) => {
+    setOpenSections(prev => 
+      prev.includes(title) 
+        ? prev.filter(item => item !== title)
+        : [...prev, title]
+    );
+  };
+
+  const isActive = (href: string) => location.pathname === href;
+
   return (
-    <nav className="w-64 border-r h-full flex flex-col">
-      <div className="p-4 border-b">
-        <h2 className="font-semibold text-xl">ProLawh</h2>
-        <p className="text-sm text-muted-foreground">Learning & Workforce Hub</p>
-      </div>
-      
-      <div className="flex flex-col gap-1 p-2 flex-1">
-        {navItems.map((item) => (
-          <NavItem 
-            key={item.href}
-            icon={item.icon}
-            label={item.label}
-            href={item.href}
-            isActive={currentPath === item.href}
-          />
-        ))}
-        
-        {!isLoading && isAdmin && (
-          <NavItem
-            icon={ShieldCheck}
-            label="Admin Dashboard"
-            href="/admin"
-            isActive={currentPath.startsWith("/admin")}
-          />
-        )}
-      </div>
-      
-      <div className="p-4 border-t mt-auto">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-            <span className="text-sm font-medium">PL</span>
+    <div className="flex flex-col h-full">
+      <SidebarHeader>
+        <div className="flex items-center gap-2 px-4 py-2">
+          <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-sm">P</span>
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-medium">ProLawh User</span>
-            <span className="text-xs text-muted-foreground">user@example.com</span>
-          </div>
+          <span className="font-bold text-lg">ProLawh</span>
         </div>
-      </div>
-    </nav>
+      </SidebarHeader>
+      
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarMenu>
+            {menuItems.map((item) => (
+              <SidebarMenuItem key={item.title}>
+                {item.items ? (
+                  <Collapsible 
+                    open={openSections.includes(item.title)}
+                    onOpenChange={() => toggleSection(item.title)}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton className="w-full">
+                        <div className="flex items-center gap-3 w-full">
+                          <item.icon className="h-4 w-4" />
+                          <span className="flex-1 text-left">{item.title}</span>
+                          {openSections.includes(item.title) ? (
+                            <ChevronDown className="h-4 w-4" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4" />
+                          )}
+                        </div>
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {item.items.map((subItem) => (
+                          <SidebarMenuSubItem key={subItem.href}>
+                            <SidebarMenuSubButton 
+                              asChild
+                              isActive={isActive(subItem.href)}
+                            >
+                              <Link 
+                                to={subItem.href}
+                                className={cn(
+                                  "flex items-center gap-3 w-full pl-6",
+                                  isActive(subItem.href) && "bg-accent text-accent-foreground"
+                                )}
+                              >
+                                <subItem.icon className="h-4 w-4" />
+                                <span>{subItem.title}</span>
+                              </Link>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </Collapsible>
+                ) : (
+                  <SidebarMenuButton 
+                    asChild
+                    isActive={isActive(item.href)}
+                  >
+                    <Link 
+                      to={item.href}
+                      className={cn(
+                        "flex items-center gap-3 w-full",
+                        isActive(item.href) && "bg-accent text-accent-foreground"
+                      )}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                )}
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+      </SidebarContent>
+    </div>
   );
-};
+}

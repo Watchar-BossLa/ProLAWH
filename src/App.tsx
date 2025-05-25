@@ -37,6 +37,7 @@ import MentorshipDetailPage from "./pages/dashboard/MentorshipDetailPage";
 import { QuorumForgeProvider } from "./hooks/useQuorumForge";
 import QuorumForgeDashboard from "./pages/dashboard/QuorumForgeDashboard";
 import VeriSkillNetworkPage from "./pages/dashboard/VeriSkillNetworkPage";
+import QuantumMatchingPage from "./pages/dashboard/QuantumMatchingPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -79,6 +80,7 @@ const App = () => (
                   <Route path="network/:connectionId" element={<NetworkConnectionProfile />} />
                   <Route path="quorumforge" element={<QuorumForgeDashboard />} />
                   <Route path="veriskill" element={<VeriSkillNetworkPage />} />
+                  <Route path="quantum-matching" element={<QuantumMatchingPage />} />
                 </Route>
                 
                 <Route path="/profile" element={<ProfilePage />} />

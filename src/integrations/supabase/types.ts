@@ -30,6 +30,154 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_actions: {
+        Row: {
+          action_data: Json
+          action_type: string
+          agent_id: string | null
+          confidence_score: number
+          created_at: string
+          effectiveness_score: number | null
+          id: string
+          reasoning: Json
+          status: string
+          updated_at: string
+          urgency_level: number
+          user_feedback: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          action_data: Json
+          action_type: string
+          agent_id?: string | null
+          confidence_score: number
+          created_at?: string
+          effectiveness_score?: number | null
+          id?: string
+          reasoning: Json
+          status?: string
+          updated_at?: string
+          urgency_level: number
+          user_feedback?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          action_data?: Json
+          action_type?: string
+          agent_id?: string | null
+          confidence_score?: number
+          created_at?: string
+          effectiveness_score?: number | null
+          id?: string
+          reasoning?: Json
+          status?: string
+          updated_at?: string
+          urgency_level?: number
+          user_feedback?: Json | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_actions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_learning_events: {
+        Row: {
+          agent_id: string | null
+          confidence_after: number
+          confidence_before: number
+          created_at: string
+          event_type: string
+          id: string
+          input_data: Json
+          learning_delta: Json
+          output_data: Json
+          validation_score: number | null
+        }
+        Insert: {
+          agent_id?: string | null
+          confidence_after: number
+          confidence_before: number
+          created_at?: string
+          event_type: string
+          id?: string
+          input_data: Json
+          learning_delta: Json
+          output_data: Json
+          validation_score?: number | null
+        }
+        Update: {
+          agent_id?: string | null
+          confidence_after?: number
+          confidence_before?: number
+          created_at?: string
+          event_type?: string
+          id?: string
+          input_data?: Json
+          learning_delta?: Json
+          output_data?: Json
+          validation_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_learning_events_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_agents: {
+        Row: {
+          agent_type: string
+          autonomy_level: number
+          conversation_context: Json
+          created_at: string
+          goal_hierarchy: Json
+          id: string
+          is_active: boolean
+          knowledge_state: Json
+          learning_parameters: Json
+          personality_profile: Json
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          agent_type: string
+          autonomy_level?: number
+          conversation_context?: Json
+          created_at?: string
+          goal_hierarchy: Json
+          id?: string
+          is_active?: boolean
+          knowledge_state: Json
+          learning_parameters: Json
+          personality_profile: Json
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          agent_type?: string
+          autonomy_level?: number
+          conversation_context?: Json
+          created_at?: string
+          goal_hierarchy?: Json
+          id?: string
+          is_active?: boolean
+          knowledge_state?: Json
+          learning_parameters?: Json
+          personality_profile?: Json
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       arcade_challenges: {
         Row: {
           created_at: string
@@ -1743,6 +1891,96 @@ export type Database = {
         }
         Relationships: []
       }
+      quantum_matches: {
+        Row: {
+          classical_score: number
+          created_at: string
+          entanglement_factors: Json
+          id: string
+          measurement_confidence: number
+          probability_amplitude: number
+          quantum_score: number
+          superposition_state: Json
+          target_id: string
+          target_type: string
+          user_id: string | null
+        }
+        Insert: {
+          classical_score: number
+          created_at?: string
+          entanglement_factors: Json
+          id?: string
+          measurement_confidence: number
+          probability_amplitude: number
+          quantum_score: number
+          superposition_state: Json
+          target_id: string
+          target_type: string
+          user_id?: string | null
+        }
+        Update: {
+          classical_score?: number
+          created_at?: string
+          entanglement_factors?: Json
+          id?: string
+          measurement_confidence?: number
+          probability_amplitude?: number
+          quantum_score?: number
+          superposition_state?: Json
+          target_id?: string
+          target_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      quantum_skill_vectors: {
+        Row: {
+          coherence_score: number
+          created_at: string
+          entanglement_weights: Json
+          id: string
+          interference_patterns: Json
+          quantum_state: Json
+          skill_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          coherence_score: number
+          created_at?: string
+          entanglement_weights: Json
+          id?: string
+          interference_patterns: Json
+          quantum_state: Json
+          skill_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          coherence_score?: number
+          created_at?: string
+          entanglement_weights?: Json
+          id?: string
+          interference_patterns?: Json
+          quantum_state?: Json
+          skill_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quantum_skill_vectors_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "green_skill_index"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quantum_skill_vectors_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quiz_attempts: {
         Row: {
           answers: Json | null
@@ -2045,6 +2283,71 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      skill_entanglements: {
+        Row: {
+          correlation_matrix: Json
+          created_at: string
+          entanglement_strength: number
+          entanglement_type: string
+          id: string
+          measurement_history: Json
+          skill_a_id: string | null
+          skill_b_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          correlation_matrix: Json
+          created_at?: string
+          entanglement_strength: number
+          entanglement_type: string
+          id?: string
+          measurement_history?: Json
+          skill_a_id?: string | null
+          skill_b_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          correlation_matrix?: Json
+          created_at?: string
+          entanglement_strength?: number
+          entanglement_type?: string
+          id?: string
+          measurement_history?: Json
+          skill_a_id?: string | null
+          skill_b_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_entanglements_skill_a_id_fkey"
+            columns: ["skill_a_id"]
+            isOneToOne: false
+            referencedRelation: "green_skill_index"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_entanglements_skill_a_id_fkey"
+            columns: ["skill_a_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_entanglements_skill_b_id_fkey"
+            columns: ["skill_b_id"]
+            isOneToOne: false
+            referencedRelation: "green_skill_index"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_entanglements_skill_b_id_fkey"
+            columns: ["skill_b_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
             referencedColumns: ["id"]
           },
         ]
