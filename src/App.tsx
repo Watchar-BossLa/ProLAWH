@@ -7,25 +7,25 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { DashboardHome } from "@/components/dashboard/DashboardHome";
 
-// Lazy load dashboard pages for better performance
-const DashboardHome = lazy(() => import("./pages/dashboard/DashboardHome"));
+// Lazy load existing dashboard pages
 const LearningDashboard = lazy(() => import("./pages/dashboard/LearningDashboard"));
-const SkillsDashboard = lazy(() => import("./pages/dashboard/SkillsDashboard"));
 const MentorshipDashboard = lazy(() => import("./pages/dashboard/MentorshipDashboard"));
-const OpportunitiesDashboard = lazy(() => import("./pages/dashboard/OpportunitiesDashboard"));
 const NetworkDashboard = lazy(() => import("./pages/dashboard/NetworkDashboard"));
 const StudyGroupsPage = lazy(() => import("./pages/dashboard/StudyGroupsPage"));
 const CollaborationPage = lazy(() => import("./pages/dashboard/CollaborationPage"));
 const CommunityPage = lazy(() => import("./pages/dashboard/CommunityPage"));
-const QuantumMatchingDashboard = lazy(() => import("./pages/dashboard/QuantumMatchingDashboard"));
-const CareerTwinDashboard = lazy(() => import("./pages/dashboard/CareerTwinDashboard"));
-const GreenSkillsDashboard = lazy(() => import("./pages/dashboard/GreenSkillsDashboard"));
-const StakingDashboard = lazy(() => import("./pages/dashboard/StakingDashboard"));
-const ArcadeDashboard = lazy(() => import("./pages/dashboard/ArcadeDashboard"));
-const StudyBeeDashboard = lazy(() => import("./pages/dashboard/StudyBeeDashboard"));
+const QuantumMatchingPage = lazy(() => import("./pages/dashboard/QuantumMatchingPage"));
+const CareerTwinPage = lazy(() => import("./pages/dashboard/CareerTwinPage"));
+const GreenSkillsPage = lazy(() => import("./pages/dashboard/GreenSkillsPage"));
+const ArcadePage = lazy(() => import("./pages/dashboard/ArcadePage"));
+const StudyBeePage = lazy(() => import("./pages/dashboard/StudyBeePage"));
+const VeriSkillNetworkPage = lazy(() => import("./pages/dashboard/VeriSkillNetworkPage"));
+const SkillsAndBadgesPage = lazy(() => import("./pages/dashboard/SkillsAndBadgesPage"));
+const OpportunityMarketplace = lazy(() => import("./pages/dashboard/OpportunityMarketplace"));
+const SkillStakingPage = lazy(() => import("./pages/dashboard/SkillStakingPage"));
 const QuorumForgeDashboard = lazy(() => import("./pages/dashboard/QuorumForgeDashboard"));
-const VeriSkillDashboard = lazy(() => import("./pages/dashboard/VeriSkillDashboard"));
 
 const queryClient = new QueryClient();
 
@@ -38,11 +38,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route index element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <DashboardHome />
-              </Suspense>
-            } />
+            <Route index element={<DashboardHome />} />
             <Route path="learning" element={
               <Suspense fallback={<div>Loading...</div>}>
                 <LearningDashboard />
@@ -50,7 +46,7 @@ const App = () => (
             } />
             <Route path="skills" element={
               <Suspense fallback={<div>Loading...</div>}>
-                <SkillsDashboard />
+                <SkillsAndBadgesPage />
               </Suspense>
             } />
             <Route path="mentorship" element={
@@ -60,7 +56,7 @@ const App = () => (
             } />
             <Route path="opportunities" element={
               <Suspense fallback={<div>Loading...</div>}>
-                <OpportunitiesDashboard />
+                <OpportunityMarketplace />
               </Suspense>
             } />
             <Route path="network" element={
@@ -85,32 +81,32 @@ const App = () => (
             } />
             <Route path="quantum-matching" element={
               <Suspense fallback={<div>Loading...</div>}>
-                <QuantumMatchingDashboard />
+                <QuantumMatchingPage />
               </Suspense>
             } />
             <Route path="career-twin" element={
               <Suspense fallback={<div>Loading...</div>}>
-                <CareerTwinDashboard />
+                <CareerTwinPage />
               </Suspense>
             } />
             <Route path="green-skills" element={
               <Suspense fallback={<div>Loading...</div>}>
-                <GreenSkillsDashboard />
+                <GreenSkillsPage />
               </Suspense>
             } />
             <Route path="staking" element={
               <Suspense fallback={<div>Loading...</div>}>
-                <StakingDashboard />
+                <SkillStakingPage />
               </Suspense>
             } />
             <Route path="arcade" element={
               <Suspense fallback={<div>Loading...</div>}>
-                <ArcadeDashboard />
+                <ArcadePage />
               </Suspense>
             } />
             <Route path="study-bee" element={
               <Suspense fallback={<div>Loading...</div>}>
-                <StudyBeeDashboard />
+                <StudyBeePage />
               </Suspense>
             } />
             <Route path="quorumforge" element={
@@ -120,7 +116,7 @@ const App = () => (
             } />
             <Route path="veriskill" element={
               <Suspense fallback={<div>Loading...</div>}>
-                <VeriSkillDashboard />
+                <VeriSkillNetworkPage />
               </Suspense>
             } />
           </Route>
