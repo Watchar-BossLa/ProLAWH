@@ -1,8 +1,10 @@
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MessageAttachment, AttachmentType } from "./MessageAttachment";
 import { MessageReactions, MessageReactionsData } from "./MessageReactions";
+import { MessageThread } from "./MessageThread";
+import { ReadReceipts } from "./ReadReceipts";
 
 interface ChatMessage {
   id: string;
@@ -15,6 +17,13 @@ interface ChatMessage {
   reactions?: MessageReactionsData;
   sender_name: string;
   sender_avatar?: string;
+  reply_to?: string;
+  read_by?: Array<{
+    user_id: string;
+    user_name: string;
+    user_avatar?: string;
+    read_at: string;
+  }>;
 }
 
 interface MessageListProps {
@@ -25,6 +34,8 @@ interface MessageListProps {
   isLoading: boolean;
   isTyping: boolean;
   onReactToMessage: (messageId: string, emoji: string) => void;
+  onReplyToMessage?: (parentId: string) => void;
+  onMarkAsRead?: (messageId: string) => void;
 }
 
 export function MessageList({ 
@@ -34,13 +45,35 @@ export function MessageList({
   connectionAvatar,
   isLoading,
   isTyping,
-  onReactToMessage
+  onReactToMessage,
+  onReplyToMessage,
+  onMarkAsRead
 }: MessageListProps) {
   const messageEndRef = useRef<HTMLDivElement>(null);
+  const [expandedThreads, setExpandedThreads] = useState<Set<string>>(new Set());
   
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
+
+  // Group messages by thread
+  const messageThreads = React.useMemo(() => {
+    const threads: { [key: string]: ChatMessage[] } = {};
+    const topLevelMessages: ChatMessage[] = [];
+    
+    messages.forEach(message => {
+      if (message.reply_to) {
+        if (!threads[message.reply_to]) {
+          threads[message.reply_to] = [];
+        }
+        threads[message.reply_to].push(message);
+      } else {
+        topLevelMessages.push(message);
+      }
+    });
+    
+    return { threads, topLevelMessages };
+  }, [messages]);
   
   const groupMessagesByDate = (messages: ChatMessage[]) => {
     const groups: { [date: string]: ChatMessage[] } = {};
@@ -56,7 +89,7 @@ export function MessageList({
     return groups;
   };
   
-  const messageGroups = groupMessagesByDate(messages);
+  const messageGroups = groupMessagesByDate(messageThreads.topLevelMessages);
   
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -76,11 +109,28 @@ export function MessageList({
   const formatTime = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
+
+  const toggleThreadExpansion = (messageId: string) => {
+    const newExpanded = new Set(expandedThreads);
+    if (newExpanded.has(messageId)) {
+      newExpanded.delete(messageId);
+    } else {
+      newExpanded.add(messageId);
+    }
+    setExpandedThreads(newExpanded);
+  };
+
+  const handleReply = (parentId: string) => {
+    onReplyToMessage?.(parentId);
+  };
   
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-muted-foreground">Loading messages...</p>
+        <div className="flex items-center gap-2">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+          <p className="text-muted-foreground">Loading messages...</p>
+        </div>
       </div>
     );
   }
@@ -88,7 +138,10 @@ export function MessageList({
   if (messages.length === 0) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-muted-foreground">No messages yet. Start a conversation!</p>
+        <div className="text-center space-y-2">
+          <p className="text-muted-foreground">No messages yet.</p>
+          <p className="text-sm text-muted-foreground">Start a conversation!</p>
+        </div>
       </div>
     );
   }
@@ -105,11 +158,13 @@ export function MessageList({
           
           {dateMessages.map((msg) => {
             const isCurrentUser = currentUserId && msg.sender_id === currentUserId;
+            const replies = messageThreads.threads[msg.id] || [];
+            const isThreadExpanded = expandedThreads.has(msg.id);
             
             return (
               <div 
                 key={msg.id} 
-                className={`flex ${isCurrentUser ? "justify-end" : "justify-start"} mb-3`}
+                className={`flex ${isCurrentUser ? "justify-end" : "justify-start"} mb-4 group`}
               >
                 {!isCurrentUser && (
                   <Avatar className="h-8 w-8 mr-2 mt-1">
@@ -122,7 +177,8 @@ export function MessageList({
                     )}
                   </Avatar>
                 )}
-                <div className="flex flex-col max-w-[80%]">
+                
+                <div className="flex flex-col max-w-[80%] space-y-1">
                   <div 
                     className={`rounded-lg p-3 ${
                       isCurrentUser 
@@ -147,7 +203,7 @@ export function MessageList({
                       </div>
                     )}
                     
-                    <p className="text-xs mt-1 opacity-70">
+                    <p className="text-xs mt-2 opacity-70">
                       {formatTime(msg.timestamp)}
                     </p>
                   </div>
@@ -158,10 +214,36 @@ export function MessageList({
                     currentUserId={currentUserId}
                     onReact={onReactToMessage}
                   />
+
+                  {msg.read_by && msg.read_by.length > 0 && (
+                    <ReadReceipts
+                      messageId={msg.id}
+                      readBy={msg.read_by.map(reader => ({
+                        id: reader.user_id,
+                        name: reader.user_name,
+                        avatar: reader.user_avatar,
+                        readAt: reader.read_at
+                      }))}
+                      currentUserId={currentUserId}
+                    />
+                  )}
+
+                  {/* Thread component */}
+                  <MessageThread
+                    parentMessage={msg}
+                    replies={replies}
+                    isExpanded={isThreadExpanded}
+                    onToggleExpanded={() => toggleThreadExpansion(msg.id)}
+                    onReply={handleReply}
+                    currentUserId={currentUserId}
+                  />
                 </div>
+                
                 {isCurrentUser && (
                   <Avatar className="h-8 w-8 ml-2 mt-1">
-                    <AvatarFallback>Me</AvatarFallback>
+                    <AvatarFallback className="bg-primary/10 text-primary">
+                      Me
+                    </AvatarFallback>
                   </Avatar>
                 )}
               </div>
