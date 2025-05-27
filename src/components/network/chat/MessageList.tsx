@@ -5,26 +5,7 @@ import { MessageAttachment, AttachmentType } from "./MessageAttachment";
 import { MessageReactions, MessageReactionsData } from "./MessageReactions";
 import { MessageThread } from "./MessageThread";
 import { ReadReceipts } from "./ReadReceipts";
-
-interface ChatMessage {
-  id: string;
-  sender_id: string;
-  content: string;
-  timestamp: string;
-  type: 'text' | 'file' | 'image';
-  file_url?: string;
-  file_name?: string;
-  reactions?: MessageReactionsData;
-  sender_name: string;
-  sender_avatar?: string;
-  reply_to?: string;
-  read_by?: Array<{
-    user_id: string;
-    user_name: string;
-    user_avatar?: string;
-    read_at: string;
-  }>;
-}
+import { ChatMessage } from "@/hooks/useRealtimeChat";
 
 interface MessageListProps {
   messages: ChatMessage[];
@@ -210,7 +191,7 @@ export function MessageList({
                   
                   <MessageReactions
                     messageId={msg.id}
-                    reactions={msg.reactions || {}}
+                    reactions={msg.reactions}
                     currentUserId={currentUserId}
                     onReact={onReactToMessage}
                   />
@@ -244,8 +225,8 @@ export function MessageList({
                     <AvatarFallback className="bg-primary/10 text-primary">
                       Me
                     </AvatarFallback>
-                  </Avatar>
-                )}
+                  )}
+                </div>
               </div>
             );
           })}
