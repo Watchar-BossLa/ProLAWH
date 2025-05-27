@@ -1,69 +1,80 @@
-
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Smile } from 'lucide-react';
-
-interface Message {
-  id: string;
-  reactions: Record<string, string[]>;
-}
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Smile, Plus } from "lucide-react";
 
 interface MessageReactionsProps {
-  message: Message;
-  onAddReaction: (messageId: string, emoji: string) => void;
-  onRemoveReaction: (messageId: string, emoji: string) => void;
+  messageId: string;
+  reactions: Record<string, string[]>;
+  currentUserId?: string;
+  onReact: (messageId: string, emoji: string) => void;
 }
 
-const EMOJI_OPTIONS = ['👍', '❤️', '😂', '😮', '😢', '😡', '👏', '🎉'];
+const commonEmojis = ['👍', '❤️', '😄', '😢', '😮', '😡', '👏', '🔥'];
 
-export function MessageReactions({ message, onAddReaction, onRemoveReaction }: MessageReactionsProps) {
+export function MessageReactions({ 
+  messageId, 
+  reactions, 
+  currentUserId, 
+  onReact 
+}: MessageReactionsProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-  const handleEmojiClick = (emoji: string) => {
-    // For now, we'll just add the reaction - in a real app, you'd check if user already reacted
-    onAddReaction(message.id, emoji);
+  const handleReaction = (emoji: string) => {
+    onReact(messageId, emoji);
     setShowEmojiPicker(false);
   };
 
-  const handleReactionClick = (emoji: string) => {
-    // Toggle reaction - in a real app, check if user has already reacted
-    onRemoveReaction(message.id, emoji);
-  };
+  const hasReactions = Object.keys(reactions).length > 0;
+  const userReactions = currentUserId ? 
+    Object.entries(reactions).filter(([_, userIds]) => userIds.includes(currentUserId)) : [];
 
   return (
     <div className="flex items-center gap-1 mt-1">
-      {Object.entries(message.reactions || {}).map(([emoji, userIds]) => (
-        <Badge
-          key={emoji}
-          variant="secondary"
-          className="cursor-pointer hover:bg-secondary/80 text-xs px-2 py-1"
-          onClick={() => handleReactionClick(emoji)}
-        >
-          {emoji} {userIds.length}
-        </Badge>
-      ))}
+      {/* Existing reactions */}
+      {Object.entries(reactions).map(([emoji, userIds]) => {
+        if (userIds.length === 0) return null;
+        
+        const hasUserReacted = currentUserId && userIds.includes(currentUserId);
+        
+        return (
+          <Button
+            key={emoji}
+            variant={hasUserReacted ? "default" : "secondary"}
+            size="sm"
+            className="h-6 px-2 text-xs"
+            onClick={() => handleReaction(emoji)}
+          >
+            {emoji} {userIds.length}
+          </Button>
+        );
+      })}
       
+      {/* Add reaction button */}
       <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
         <PopoverTrigger asChild>
           <Button
             variant="ghost"
             size="sm"
-            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
           >
-            <Smile className="h-3 w-3" />
+            <Plus className="h-3 w-3" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-48 p-2">
+        <PopoverContent className="w-auto p-2">
           <div className="grid grid-cols-4 gap-1">
-            {EMOJI_OPTIONS.map((emoji) => (
+            {commonEmojis.map((emoji) => (
               <Button
                 key={emoji}
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-lg hover:bg-accent"
-                onClick={() => handleEmojiClick(emoji)}
+                className="h-8 w-8 p-0 text-base"
+                onClick={() => handleReaction(emoji)}
               >
                 {emoji}
               </Button>
