@@ -1,7 +1,12 @@
 
 import React from 'react';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { TypingUser } from "@/hooks/useRealTimeChat";
+
+export interface TypingUser {
+  user_id: string;
+  user_name?: string;
+  last_activity: string;
+}
 
 interface TypingIndicatorProps {
   typingUsers: TypingUser[];

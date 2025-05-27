@@ -63,10 +63,13 @@ export function useRealTimeChat(chatId: string) {
 
       const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
-      const messagesWithProfiles = data?.map(msg => ({
+      const messagesWithProfiles: Message[] = data?.map(msg => ({
         ...msg,
+        message_type: (msg.message_type as 'text' | 'file' | 'image' | 'system') || 'text',
+        content: msg.content || '',
         sender_name: profilesMap.get(msg.sender_id)?.full_name || 'Unknown User',
-        sender_avatar: profilesMap.get(msg.sender_id)?.avatar_url
+        sender_avatar: profilesMap.get(msg.sender_id)?.avatar_url,
+        reactions: msg.message_reactions || []
       })) || [];
 
       setMessages(messagesWithProfiles);
@@ -245,7 +248,7 @@ export function useRealTimeChat(chatId: string) {
           table: 'messages',
           filter: `chat_id=eq.${chatId}`
         }, async (payload) => {
-          const newMessage = payload.new as Message;
+          const newMessage = payload.new as any;
           
           // Fetch sender profile
           const { data: profile } = await supabase
@@ -254,12 +257,16 @@ export function useRealTimeChat(chatId: string) {
             .eq('id', newMessage.sender_id)
             .single();
 
-          setMessages(prev => [...prev, {
+          const formattedMessage: Message = {
             ...newMessage,
+            message_type: (newMessage.message_type as 'text' | 'file' | 'image' | 'system') || 'text',
+            content: newMessage.content || '',
             sender_name: profile?.full_name || 'Unknown User',
             sender_avatar: profile?.avatar_url,
             reactions: []
-          }]);
+          };
+
+          setMessages(prev => [...prev, formattedMessage]);
         })
         .subscribe();
 
@@ -298,23 +305,31 @@ export function useRealTimeChat(chatId: string) {
           schema: 'public',
           table: 'typing_indicators',
           filter: `chat_id=eq.${chatId}`
-        }, (payload) => {
+        }, async (payload) => {
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
             const indicator = payload.new as any;
             if (indicator.is_typing) {
+              // Fetch user profile for typing indicator
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('full_name')
+                .eq('id', indicator.user_id)
+                .single();
+
               setTypingUsers(prev => {
                 const existing = prev.find(u => u.user_id === indicator.user_id);
+                const typingUser: TypingUser = {
+                  user_id: indicator.user_id,
+                  user_name: profile?.full_name || 'User',
+                  last_activity: indicator.last_activity
+                };
+
                 if (existing) {
                   return prev.map(u => 
-                    u.user_id === indicator.user_id 
-                      ? { ...u, last_activity: indicator.last_activity }
-                      : u
+                    u.user_id === indicator.user_id ? typingUser : u
                   );
                 }
-                return [...prev, {
-                  user_id: indicator.user_id,
-                  last_activity: indicator.last_activity
-                }];
+                return [...prev, typingUser];
               });
             } else {
               setTypingUsers(prev => prev.filter(u => u.user_id !== indicator.user_id));
