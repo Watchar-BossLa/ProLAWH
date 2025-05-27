@@ -126,7 +126,7 @@ export function MessageAttachment({ attachment, compact = false }: MessageAttach
                 Download
               </Button>
               
-              {(attachment.type === 'image' || attachment.type === 'document') && (
+              {(attachment.type === 'document') && (
                 <Button
                   variant="ghost"
                   size="sm"

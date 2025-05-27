@@ -1,4 +1,3 @@
-
 export interface NetworkConnection {
   id: string;
   userId: string;
@@ -25,6 +24,7 @@ export interface NetworkConnection {
   sharedInterests?: string[];
   recommendedActivities?: string[];
   relationshipHistory?: RelationshipHistoryItem[];
+  title?: string; // Job title or professional designation
 }
 
 export interface RelationshipHistoryItem {
