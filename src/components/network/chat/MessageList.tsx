@@ -2,7 +2,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MessageAttachment, AttachmentType } from "./MessageAttachment";
-import { MessageReactions, MessageReactionsData } from "./MessageReactions";
+import { MessageReactions } from "./MessageReactions";
 import { MessageThread } from "./MessageThread";
 import { ReadReceipts } from "./ReadReceipts";
 import { ChatMessage } from "@/hooks/useRealtimeChat";
@@ -17,6 +17,8 @@ interface MessageListProps {
   onReactToMessage: (messageId: string, emoji: string) => void;
   onReplyToMessage?: (parentId: string) => void;
   onMarkAsRead?: (messageId: string) => void;
+  searchQuery?: string;
+  highlightedMessageIds?: string[];
 }
 
 export function MessageList({ 
@@ -28,7 +30,9 @@ export function MessageList({
   isTyping,
   onReactToMessage,
   onReplyToMessage,
-  onMarkAsRead
+  onMarkAsRead,
+  searchQuery = "",
+  highlightedMessageIds = []
 }: MessageListProps) {
   const messageEndRef = useRef<HTMLDivElement>(null);
   const [expandedThreads, setExpandedThreads] = useState<Set<string>>(new Set());
@@ -104,6 +108,21 @@ export function MessageList({
   const handleReply = (parentId: string) => {
     onReplyToMessage?.(parentId);
   };
+
+  // Helper function to highlight search terms
+  const highlightSearchTerm = (text: string, searchTerm: string): React.ReactNode => {
+    if (!searchTerm || searchTerm.trim() === '') return text;
+    
+    const escapedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escapedSearchTerm})`, 'gi');
+    const parts = text.split(regex);
+    
+    return parts.map((part, index) => 
+      part.toLowerCase() === searchTerm.toLowerCase() 
+        ? <mark key={index} className="bg-yellow-200 dark:bg-yellow-800/70 px-0.5 rounded-sm">{part}</mark> 
+        : part
+    );
+  };
   
   if (isLoading) {
     return (
@@ -141,11 +160,14 @@ export function MessageList({
             const isCurrentUser = currentUserId && msg.sender_id === currentUserId;
             const replies = messageThreads.threads[msg.id] || [];
             const isThreadExpanded = expandedThreads.has(msg.id);
+            const isHighlighted = highlightedMessageIds.includes(msg.id);
             
             return (
               <div 
                 key={msg.id} 
-                className={`flex ${isCurrentUser ? "justify-end" : "justify-start"} mb-4 group`}
+                className={`flex ${isCurrentUser ? "justify-end" : "justify-start"} mb-4 group ${
+                  isHighlighted ? "ring-2 ring-yellow-300 dark:ring-yellow-600 rounded-lg p-2 -m-2" : ""
+                }`}
               >
                 {!isCurrentUser && (
                   <Avatar className="h-8 w-8 mr-2 mt-1">
@@ -168,7 +190,9 @@ export function MessageList({
                     }`}
                   >
                     {msg.content && (
-                      <p className="text-sm break-words whitespace-pre-wrap">{msg.content}</p>
+                      <p className="text-sm break-words whitespace-pre-wrap">
+                        {searchQuery ? highlightSearchTerm(msg.content, searchQuery) : msg.content}
+                      </p>
                     )}
                     
                     {msg.file_url && (

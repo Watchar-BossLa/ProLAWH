@@ -3,7 +3,7 @@ import React, { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Send, Paperclip, X, Reply } from "lucide-react";
+import { Send, Paperclip, X, Reply, Search } from "lucide-react";
 import { FileUploadButton } from "./FileUploadButton";
 import { EnhancedFileUpload } from "./EnhancedFileUpload";
 import { AttachmentType } from "./MessageAttachment";
@@ -28,6 +28,8 @@ interface MessageInputProps {
   isLoading: boolean;
   replyContext?: ReplyContext;
   onCancelReply?: () => void;
+  onToggleSearch?: () => void;
+  isSearchActive?: boolean;
 }
 
 export function MessageInput({ 
@@ -35,7 +37,9 @@ export function MessageInput({
   onTyping, 
   isLoading,
   replyContext,
-  onCancelReply
+  onCancelReply,
+  onToggleSearch,
+  isSearchActive = false
 }: MessageInputProps) {
   const [message, setMessage] = useState("");
   const [pendingAttachments, setPendingAttachments] = useState<AttachmentData[]>([]);
@@ -169,6 +173,19 @@ export function MessageInput({
       <div className="p-4">
         <div className="flex items-end gap-2">
           <div className="flex flex-col gap-2">
+            {onToggleSearch && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onToggleSearch}
+                disabled={isLoading}
+                className={isSearchActive ? "bg-muted" : ""}
+                title="Toggle search"
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+            )}
+            
             <FileUploadButton 
               onFileUploaded={handleFileUploaded}
               disabled={isLoading}
