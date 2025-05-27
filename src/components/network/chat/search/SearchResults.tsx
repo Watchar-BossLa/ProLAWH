@@ -32,14 +32,16 @@ export function SearchResults({ results, onMessageClick, className = "" }: Searc
     }
   };
 
-  const highlightMatches = (text: string, matches: Array<{ indices: [number, number][] }>) => {
+  const highlightMatches = (text: string, matches: readonly import('fuse.js').FuseResultMatch[]) => {
     if (!matches || matches.length === 0) return text;
 
     const allIndices: [number, number][] = [];
     matches.forEach(match => {
-      match.indices.forEach(([start, end]) => {
-        allIndices.push([start, end]);
-      });
+      if (match.indices) {
+        match.indices.forEach(([start, end]) => {
+          allIndices.push([start, end]);
+        });
+      }
     });
 
     // Sort indices by start position

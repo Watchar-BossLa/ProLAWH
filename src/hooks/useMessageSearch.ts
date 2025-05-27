@@ -17,11 +17,7 @@ export interface SearchFilters {
 export interface SearchResult {
   message: ChatMessage;
   score: number;
-  matches: Array<{
-    indices: [number, number][];
-    value: string;
-    key: string;
-  }>;
+  matches: readonly Fuse.FuseResultMatch[];
 }
 
 const fuseOptions = {
