@@ -1,4 +1,3 @@
-
 import {
   LayoutDashboard,
   BookOpen,
@@ -24,6 +23,7 @@ export interface MenuItem {
   icon: LucideIcon;
   href?: string;
   items?: MenuItem[];
+  badge?: string;
 }
 
 export const menuItems: MenuItem[] = [
@@ -140,5 +140,11 @@ export const menuItems: MenuItem[] = [
         href: "/dashboard/veriskill",
       },
     ]
+  },
+  {
+    title: "Real-Time Chat",
+    icon: MessageSquare,
+    href: "/dashboard/chat",
+    badge: "New"
   },
 ];
