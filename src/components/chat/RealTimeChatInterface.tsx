@@ -6,8 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, Paperclip, Smile, Wifi, WifiOff } from "lucide-react";
-import { useRealTimeChat } from "@/hooks/useRealTimeChat";
+import { Send, Paperclip, Wifi, WifiOff } from "lucide-react";
+import { useRealtimeChat } from "@/hooks/useRealtimeChat";
 import { MessageReactionPicker } from "./MessageReactionPicker";
 import { FileUploadZone } from "./FileUploadZone";
 import { TypingIndicator } from "./TypingIndicator";
@@ -28,14 +28,16 @@ export function RealTimeChatInterface({ chatId, chatName = "Chat" }: RealTimeCha
   const {
     messages,
     typingUsers,
-    isLoading,
-    isConnected,
+    onlineStatus,
     sendMessage,
     addReaction,
     removeReaction,
-    updateTypingStatus,
+    sendTypingIndicator,
     uploadFile
-  } = useRealTimeChat(chatId);
+  } = useRealtimeChat(chatId);
+
+  const isLoading = false; // Mock loading state
+  const isConnected = onlineStatus === 'online';
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -45,7 +47,10 @@ export function RealTimeChatInterface({ chatId, chatName = "Chat" }: RealTimeCha
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
     
-    await sendMessage(inputValue);
+    await sendMessage({
+      content: inputValue,
+      type: 'text'
+    });
     setInputValue("");
     setIsTyping(false);
   };
@@ -55,10 +60,10 @@ export function RealTimeChatInterface({ chatId, chatName = "Chat" }: RealTimeCha
     
     if (value.trim() && !isTyping) {
       setIsTyping(true);
-      updateTypingStatus(true);
+      sendTypingIndicator(true);
     } else if (!value.trim() && isTyping) {
       setIsTyping(false);
-      updateTypingStatus(false);
+      sendTypingIndicator(false);
     }
 
     // Clear previous timeout
@@ -69,7 +74,7 @@ export function RealTimeChatInterface({ chatId, chatName = "Chat" }: RealTimeCha
     // Set new timeout to stop typing after 3 seconds of inactivity
     typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
-      updateTypingStatus(false);
+      sendTypingIndicator(false);
     }, 3000);
   };
 
@@ -77,7 +82,12 @@ export function RealTimeChatInterface({ chatId, chatName = "Chat" }: RealTimeCha
     const uploadedFile = await uploadFile(file);
     if (uploadedFile) {
       const messageType = file.type.startsWith('image/') ? 'image' : 'file';
-      await sendMessage(`Shared ${messageType}: ${file.name}`, messageType, uploadedFile);
+      await sendMessage({
+        content: `Shared ${messageType}: ${file.name}`,
+        type: messageType as 'text' | 'file' | 'image',
+        file_url: uploadedFile.url,
+        file_name: uploadedFile.name
+      });
     }
     setShowFileUpload(false);
   };
@@ -137,12 +147,12 @@ export function RealTimeChatInterface({ chatId, chatName = "Chat" }: RealTimeCha
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-medium text-sm">{message.sender_name}</span>
                     <span className="text-xs text-muted-foreground">
-                      {format(new Date(message.created_at), 'HH:mm')}
+                      {format(new Date(message.timestamp), 'HH:mm')}
                     </span>
                   </div>
                   
                   <div className="bg-muted rounded-lg p-3 max-w-md">
-                    {message.message_type === 'image' && message.file_url && (
+                    {message.type === 'image' && message.file_url && (
                       <img 
                         src={message.file_url} 
                         alt={message.file_name || 'Image'} 
@@ -150,7 +160,7 @@ export function RealTimeChatInterface({ chatId, chatName = "Chat" }: RealTimeCha
                       />
                     )}
                     
-                    {message.message_type === 'file' && message.file_url && (
+                    {message.type === 'file' && message.file_url && (
                       <div className="flex items-center gap-2 p-2 bg-background rounded border mb-2">
                         <Paperclip className="h-4 w-4" />
                         <a 
@@ -169,7 +179,7 @@ export function RealTimeChatInterface({ chatId, chatName = "Chat" }: RealTimeCha
                   
                   <MessageReactionPicker
                     messageId={message.id}
-                    reactions={message.reactions || []}
+                    reactions={[]}
                     onAddReaction={addReaction}
                     onRemoveReaction={removeReaction}
                   />

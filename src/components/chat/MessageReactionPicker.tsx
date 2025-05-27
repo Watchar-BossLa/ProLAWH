@@ -2,9 +2,16 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Smile, Plus } from "lucide-react";
-import { MessageReaction } from "@/hooks/useRealTimeChat";
+import { Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+
+export interface MessageReaction {
+  id: string;
+  message_id: string;
+  user_id: string;
+  reaction: string;
+  created_at: string;
+}
 
 interface MessageReactionPickerProps {
   messageId: string;
@@ -25,18 +32,18 @@ export function MessageReactionPicker({
   const { user } = useAuth();
 
   // Group reactions by emoji
-  const groupedReactions = reactions.reduce((acc, reaction) => {
+  const groupedReactions = Array.isArray(reactions) ? reactions.reduce((acc, reaction) => {
     if (!acc[reaction.reaction]) {
       acc[reaction.reaction] = [];
     }
     acc[reaction.reaction].push(reaction);
     return acc;
-  }, {} as Record<string, MessageReaction[]>);
+  }, {} as Record<string, MessageReaction[]>) : {};
 
   const handleReactionClick = (emoji: string) => {
     if (!user) return;
 
-    const userReaction = reactions.find(r => r.user_id === user.id && r.reaction === emoji);
+    const userReaction = Array.isArray(reactions) ? reactions.find(r => r.user_id === user.id && r.reaction === emoji) : null;
     
     if (userReaction) {
       onRemoveReaction(messageId, emoji);
@@ -54,7 +61,8 @@ export function MessageReactionPicker({
     <div className="flex items-center gap-1 mt-2">
       {/* Existing reactions */}
       {Object.entries(groupedReactions).map(([emoji, reactionList]) => {
-        const isUserReaction = user && reactionList.some(r => r.user_id === user.id);
+        const isUserReaction = user && Array.isArray(reactionList) && reactionList.some(r => r.user_id === user.id);
+        const count = Array.isArray(reactionList) ? reactionList.length : 0;
         return (
           <Badge
             key={emoji}
@@ -62,7 +70,7 @@ export function MessageReactionPicker({
             className="cursor-pointer hover:opacity-80 text-xs"
             onClick={() => handleReactionClick(emoji)}
           >
-            {emoji} {reactionList.length}
+            {emoji} {count}
           </Badge>
         );
       })}
