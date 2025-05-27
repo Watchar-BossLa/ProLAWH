@@ -225,8 +225,8 @@ export function MessageList({
                     <AvatarFallback className="bg-primary/10 text-primary">
                       Me
                     </AvatarFallback>
-                  )}
-                </div>
+                  </Avatar>
+                )}
               </div>
             );
           })}
