@@ -1,6 +1,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import Fuse from 'fuse.js';
+import type { FuseResult } from 'fuse.js';
 import { ChatMessage } from '@/hooks/useRealtimeChat';
 
 export interface SearchFilters {
@@ -17,7 +18,7 @@ export interface SearchFilters {
 export interface SearchResult {
   message: ChatMessage;
   score: number;
-  matches: readonly Fuse.FuseResultMatch[];
+  matches: readonly FuseResult<ChatMessage>['matches'];
 }
 
 const fuseOptions = {

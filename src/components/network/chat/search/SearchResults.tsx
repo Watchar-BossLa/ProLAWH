@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MessageAttachment } from "../MessageAttachment";
 import { SearchResult } from "@/hooks/useMessageSearch";
 import { Search, MessageSquare } from "lucide-react";
+import type { FuseResult } from 'fuse.js';
 
 interface SearchResultsProps {
   results: SearchResult[];
@@ -32,7 +33,7 @@ export function SearchResults({ results, onMessageClick, className = "" }: Searc
     }
   };
 
-  const highlightMatches = (text: string, matches: readonly import('fuse.js').FuseResultMatch[]) => {
+  const highlightMatches = (text: string, matches: FuseResult<any>['matches']) => {
     if (!matches || matches.length === 0) return text;
 
     const allIndices: [number, number][] = [];
