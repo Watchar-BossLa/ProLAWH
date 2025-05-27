@@ -42,10 +42,12 @@ export function useRealtimeChat(connectionId: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
   const [onlineStatus, setOnlineStatus] = useState<'online' | 'offline'>('offline');
+  const [isLoading, setIsLoading] = useState(false);
 
   // Mock implementation for now
   useEffect(() => {
     if (connectionId) {
+      setIsLoading(true);
       setOnlineStatus('online');
       
       // Mock some initial messages
@@ -61,6 +63,8 @@ export function useRealtimeChat(connectionId: string) {
           reactions: {}
         }
       ]);
+      
+      setIsLoading(false);
     }
   }, [connectionId]);
 
@@ -157,6 +161,7 @@ export function useRealtimeChat(connectionId: string) {
     addReaction,
     removeReaction,
     typingUsers,
-    onlineStatus
+    onlineStatus,
+    isLoading
   };
 }
