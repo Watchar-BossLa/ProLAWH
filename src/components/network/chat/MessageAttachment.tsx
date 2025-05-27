@@ -1,9 +1,11 @@
 
 import React from 'react';
-import { FileIcon, ImageIcon, FileTextIcon, FilmIcon, LinkIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { File, Image, FileText, Download, ExternalLink } from "lucide-react";
 
-export type AttachmentType = 'image' | 'document' | 'video' | 'audio' | 'link' | 'other';
+export type AttachmentType = 'image' | 'file' | 'document';
 
 interface AttachmentData {
   id: string;
@@ -11,134 +13,134 @@ interface AttachmentData {
   url: string;
   name: string;
   size?: number;
-  thumbnailUrl?: string;
 }
 
 interface MessageAttachmentProps {
   attachment: AttachmentData;
+  compact?: boolean;
 }
 
-export function MessageAttachment({ attachment }: MessageAttachmentProps) {
+export function MessageAttachment({ attachment, compact = false }: MessageAttachmentProps) {
+  const formatFileSize = (bytes?: number): string => {
+    if (!bytes || bytes === 0) return '';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const getFileIcon = () => {
+    switch (attachment.type) {
+      case 'image':
+        return <Image className="h-4 w-4" />;
+      case 'document':
+        return <FileText className="h-4 w-4" />;
+      default:
+        return <File className="h-4 w-4" />;
+    }
+  };
+
   const handleDownload = () => {
-    // Create a hidden anchor element to trigger the download
     const link = document.createElement('a');
     link.href = attachment.url;
     link.download = attachment.name;
+    link.target = '_blank';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  // Render different content based on attachment type
-  const renderAttachmentContent = () => {
-    switch (attachment.type) {
-      case 'image':
-        return (
-          <div className="relative overflow-hidden rounded-md max-w-xs">
-            <img
-              src={attachment.url}
-              alt={attachment.name}
-              className="max-w-full h-auto max-h-60 object-contain rounded-md hover:opacity-90 transition-opacity cursor-pointer"
-              onClick={() => window.open(attachment.url, '_blank')}
-            />
-            <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-1 truncate">
-              {attachment.name}
-            </div>
-          </div>
-        );
-      
-      case 'video':
-        return (
-          <div className="border rounded-md overflow-hidden">
-            <div className="bg-muted p-2 flex items-center">
-              <FilmIcon className="h-4 w-4 mr-2" />
-              <span className="text-sm truncate">{attachment.name}</span>
-            </div>
-            <video 
-              controls 
-              className="max-w-full max-h-60" 
-              src={attachment.url}
-            />
-          </div>
-        );
-      
-      case 'audio':
-        return (
-          <div className="border rounded-md overflow-hidden">
-            <div className="bg-muted p-2 flex items-center">
-              <FileIcon className="h-4 w-4 mr-2" />
-              <span className="text-sm truncate">{attachment.name}</span>
-            </div>
-            <audio 
-              controls 
-              className="w-full" 
-              src={attachment.url}
-            />
-          </div>
-        );
-
-      case 'link':
-        return (
-          <a 
-            href={attachment.url} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center p-2 border rounded-md hover:bg-muted/50 transition-colors"
-          >
-            <LinkIcon className="h-4 w-4 mr-2" />
-            <span className="text-sm text-blue-500 underline">{attachment.name || attachment.url}</span>
-          </a>
-        );
-      
-      case 'document':
-        return (
-          <div className="flex items-center p-2 border rounded-md">
-            <FileTextIcon className="h-5 w-5 mr-2 text-blue-500" />
-            <div className="flex-1 overflow-hidden">
-              <div className="text-sm font-medium truncate">{attachment.name}</div>
-              {attachment.size && (
-                <div className="text-xs text-muted-foreground">
-                  {(attachment.size / 1024).toFixed(1)} KB
-                </div>
-              )}
-            </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleDownload}
-            >
-              Download
-            </Button>
-          </div>
-        );
-
-      default:
-        return (
-          <div className="flex items-center p-2 border rounded-md">
-            <FileIcon className="h-5 w-5 mr-2" />
-            <div className="flex-1 overflow-hidden">
-              <div className="text-sm font-medium truncate">{attachment.name}</div>
-              {attachment.size && (
-                <div className="text-xs text-muted-foreground">
-                  {(attachment.size / 1024).toFixed(1)} KB
-                </div>
-              )}
-            </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleDownload}
-            >
-              Download
-            </Button>
-          </div>
-        );
-    }
+  const handlePreview = () => {
+    window.open(attachment.url, '_blank');
   };
 
+  if (attachment.type === 'image') {
+    return (
+      <div className="space-y-2">
+        <img
+          src={attachment.url}
+          alt={attachment.name}
+          className="max-w-sm max-h-64 rounded-md object-contain cursor-pointer hover:opacity-90 transition-opacity"
+          onClick={handlePreview}
+        />
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span className="truncate">{attachment.name}</span>
+          {attachment.size && <span>{formatFileSize(attachment.size)}</span>}
+        </div>
+      </div>
+    );
+  }
+
+  if (compact) {
+    return (
+      <div className="flex items-center gap-2 p-2 bg-muted/50 rounded border max-w-xs">
+        {getFileIcon()}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium truncate">{attachment.name}</p>
+          {attachment.size && (
+            <p className="text-xs text-muted-foreground">{formatFileSize(attachment.size)}</p>
+          )}
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleDownload}
+          className="shrink-0"
+        >
+          <Download className="h-3 w-3" />
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <div className="mt-2">
-      {renderAttachmentContent()}
-    </div>
+    <Card className="max-w-sm">
+      <CardContent className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="p-2 bg-muted rounded">
+            {getFileIcon()}
+          </div>
+          
+          <div className="flex-1 min-w-0">
+            <h4 className="font-medium text-sm truncate">{attachment.name}</h4>
+            
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant="secondary" className="text-xs">
+                {attachment.type}
+              </Badge>
+              {attachment.size && (
+                <span className="text-xs text-muted-foreground">
+                  {formatFileSize(attachment.size)}
+                </span>
+              )}
+            </div>
+            
+            <div className="flex gap-2 mt-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownload}
+                className="gap-1"
+              >
+                <Download className="h-3 w-3" />
+                Download
+              </Button>
+              
+              {(attachment.type === 'image' || attachment.type === 'document') && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handlePreview}
+                  className="gap-1"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  Preview
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

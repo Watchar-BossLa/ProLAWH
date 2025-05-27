@@ -1,158 +1,139 @@
 
-import React, { useState, useRef, ChangeEvent } from 'react';
-import { Paperclip, Image, FileText, FileUp, X, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { toast } from 'sonner';
-import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '@/integrations/supabase/client';
+import React, { useRef } from 'react';
+import { Button } from "@/components/ui/button";
+import { Paperclip, Image, File } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
-export interface UploadedFile {
-  id: string;
-  file: File;
-  type: 'image' | 'document' | 'video' | 'audio' | 'other';
-  previewUrl?: string;
-  uploading: boolean;
-  progress: number;
-  url?: string;
-}
+export type AttachmentType = 'image' | 'file' | 'document';
 
 interface FileUploadButtonProps {
   onFileUploaded: (fileData: {
     id: string;
-    type: 'image' | 'document' | 'video' | 'audio' | 'other';
+    type: AttachmentType;
     url: string;
     name: string;
     size: number;
   }) => void;
   disabled?: boolean;
+  acceptedTypes?: string[];
+  maxSize?: number;
 }
 
-export function FileUploadButton({ onFileUploaded, disabled = false }: FileUploadButtonProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+const DEFAULT_MAX_SIZE = 10 * 1024 * 1024; // 10MB
+
+export function FileUploadButton({
+  onFileUploaded,
+  disabled = false,
+  acceptedTypes = ['image/*', 'application/pdf', 'text/*'],
+  maxSize = DEFAULT_MAX_SIZE
+}: FileUploadButtonProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = async (e: ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    
-    const file = e.target.files[0];
-    setIsOpen(false);
-    setIsUploading(true);
-    
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const getAttachmentType = (file: File): AttachmentType => {
+    if (file.type.startsWith('image/')) return 'image';
+    if (file.type === 'application/pdf' || file.type.startsWith('application/')) return 'document';
+    return 'file';
+  };
+
+  const validateFile = (file: File): string | null => {
+    if (file.size > maxSize) {
+      return `File size exceeds ${formatFileSize(maxSize)}`;
+    }
+
+    const isAcceptedType = acceptedTypes.some(type => {
+      if (type.endsWith('/*')) {
+        return file.type.startsWith(type.slice(0, -1));
+      }
+      return file.type === type;
+    });
+
+    if (!isAcceptedType) {
+      return 'File type not supported';
+    }
+
+    return null;
+  };
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const validationError = validateFile(file);
+    if (validationError) {
+      toast({
+        title: "Invalid file",
+        description: validationError,
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      // Determine file type
-      let fileType: 'image' | 'document' | 'video' | 'audio' | 'other' = 'other';
-      
-      if (file.type.startsWith('image/')) {
-        fileType = 'image';
-      } else if (file.type.startsWith('video/')) {
-        fileType = 'video';
-      } else if (file.type.startsWith('audio/')) {
-        fileType = 'audio';
-      } else if (
-        file.type === 'application/pdf' || 
-        file.type.includes('document') || 
-        file.type.includes('spreadsheet') ||
-        file.type.includes('presentation')
-      ) {
-        fileType = 'document';
-      }
-      
-      // Generate a unique file name to avoid collisions
-      const fileExtension = file.name.split('.').pop();
-      const fileName = `${uuidv4()}.${fileExtension}`;
-      
-      // Upload to "chat_attachments" bucket in Supabase Storage
-      const { data, error } = await supabase.storage
-        .from('chat_attachments')
-        .upload(`uploads/${fileName}`, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-      
-      if (error) throw error;
-      
-      // Get the public URL
-      const { data: urlData } = supabase.storage
-        .from('chat_attachments')
-        .getPublicUrl(`uploads/${fileName}`);
-      
-      if (!urlData || !urlData.publicUrl) {
-        throw new Error('Failed to get public URL');
-      }
-      
-      // Notify parent component
-      onFileUploaded({
-        id: uuidv4(),
-        type: fileType,
-        url: urlData.publicUrl,
+      // Create a URL for the file (in a real app, you'd upload to a server)
+      const url = URL.createObjectURL(file);
+      const fileData = {
+        id: Date.now().toString() + Math.random().toString(36),
+        type: getAttachmentType(file),
+        url,
         name: file.name,
         size: file.size
+      };
+
+      onFileUploaded(fileData);
+
+      toast({
+        title: "File attached",
+        description: `${file.name} has been attached to your message.`,
       });
-      
-      toast.success('File uploaded successfully');
     } catch (error) {
-      console.error('Error uploading file:', error);
-      toast.error('Failed to upload file');
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      toast({
+        title: "Upload failed",
+        description: "Failed to attach file. Please try again.",
+        variant: "destructive",
+      });
+    }
+
+    // Reset the input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
-  
-  const uploadOptions = [
-    { icon: <Image className="h-4 w-4 mr-2" />, label: 'Image', accept: 'image/*' },
-    { icon: <FileText className="h-4 w-4 mr-2" />, label: 'Document', accept: '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt' },
-    { icon: <FileUp className="h-4 w-4 mr-2" />, label: 'Any File', accept: '*/*' }
-  ];
+
+  const handleClick = () => {
+    if (!disabled && fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
 
   return (
     <>
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="rounded-full"
-            disabled={disabled || isUploading}
-          >
-            {isUploading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Paperclip className="h-4 w-4" />
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-48 p-2">
-          <div className="flex flex-col space-y-1">
-            {uploadOptions.map((option, index) => (
-              <Button
-                key={index}
-                variant="ghost"
-                className="justify-start px-2 py-1 h-auto text-sm"
-                onClick={() => {
-                  if (fileInputRef.current) {
-                    fileInputRef.current.accept = option.accept;
-                    fileInputRef.current.click();
-                  }
-                }}
-              >
-                {option.icon}
-                {option.label}
-              </Button>
-            ))}
-          </div>
-        </PopoverContent>
-      </Popover>
       <input
-        type="file"
         ref={fileInputRef}
-        className="hidden"
+        type="file"
+        accept={acceptedTypes.join(',')}
         onChange={handleFileSelect}
+        className="hidden"
+        aria-label="Upload file"
       />
+      
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleClick}
+        disabled={disabled}
+        className="shrink-0"
+        title="Attach file"
+      >
+        <Paperclip className="h-4 w-4" />
+      </Button>
     </>
   );
 }

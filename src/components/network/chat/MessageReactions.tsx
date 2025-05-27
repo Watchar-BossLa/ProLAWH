@@ -1,12 +1,11 @@
-
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Smile, Heart, ThumbsUp, Laugh, Angry } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Plus, Smile } from "lucide-react";
 
 export interface MessageReactionsData {
-  [emoji: string]: string[];
+  [emoji: string]: string[]; // emoji -> array of user IDs
 }
 
 interface MessageReactionsProps {
@@ -14,78 +13,103 @@ interface MessageReactionsProps {
   reactions: MessageReactionsData;
   currentUserId?: string;
   onReact: (messageId: string, emoji: string) => void;
+  className?: string;
 }
 
-const AVAILABLE_REACTIONS = [
-  { emoji: "❤️", icon: Heart },
-  { emoji: "👍", icon: ThumbsUp },
-  { emoji: "😂", icon: Laugh },
-  { emoji: "😡", icon: Angry },
-  { emoji: "😊", icon: Smile },
+const COMMON_EMOJIS = [
+  '👍', '👎', '❤️', '😂', '😮', '😢', '😡', '🎉', 
+  '👏', '🔥', '💯', '🤔', '😍', '🙄', '😎', '🤯'
 ];
 
-export function MessageReactions({ 
-  messageId, 
-  reactions, 
+export function MessageReactions({
+  messageId,
+  reactions,
   currentUserId,
-  onReact 
+  onReact,
+  className = ""
 }: MessageReactionsProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   const handleEmojiClick = (emoji: string) => {
     onReact(messageId, emoji);
-    setIsOpen(false);
+    setIsPickerOpen(false);
   };
 
-  const handleReactionClick = (emoji: string) => {
+  const handleReactionToggle = (emoji: string) => {
     onReact(messageId, emoji);
   };
 
+  // Convert reactions object to array for display
+  const reactionEntries = Object.entries(reactions || {}).filter(([, userIds]) => 
+    Array.isArray(userIds) && userIds.length > 0
+  );
+
+  if (reactionEntries.length === 0 && !currentUserId) {
+    return null;
+  }
+
   return (
-    <div className="flex items-center gap-1 mt-1">
-      {Object.entries(reactions).map(([emoji, userIds]) => {
-        if (userIds.length === 0) return null;
+    <div className={`flex items-center gap-1 mt-1 ${className}`}>
+      {/* Existing reactions */}
+      {reactionEntries.map(([emoji, userIds]) => {
+        const count = Array.isArray(userIds) ? userIds.length : 0;
+        const isUserReaction = currentUserId && Array.isArray(userIds) && userIds.includes(currentUserId);
         
-        const hasCurrentUserReacted = currentUserId ? 
-          userIds.includes(currentUserId) : false;
-        
+        if (count === 0) return null;
+
         return (
-          <Badge 
-            key={emoji} 
-            variant={hasCurrentUserReacted ? "default" : "secondary"}
-            className="text-xs py-0 px-1.5 cursor-pointer hover:opacity-80"
-            onClick={() => handleReactionClick(emoji)}
+          <Badge
+            key={emoji}
+            variant={isUserReaction ? "default" : "secondary"}
+            className="cursor-pointer hover:opacity-80 text-xs px-2 py-1 h-auto"
+            onClick={() => handleReactionToggle(emoji)}
           >
-            {emoji} {userIds.length}
+            <span className="mr-1">{emoji}</span>
+            {count}
           </Badge>
         );
       })}
-      
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-6 w-6 p-0 rounded-full"
-            aria-label="Add reaction"
-          >
-            <Smile className="h-3.5 w-3.5 text-muted-foreground" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-1 flex gap-1">
-          {AVAILABLE_REACTIONS.map((reaction) => (
+
+      {/* Add reaction button */}
+      {currentUserId && (
+        <Popover open={isPickerOpen} onOpenChange={setIsPickerOpen}>
+          <PopoverTrigger asChild>
             <Button
-              key={reaction.emoji}
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0"
-              onClick={() => handleEmojiClick(reaction.emoji)}
+              className="h-6 w-6 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => setIsPickerOpen(true)}
             >
-              {reaction.emoji}
+              <Plus className="h-3 w-3" />
             </Button>
-          ))}
-        </PopoverContent>
-      </Popover>
+          </PopoverTrigger>
+          
+          <PopoverContent 
+            className="w-auto p-3 bg-background border shadow-lg z-50" 
+            align="start"
+            side="top"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Smile className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Add reaction</span>
+            </div>
+            
+            <div className="grid grid-cols-8 gap-1">
+              {COMMON_EMOJIS.map((emoji) => (
+                <Button
+                  key={emoji}
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-base hover:bg-muted"
+                  onClick={() => handleEmojiClick(emoji)}
+                >
+                  {emoji}
+                </Button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+      )}
     </div>
   );
 }
