@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useCallback } from 'react';
 import Fuse from 'fuse.js';
 import type { FuseResult } from 'fuse.js';
@@ -18,7 +17,7 @@ export interface SearchFilters {
 export interface SearchResult {
   message: ChatMessage;
   score: number;
-  matches: readonly FuseResult<ChatMessage>['matches'];
+  matches: FuseResult<ChatMessage>['matches'];
 }
 
 const fuseOptions = {
