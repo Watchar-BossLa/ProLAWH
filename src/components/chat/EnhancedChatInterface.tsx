@@ -15,7 +15,7 @@ import {
   Video,
   Search
 } from 'lucide-react';
-import { useRealTimeChat } from '@/hooks/useRealTimeChat';
+import { useRealtimeChat } from '@/hooks/useRealtimeChat';
 import { MessageReactionPicker } from './MessageReactionPicker';
 import { TypingIndicator } from './TypingIndicator';
 import { FileUploadZone } from './FileUploadZone';
@@ -44,13 +44,13 @@ export function EnhancedChatInterface({
   const {
     messages,
     sendMessage,
-    updateTypingStatus,
+    sendTypingIndicator,
     uploadFile,
     addReaction,
     removeReaction,
     typingUsers,
-    isConnected
-  } = useRealTimeChat(connectionId);
+    onlineStatus
+  } = useRealtimeChat(connectionId);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -59,7 +59,7 @@ export function EnhancedChatInterface({
   const handleSendMessage = async () => {
     if (!message.trim()) return;
 
-    await sendMessage(message, 'text');
+    await sendMessage({ content: message, type: 'text' });
     setMessage('');
     setReplyToMessage(null);
   };
@@ -69,11 +69,11 @@ export function EnhancedChatInterface({
     
     if (!isTyping) {
       setIsTyping(true);
-      updateTypingStatus(true);
+      sendTypingIndicator(true);
       
       setTimeout(() => {
         setIsTyping(false);
-        updateTypingStatus(false);
+        sendTypingIndicator(false);
       }, 2000);
     }
   };
@@ -82,7 +82,12 @@ export function EnhancedChatInterface({
     const uploadedFile = await uploadFile(file);
     if (uploadedFile) {
       const messageType = file.type.startsWith('image/') ? 'image' : 'file';
-      await sendMessage(`Shared ${messageType}: ${file.name}`, messageType as 'text' | 'file' | 'image', uploadedFile);
+      await sendMessage({
+        content: `Shared ${messageType}: ${file.name}`,
+        type: messageType,
+        file_url: uploadedFile.url,
+        file_name: uploadedFile.name
+      });
     }
   };
 
@@ -98,6 +103,8 @@ export function EnhancedChatInterface({
     msg.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (msg.sender_name && msg.sender_name.toLowerCase().includes(searchQuery.toLowerCase()))
   );
+
+  const isConnected = onlineStatus === 'online';
 
   return (
     <Card className="h-[600px] flex flex-col">
@@ -165,9 +172,9 @@ export function EnhancedChatInterface({
           <div className="space-y-4">
             {filteredMessages.map((msg) => (
               <div key={msg.id} className="group">
-                {msg.reply_to_id && (
+                {msg.reply_to && (
                   <div className="text-xs text-muted-foreground mb-1 ml-12 pl-3 border-l-2 border-muted">
-                    Replying to: {messages.find(m => m.id === msg.reply_to_id)?.content.substring(0, 50)}...
+                    Replying to: {messages.find(m => m.id === msg.reply_to)?.content.substring(0, 50)}...
                   </div>
                 )}
                 
@@ -183,16 +190,16 @@ export function EnhancedChatInterface({
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">{msg.sender_name}</span>
                       <span className="text-xs text-muted-foreground">
-                        {new Date(msg.created_at).toLocaleTimeString()}
+                        {new Date(msg.timestamp).toLocaleTimeString()}
                       </span>
                     </div>
                     
                     <div className="bg-muted rounded-lg p-3">
-                      {msg.message_type === 'text' && (
+                      {msg.type === 'text' && (
                         <p className="text-sm">{msg.content}</p>
                       )}
                       
-                      {msg.message_type === 'file' && (
+                      {msg.type === 'file' && (
                         <div className="flex items-center gap-2">
                           <Paperclip className="h-4 w-4" />
                           <a 
@@ -205,7 +212,7 @@ export function EnhancedChatInterface({
                         </div>
                       )}
                       
-                      {msg.message_type === 'image' && (
+                      {msg.type === 'image' && (
                         <img 
                           src={msg.file_url} 
                           alt={msg.file_name}
@@ -216,7 +223,7 @@ export function EnhancedChatInterface({
                     
                     <MessageReactionPicker
                       messageId={msg.id}
-                      reactions={msg.reactions || []}
+                      reactions={[]}
                       onAddReaction={addReaction}
                       onRemoveReaction={removeReaction}
                     />
