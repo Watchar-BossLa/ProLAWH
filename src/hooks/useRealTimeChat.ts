@@ -75,63 +75,36 @@ export function useRealTimeChat(chatId?: string) {
   const [isLoading, setIsLoading] = useState(false);
   const [currentChat, setCurrentChat] = useState<ChatRoom | null>(null);
 
-  // Fetch user's chat rooms with proper error handling
+  // Mock implementation for now since the database tables aren't available yet
   const fetchChatRooms = useCallback(async () => {
     if (!user) return;
 
     try {
-      // First get chats where user is a participant
-      const { data: participantChats, error: participantError } = await supabase
-        .from('chat_participants')
-        .select('chat_id')
-        .eq('user_id', user.id);
+      // Mock data for development
+      const mockRooms: ChatRoom[] = [
+        {
+          id: '1',
+          name: 'General Discussion',
+          type: 'group',
+          created_by: user.id,
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          participant_count: 5,
+        },
+        {
+          id: '2',
+          name: 'Direct Chat',
+          type: 'direct',
+          created_by: user.id,
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          participant_count: 2,
+        }
+      ];
 
-      if (participantError) throw participantError;
-
-      if (!participantChats || participantChats.length === 0) {
-        setChatRooms([]);
-        return;
-      }
-
-      const chatIds = participantChats.map(p => p.chat_id);
-
-      // Then get the chat details
-      const { data: chats, error: chatsError } = await supabase
-        .from('chats')
-        .select('*')
-        .in('id', chatIds)
-        .eq('is_active', true)
-        .order('updated_at', { ascending: false });
-
-      if (chatsError) throw chatsError;
-
-      // Get participant counts and last messages for each chat
-      const roomsWithMetadata = await Promise.all(
-        (chats || []).map(async (chat) => {
-          // Get participant count
-          const { count: participantCount } = await supabase
-            .from('chat_participants')
-            .select('*', { count: 'exact', head: true })
-            .eq('chat_id', chat.id);
-
-          // Get last message
-          const { data: lastMessage } = await supabase
-            .from('messages')
-            .select('*')
-            .eq('chat_id', chat.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .single();
-
-          return {
-            ...chat,
-            participant_count: participantCount || 0,
-            last_message: lastMessage || null
-          };
-        })
-      );
-
-      setChatRooms(roomsWithMetadata);
+      setChatRooms(mockRooms);
     } catch (error) {
       console.error('Error fetching chat rooms:', error);
       toast({
@@ -142,46 +115,44 @@ export function useRealTimeChat(chatId?: string) {
     }
   }, [user]);
 
-  // Fetch messages for a specific chat
   const fetchMessages = useCallback(async (roomId: string) => {
     if (!user) return;
 
     setIsLoading(true);
     try {
-      const { data: messagesData, error } = await supabase
-        .from('messages')
-        .select(`
-          *,
-          message_reactions(*),
-          read_receipts(*, profiles:user_id(full_name, avatar_url))
-        `)
-        .eq('chat_id', roomId)
-        .order('created_at', { ascending: true })
-        .limit(50);
+      // Mock messages for development
+      const mockMessages: ChatMessage[] = [
+        {
+          id: '1',
+          chat_id: roomId,
+          sender_id: user.id,
+          content: 'Hello everyone!',
+          message_type: 'text',
+          created_at: new Date(Date.now() - 3600000).toISOString(),
+          updated_at: new Date(Date.now() - 3600000).toISOString(),
+          sender_profile: {
+            full_name: user.user_metadata?.full_name || 'You',
+          },
+          reactions: [],
+          read_receipts: [],
+        },
+        {
+          id: '2',
+          chat_id: roomId,
+          sender_id: 'other-user',
+          content: 'Hi there! How are you?',
+          message_type: 'text',
+          created_at: new Date(Date.now() - 1800000).toISOString(),
+          updated_at: new Date(Date.now() - 1800000).toISOString(),
+          sender_profile: {
+            full_name: 'John Doe',
+          },
+          reactions: [],
+          read_receipts: [],
+        }
+      ];
 
-      if (error) throw error;
-
-      // Get sender profiles separately
-      const senderIds = [...new Set((messagesData || []).map(msg => msg.sender_id))];
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, full_name, avatar_url')
-        .in('id', senderIds);
-
-      const profileMap = (profiles || []).reduce((acc, profile) => {
-        acc[profile.id] = profile;
-        return acc;
-      }, {} as Record<string, any>);
-
-      const formattedMessages = (messagesData || []).map(msg => ({
-        ...msg,
-        sender_profile: profileMap[msg.sender_id] || null,
-        reactions: msg.message_reactions || [],
-        read_receipts: msg.read_receipts || [],
-        reply_to: null // Will be populated if needed
-      }));
-
-      setMessages(formattedMessages);
+      setMessages(mockMessages);
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast({
@@ -194,32 +165,36 @@ export function useRealTimeChat(chatId?: string) {
     }
   }, [user]);
 
-  // Send a message
-  const sendMessage = useCallback(async (content: string, messageType: 'text' | 'file' | 'image' = 'text', fileData?: { url: string; name: string; size: number }, replyToId?: string) => {
+  const sendMessage = useCallback(async (
+    content: string,
+    messageType: 'text' | 'file' | 'image' = 'text',
+    fileData?: { url: string; name: string; size: number },
+    replyToId?: string
+  ) => {
     if (!user || !chatId) return;
 
     try {
-      const { error } = await supabase
-        .from('messages')
-        .insert({
-          chat_id: chatId,
-          sender_id: user.id,
-          content,
-          message_type: messageType,
-          file_url: fileData?.url,
-          file_name: fileData?.name,
-          file_size: fileData?.size,
-          reply_to_id: replyToId
-        });
+      // Mock implementation - in real app this would save to database
+      const newMessage: ChatMessage = {
+        id: Date.now().toString(),
+        chat_id: chatId,
+        sender_id: user.id,
+        content,
+        message_type: messageType,
+        file_url: fileData?.url,
+        file_name: fileData?.name,
+        file_size: fileData?.size,
+        reply_to_id: replyToId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        sender_profile: {
+          full_name: user.user_metadata?.full_name || 'You',
+        },
+        reactions: [],
+        read_receipts: [],
+      };
 
-      if (error) throw error;
-
-      // Update chat's updated_at timestamp
-      await supabase
-        .from('chats')
-        .update({ updated_at: new Date().toISOString() })
-        .eq('id', chatId);
-
+      setMessages(prev => [...prev, newMessage]);
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -230,113 +205,130 @@ export function useRealTimeChat(chatId?: string) {
     }
   }, [user, chatId]);
 
-  // Add reaction to message
   const addReaction = useCallback(async (messageId: string, reaction: string) => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('message_reactions')
-        .upsert({
-          message_id: messageId,
-          user_id: user.id,
-          reaction
-        }, {
-          onConflict: 'message_id,user_id'
-        });
-
-      if (error) throw error;
+      // Mock implementation
+      setMessages(prev => prev.map(msg => {
+        if (msg.id === messageId) {
+          const existingReaction = msg.reactions.find(r => r.user_id === user.id && r.reaction === reaction);
+          if (existingReaction) {
+            return {
+              ...msg,
+              reactions: msg.reactions.filter(r => !(r.user_id === user.id && r.reaction === reaction))
+            };
+          } else {
+            return {
+              ...msg,
+              reactions: [...msg.reactions, {
+                id: Date.now().toString(),
+                message_id: messageId,
+                user_id: user.id,
+                reaction,
+                created_at: new Date().toISOString()
+              }]
+            };
+          }
+        }
+        return msg;
+      }));
     } catch (error) {
       console.error('Error adding reaction:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add reaction",
-        variant: "destructive"
-      });
     }
   }, [user]);
 
-  // Remove reaction from message
   const removeReaction = useCallback(async (messageId: string, reaction: string) => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('message_reactions')
-        .delete()
-        .eq('message_id', messageId)
-        .eq('user_id', user.id)
-        .eq('reaction', reaction);
-
-      if (error) throw error;
+      setMessages(prev => prev.map(msg => {
+        if (msg.id === messageId) {
+          return {
+            ...msg,
+            reactions: msg.reactions.filter(r => !(r.user_id === user.id && r.reaction === reaction))
+          };
+        }
+        return msg;
+      }));
     } catch (error) {
       console.error('Error removing reaction:', error);
     }
   }, [user]);
 
-  // Mark message as read
   const markAsRead = useCallback(async (messageId: string) => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('read_receipts')
-        .upsert({
-          message_id: messageId,
-          user_id: user.id
-        }, {
-          onConflict: 'message_id,user_id'
-        });
-
-      if (error) throw error;
+      // Mock implementation
+      setMessages(prev => prev.map(msg => {
+        if (msg.id === messageId) {
+          const hasRead = msg.read_receipts.some(r => r.user_id === user.id);
+          if (!hasRead) {
+            return {
+              ...msg,
+              read_receipts: [...msg.read_receipts, {
+                id: Date.now().toString(),
+                message_id: messageId,
+                user_id: user.id,
+                read_at: new Date().toISOString()
+              }]
+            };
+          }
+        }
+        return msg;
+      }));
     } catch (error) {
       console.error('Error marking message as read:', error);
     }
   }, [user]);
 
-  // Update typing indicator
   const updateTypingStatus = useCallback(async (isTyping: boolean) => {
     if (!user || !chatId) return;
 
     try {
+      // Mock implementation
       if (isTyping) {
-        const { error } = await supabase
-          .from('typing_indicators')
-          .upsert({
+        setTypingUsers(prev => {
+          const existing = prev.find(t => t.user_id === user.id && t.chat_id === chatId);
+          if (existing) return prev;
+          
+          return [...prev, {
             chat_id: chatId,
             user_id: user.id,
             is_typing: true,
-            last_activity: new Date().toISOString()
-          }, {
-            onConflict: 'chat_id,user_id'
-          });
-
-        if (error) throw error;
+            last_activity: new Date().toISOString(),
+            user_profile: {
+              full_name: user.user_metadata?.full_name || 'You'
+            }
+          }];
+        });
       } else {
-        const { error } = await supabase
-          .from('typing_indicators')
-          .delete()
-          .eq('chat_id', chatId)
-          .eq('user_id', user.id);
-
-        if (error) throw error;
+        setTypingUsers(prev => prev.filter(t => !(t.user_id === user.id && t.chat_id === chatId)));
       }
     } catch (error) {
       console.error('Error updating typing status:', error);
     }
   }, [user, chatId]);
 
-  // Create or get direct chat
   const createDirectChat = useCallback(async (otherUserId: string) => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase.rpc('create_direct_chat', {
-        other_user_id: otherUserId
-      });
-
-      if (error) throw error;
-      return data;
+      // Mock implementation
+      const newChat: ChatRoom = {
+        id: Date.now().toString(),
+        name: 'Direct Chat',
+        type: 'direct',
+        created_by: user.id,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        participant_count: 2,
+      };
+      
+      setChatRooms(prev => [...prev, newChat]);
+      return newChat.id;
     } catch (error) {
       console.error('Error creating direct chat:', error);
       toast({
@@ -346,89 +338,6 @@ export function useRealTimeChat(chatId?: string) {
       });
     }
   }, [user]);
-
-  // Set up real-time subscriptions
-  useEffect(() => {
-    if (!user) return;
-
-    const channels: any[] = [];
-
-    // Subscribe to messages for current chat
-    if (chatId) {
-      const messagesChannel = supabase
-        .channel(`messages_${chatId}`)
-        .on('postgres_changes', {
-          event: '*',
-          schema: 'public',
-          table: 'messages',
-          filter: `chat_id=eq.${chatId}`
-        }, () => {
-          fetchMessages(chatId);
-        })
-        .subscribe();
-
-      channels.push(messagesChannel);
-
-      // Subscribe to typing indicators for current chat
-      const typingChannel = supabase
-        .channel(`typing_${chatId}`)
-        .on('postgres_changes', {
-          event: '*',
-          schema: 'public',
-          table: 'typing_indicators',
-          filter: `chat_id=eq.${chatId}`
-        }, async () => {
-          const { data } = await supabase
-            .from('typing_indicators')
-            .select('*')
-            .eq('chat_id', chatId)
-            .eq('is_typing', true)
-            .neq('user_id', user.id);
-
-          // Get profiles for typing users
-          if (data && data.length > 0) {
-            const userIds = data.map(d => d.user_id);
-            const { data: profiles } = await supabase
-              .from('profiles')
-              .select('id, full_name')
-              .in('id', userIds);
-
-            const profileMap = (profiles || []).reduce((acc, profile) => {
-              acc[profile.id] = profile;
-              return acc;
-            }, {} as Record<string, any>);
-
-            setTypingUsers(data.map(indicator => ({
-              ...indicator,
-              user_profile: profileMap[indicator.user_id] || null
-            })));
-          } else {
-            setTypingUsers([]);
-          }
-        })
-        .subscribe();
-
-      channels.push(typingChannel);
-
-      // Subscribe to reactions for current chat
-      const reactionsChannel = supabase
-        .channel(`reactions_${chatId}`)
-        .on('postgres_changes', {
-          event: '*',
-          schema: 'public',
-          table: 'message_reactions'
-        }, () => {
-          fetchMessages(chatId);
-        })
-        .subscribe();
-
-      channels.push(reactionsChannel);
-    }
-
-    return () => {
-      channels.forEach(channel => supabase.removeChannel(channel));
-    };
-  }, [user, chatId, fetchMessages]);
 
   // Initial load
   useEffect(() => {

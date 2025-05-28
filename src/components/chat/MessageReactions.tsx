@@ -5,9 +5,17 @@ import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Smile } from 'lucide-react';
 
+interface MessageReaction {
+  id: string;
+  message_id: string;
+  user_id: string;
+  reaction: string;
+  created_at: string;
+}
+
 interface Message {
   id: string;
-  reactions: Record<string, string[]>;
+  reactions: MessageReaction[];
 }
 
 interface MessageReactionsProps {
@@ -30,9 +38,18 @@ export function MessageReactions({ message, onAddReaction, onRemoveReaction }: M
     onRemoveReaction(message.id, emoji);
   };
 
+  // Group reactions by emoji
+  const groupedReactions = message.reactions.reduce((acc, reaction) => {
+    if (!acc[reaction.reaction]) {
+      acc[reaction.reaction] = [];
+    }
+    acc[reaction.reaction].push(reaction.user_id);
+    return acc;
+  }, {} as Record<string, string[]>);
+
   return (
     <div className="flex items-center gap-1 mt-1">
-      {Object.entries(message.reactions || {}).map(([emoji, userIds]) => (
+      {Object.entries(groupedReactions).map(([emoji, userIds]) => (
         <Badge
           key={emoji}
           variant="secondary"

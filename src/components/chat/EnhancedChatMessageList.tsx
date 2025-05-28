@@ -279,16 +279,7 @@ export function EnhancedChatMessageList({
 
                         {/* Message reactions */}
                         <MessageReactions
-                          message={{
-                            id: message.id,
-                            reactions: message.reactions.reduce((acc, reaction) => {
-                              if (!acc[reaction.reaction]) {
-                                acc[reaction.reaction] = [];
-                              }
-                              acc[reaction.reaction].push(reaction.user_id);
-                              return acc;
-                            }, {} as Record<string, string[]>)
-                          }}
+                          message={message}
                           onAddReaction={onReactToMessage}
                           onRemoveReaction={onReactToMessage}
                         />
