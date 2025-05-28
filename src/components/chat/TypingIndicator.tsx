@@ -1,9 +1,11 @@
 
-import React from "react";
+import React from 'react';
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-interface TypingUser {
+export interface TypingUser {
   user_id: string;
   user_name?: string;
+  last_activity: string;
 }
 
 interface TypingIndicatorProps {
@@ -24,13 +26,25 @@ export function TypingIndicator({ typingUsers }: TypingIndicatorProps) {
   };
 
   return (
-    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-      <div className="flex space-x-1">
-        <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }}></div>
-        <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }}></div>
-        <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }}></div>
+    <div className="flex items-center gap-3 px-4 py-2 opacity-70">
+      <div className="flex -space-x-2">
+        {typingUsers.slice(0, 3).map((user, index) => (
+          <Avatar key={user.user_id} className="h-6 w-6 border-2 border-background">
+            <AvatarFallback className="text-xs">
+              {user.user_name?.charAt(0).toUpperCase() || '?'}
+            </AvatarFallback>
+          </Avatar>
+        ))}
       </div>
-      <span>{getTypingText()}</span>
+      
+      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+        <span>{getTypingText()}</span>
+        <div className="flex gap-1">
+          <div className="w-1 h-1 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+          <div className="w-1 h-1 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+          <div className="w-1 h-1 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+        </div>
+      </div>
     </div>
   );
 }
