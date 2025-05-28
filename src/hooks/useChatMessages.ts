@@ -57,30 +57,26 @@ export function useChatMessages(chatId: string) {
           filter: `chat_id=eq.${chatId}`
         },
         (payload) => {
-          const newMessage = payload.new as Message;
-          setMessages(prev => [...prev, newMessage]);
+          const newMessage = payload.new as any;
+          const message: Message = {
+            id: newMessage.id,
+            chat_id: newMessage.chat_id,
+            sender_id: newMessage.sender_id,
+            content: newMessage.content,
+            message_type: newMessage.message_type || 'text',
+            file_url: newMessage.file_url,
+            file_name: newMessage.file_name,
+            reply_to_id: newMessage.reply_to_id,
+            created_at: newMessage.created_at,
+            reactions: newMessage.reactions || {}
+          };
           
-          // Fetch sender profile if not available
-          if (!newMessage.profiles) {
-            fetchMessageWithProfile(newMessage.id);
+          setMessages(prev => [...prev, message]);
+          
+          // Fetch sender profile separately
+          if (newMessage.sender_id) {
+            fetchUserProfile(newMessage.sender_id, newMessage.id);
           }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'messages',
-          filter: `chat_id=eq.${chatId}`
-        },
-        (payload) => {
-          const updatedMessage = payload.new as Message;
-          setMessages(prev => 
-            prev.map(msg => 
-              msg.id === updatedMessage.id ? updatedMessage : msg
-            )
-          );
         }
       )
       .on(
@@ -102,49 +98,83 @@ export function useChatMessages(chatId: string) {
     };
   }, [chatId]);
 
+  const fetchUserProfile = async (userId: string, messageId: string) => {
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, avatar_url')
+        .eq('id', userId)
+        .single();
+
+      if (profile) {
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === messageId 
+              ? { ...msg, profiles: profile }
+              : msg
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
+
   const fetchMessages = async () => {
     try {
       setIsLoading(true);
       
-      const { data, error } = await supabase
+      const { data: messagesData, error } = await supabase
         .from('messages')
-        .select(`
-          *,
-          profiles:sender_id (
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('chat_id', chatId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
 
-      // Fetch reactions for each message
-      const messagesWithReactions = await Promise.all(
-        (data || []).map(async (message) => {
-          const { data: reactions } = await supabase
-            .from('message_reactions')
-            .select('reaction, user_id')
-            .eq('message_id', message.id);
+      if (messagesData) {
+        // Fetch reactions for each message
+        const messagesWithReactions = await Promise.all(
+          messagesData.map(async (message) => {
+            const { data: reactions } = await supabase
+              .from('message_reactions')
+              .select('reaction, user_id')
+              .eq('message_id', message.id);
 
-          // Group reactions by emoji
-          const groupedReactions: Record<string, string[]> = {};
-          reactions?.forEach(({ reaction, user_id }) => {
-            if (!groupedReactions[reaction]) {
-              groupedReactions[reaction] = [];
-            }
-            groupedReactions[reaction].push(user_id);
-          });
+            // Group reactions by emoji
+            const groupedReactions: Record<string, string[]> = {};
+            reactions?.forEach(({ reaction, user_id }) => {
+              if (!groupedReactions[reaction]) {
+                groupedReactions[reaction] = [];
+              }
+              groupedReactions[reaction].push(user_id);
+            });
 
-          return {
-            ...message,
-            reactions: groupedReactions
-          };
-        })
-      );
+            // Fetch user profile
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('full_name, avatar_url')
+              .eq('id', message.sender_id)
+              .single();
 
-      setMessages(messagesWithReactions);
+            return {
+              id: message.id,
+              chat_id: message.chat_id,
+              sender_id: message.sender_id,
+              content: message.content,
+              message_type: message.message_type || 'text',
+              file_url: message.file_url,
+              file_name: message.file_name,
+              reply_to_id: message.reply_to_id,
+              created_at: message.created_at,
+              reactions: groupedReactions,
+              profiles: profile || undefined
+            };
+          })
+        );
+
+        setMessages(messagesWithReactions);
+      }
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast({
@@ -154,32 +184,6 @@ export function useChatMessages(chatId: string) {
       });
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const fetchMessageWithProfile = async (messageId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('messages')
-        .select(`
-          *,
-          profiles:sender_id (
-            full_name,
-            avatar_url
-          )
-        `)
-        .eq('id', messageId)
-        .single();
-
-      if (error) throw error;
-
-      setMessages(prev => 
-        prev.map(msg => 
-          msg.id === messageId ? { ...msg, profiles: data.profiles } : msg
-        )
-      );
-    } catch (error) {
-      console.error('Error fetching message profile:', error);
     }
   };
 

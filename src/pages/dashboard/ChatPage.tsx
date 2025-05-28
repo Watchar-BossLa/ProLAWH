@@ -47,53 +47,69 @@ export default function ChatPage() {
       // Get chat rooms where user is a participant
       const { data: participantData, error: participantError } = await supabase
         .from('chat_participants')
-        .select(`
-          chat_id,
-          chat_rooms (
-            id,
-            name,
-            type,
-            created_by,
-            created_at
-          )
-        `)
+        .select('chat_id')
         .eq('user_id', user.id);
 
       if (participantError) throw participantError;
 
-      // Get last messages for each chat
-      const chatIds = participantData?.map(p => p.chat_id) || [];
-      const { data: lastMessages, error: messagesError } = await supabase
-        .from('messages')
-        .select('chat_id, content, created_at, sender_id, profiles!sender_id(full_name)')
-        .in('chat_id', chatIds)
-        .order('created_at', { ascending: false });
-
-      if (messagesError) throw messagesError;
-
-      // Combine data
-      const rooms: ChatRoom[] = participantData?.map(p => {
-        const room = p.chat_rooms;
-        const lastMsg = lastMessages?.find(m => m.chat_id === room.id);
+      if (participantData && participantData.length > 0) {
+        const chatIds = participantData.map(p => p.chat_id);
         
-        return {
-          id: room.id,
-          name: room.name || 'Direct Chat',
-          type: room.type,
-          created_by: room.created_by,
-          created_at: room.created_at,
-          lastMessage: lastMsg ? {
-            content: lastMsg.content || 'File shared',
-            timestamp: lastMsg.created_at,
-            sender_name: lastMsg.profiles?.full_name || 'Unknown'
-          } : undefined,
-          unreadCount: 0 // TODO: Implement unread count
-        };
-      }) || [];
+        // Get chat room details
+        const { data: roomsData, error: roomsError } = await supabase
+          .from('chat_rooms')
+          .select('*')
+          .in('id', chatIds);
 
-      setChatRooms(rooms);
-      if (rooms.length > 0 && !selectedChatId) {
-        setSelectedChatId(rooms[0].id);
+        if (roomsError) throw roomsError;
+
+        // Get last messages for each chat
+        const { data: lastMessages, error: messagesError } = await supabase
+          .from('messages')
+          .select('chat_id, content, created_at, sender_id')
+          .in('chat_id', chatIds)
+          .order('created_at', { ascending: false });
+
+        if (messagesError) throw messagesError;
+
+        // Combine data
+        const rooms: ChatRoom[] = [];
+        
+        if (roomsData) {
+          for (const room of roomsData) {
+            const lastMsg = lastMessages?.find(m => m.chat_id === room.id);
+            let senderName = 'Unknown';
+            
+            if (lastMsg?.sender_id) {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('full_name')
+                .eq('id', lastMsg.sender_id)
+                .single();
+              
+              senderName = profile?.full_name || 'Unknown';
+            }
+            
+            rooms.push({
+              id: room.id,
+              name: room.name || 'Direct Chat',
+              type: (room.type as 'direct' | 'group') || 'group',
+              created_by: room.created_by,
+              created_at: room.created_at,
+              lastMessage: lastMsg ? {
+                content: lastMsg.content || 'File shared',
+                timestamp: lastMsg.created_at,
+                sender_name: senderName
+              } : undefined,
+              unreadCount: 0 // TODO: Implement unread count
+            });
+          }
+        }
+
+        setChatRooms(rooms);
+        if (rooms.length > 0 && !selectedChatId) {
+          setSelectedChatId(rooms[0].id);
+        }
       }
     } catch (error) {
       console.error('Error fetching chat rooms:', error);

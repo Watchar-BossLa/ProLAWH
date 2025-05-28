@@ -31,23 +31,30 @@ export function useTypingIndicator(chatId: string) {
           // Fetch current typing users
           const { data } = await supabase
             .from('typing_indicators')
-            .select(`
-              user_id,
-              is_typing,
-              profiles:user_id (
-                full_name
-              )
-            `)
+            .select('user_id, is_typing')
             .eq('chat_id', chatId)
             .eq('is_typing', true)
             .neq('user_id', user?.id || ''); // Exclude current user
 
-          const typingUsers: TypingUser[] = (data || []).map(item => ({
-            user_id: item.user_id,
-            user_name: item.profiles?.full_name || 'Unknown'
-          }));
+          if (data) {
+            // Fetch user profiles separately
+            const typingUsersWithNames = await Promise.all(
+              data.map(async (item) => {
+                const { data: profile } = await supabase
+                  .from('profiles')
+                  .select('full_name')
+                  .eq('id', item.user_id)
+                  .single();
 
-          setTypingUsers(typingUsers);
+                return {
+                  user_id: item.user_id,
+                  user_name: profile?.full_name || 'Unknown'
+                };
+              })
+            );
+
+            setTypingUsers(typingUsersWithNames);
+          }
         }
       )
       .subscribe();
