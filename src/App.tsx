@@ -27,6 +27,7 @@ const OpportunityMarketplace = lazy(() => import("./pages/dashboard/OpportunityM
 const SkillStakingPage = lazy(() => import("./pages/dashboard/SkillStakingPage"));
 const QuorumForgeDashboard = lazy(() => import("./pages/dashboard/QuorumForgeDashboard"));
 const EnhancedAIDashboard = lazy(() => import("./pages/dashboard/EnhancedAIDashboard"));
+const RealTimeChatPage = lazy(() => import("./pages/dashboard/RealTimeChatPage"));
 
 const queryClient = new QueryClient();
 
@@ -123,6 +124,11 @@ const App = () => (
             <Route path="enhanced-ai" element={
               <Suspense fallback={<div>Loading...</div>}>
                 <EnhancedAIDashboard />
+              </Suspense>
+            } />
+            <Route path="chat" element={
+              <Suspense fallback={<div>Loading...</div>}>
+                <RealTimeChatPage />
               </Suspense>
             } />
           </Route>

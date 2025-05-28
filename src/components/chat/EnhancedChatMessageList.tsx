@@ -156,7 +156,7 @@ export function EnhancedChatMessageList({
                     <div
                       key={message.id}
                       data-message-id={message.id}
-                      className={`flex gap-3 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
+                      className={`flex gap-3 ${isCurrentUser ? 'justify-end' : 'justify-start'} group`}
                     >
                       {!isCurrentUser && (
                         <div className="flex flex-col items-end">
@@ -189,7 +189,7 @@ export function EnhancedChatMessageList({
                             <div className="flex items-center gap-2 mb-1">
                               <Reply className="h-3 w-3" />
                               <span className="font-medium">
-                                {message.reply_to.sender_id === currentUserId ? 'You' : message.reply_to.profiles?.full_name || 'Unknown'}
+                                {message.reply_to.sender_id === currentUserId ? 'You' : 'Someone'}
                               </span>
                             </div>
                             <p className="text-muted-foreground truncate">
@@ -279,16 +279,18 @@ export function EnhancedChatMessageList({
 
                         {/* Message reactions */}
                         <MessageReactions
-                          messageId={message.id}
-                          reactions={message.reactions.reduce((acc, reaction) => {
-                            if (!acc[reaction.reaction]) {
-                              acc[reaction.reaction] = [];
-                            }
-                            acc[reaction.reaction].push(reaction.user_id);
-                            return acc;
-                          }, {} as Record<string, string[]>)}
-                          currentUserId={currentUserId}
-                          onReact={onReactToMessage}
+                          message={{
+                            id: message.id,
+                            reactions: message.reactions.reduce((acc, reaction) => {
+                              if (!acc[reaction.reaction]) {
+                                acc[reaction.reaction] = [];
+                              }
+                              acc[reaction.reaction].push(reaction.user_id);
+                              return acc;
+                            }, {} as Record<string, string[]>)
+                          }}
+                          onAddReaction={onReactToMessage}
+                          onRemoveReaction={onReactToMessage}
                         />
 
                         {/* Read receipts for group chats */}

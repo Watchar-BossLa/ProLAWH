@@ -22,13 +22,11 @@ export function MessageReactions({ message, onAddReaction, onRemoveReaction }: M
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const handleEmojiClick = (emoji: string) => {
-    // For now, we'll just add the reaction - in a real app, you'd check if user already reacted
     onAddReaction(message.id, emoji);
     setShowEmojiPicker(false);
   };
 
   const handleReactionClick = (emoji: string) => {
-    // Toggle reaction - in a real app, check if user has already reacted
     onRemoveReaction(message.id, emoji);
   };
 

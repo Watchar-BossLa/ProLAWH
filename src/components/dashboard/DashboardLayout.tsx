@@ -1,64 +1,34 @@
 
-import React, { useEffect } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
-import { AdvancedThemeSwitcher } from "@/components/theme/advanced-theme-switcher";
-import { 
-  Sidebar,
-  SidebarProvider,
-} from "@/components/ui/sidebar";
+import { Outlet } from "react-router-dom";
+import { DashboardSidebar } from "./DashboardSidebar";
+import { DashboardHeader } from "./DashboardHeader";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2 } from "lucide-react";
-
-// Development flag to bypass authentication
-const BYPASS_AUTH = true;
+import { Navigate } from "react-router-dom";
 
 export function DashboardLayout() {
-  const { user, isLoading } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  
-  useEffect(() => {
-    if (!BYPASS_AUTH && !isLoading && !user) {
-      // Redirect to auth page with return URL
-      navigate('/auth', { state: { returnUrl: location.pathname } });
-    }
-  }, [user, isLoading, navigate, location.pathname]);
+  const { user, loading } = useAuth();
 
-  if (isLoading && !BYPASS_AUTH) {
+  if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Loading dashboard...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
-  // Allow access even without authentication during development
-  const showContent = BYPASS_AUTH || user;
-
-  if (!showContent) {
-    return null; // Will be redirected by the useEffect
+  if (!user) {
+    return <Navigate to="/auth" replace />;
   }
 
   return (
-    <SidebarProvider>
-      <div className="flex h-screen bg-background text-foreground transition-colors duration-300">
-        <Sidebar>
-          <DashboardSidebar />
-        </Sidebar>
-        
-        <div className="flex-1 overflow-auto">
-          <div className="flex justify-end p-4 border-b gap-2">
-            <AdvancedThemeSwitcher />
-          </div>
-          <div className="p-4">
-            <Outlet />
-          </div>
-        </div>
+    <div className="flex h-screen bg-background">
+      <DashboardSidebar />
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <DashboardHeader />
+        <main className="flex-1 overflow-hidden">
+          <Outlet />
+        </main>
       </div>
-    </SidebarProvider>
+    </div>
   );
 }

@@ -75,37 +75,63 @@ export function useRealTimeChat(chatId?: string) {
   const [isLoading, setIsLoading] = useState(false);
   const [currentChat, setCurrentChat] = useState<ChatRoom | null>(null);
 
-  // Fetch user's chat rooms
+  // Fetch user's chat rooms with proper error handling
   const fetchChatRooms = useCallback(async () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      // First get chats where user is a participant
+      const { data: participantChats, error: participantError } = await supabase
+        .from('chat_participants')
+        .select('chat_id')
+        .eq('user_id', user.id);
+
+      if (participantError) throw participantError;
+
+      if (!participantChats || participantChats.length === 0) {
+        setChatRooms([]);
+        return;
+      }
+
+      const chatIds = participantChats.map(p => p.chat_id);
+
+      // Then get the chat details
+      const { data: chats, error: chatsError } = await supabase
         .from('chats')
-        .select(`
-          *,
-          chat_participants!inner(user_id),
-          messages(
-            id,
-            content,
-            created_at,
-            sender_id,
-            message_type
-          )
-        `)
-        .eq('chat_participants.user_id', user.id)
+        .select('*')
+        .in('id', chatIds)
         .eq('is_active', true)
         .order('updated_at', { ascending: false });
 
-      if (error) throw error;
+      if (chatsError) throw chatsError;
 
-      const roomsWithLastMessage = data?.map(room => ({
-        ...room,
-        participant_count: room.chat_participants?.length || 0,
-        last_message: room.messages?.[room.messages.length - 1] || null
-      })) || [];
+      // Get participant counts and last messages for each chat
+      const roomsWithMetadata = await Promise.all(
+        (chats || []).map(async (chat) => {
+          // Get participant count
+          const { count: participantCount } = await supabase
+            .from('chat_participants')
+            .select('*', { count: 'exact', head: true })
+            .eq('chat_id', chat.id);
 
-      setChatRooms(roomsWithLastMessage);
+          // Get last message
+          const { data: lastMessage } = await supabase
+            .from('messages')
+            .select('*')
+            .eq('chat_id', chat.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+          return {
+            ...chat,
+            participant_count: participantCount || 0,
+            last_message: lastMessage || null
+          };
+        })
+      );
+
+      setChatRooms(roomsWithMetadata);
     } catch (error) {
       console.error('Error fetching chat rooms:', error);
       toast({
@@ -122,14 +148,12 @@ export function useRealTimeChat(chatId?: string) {
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data: messagesData, error } = await supabase
         .from('messages')
         .select(`
           *,
-          profiles:sender_id(full_name, avatar_url),
           message_reactions(*),
-          read_receipts(*, profiles:user_id(full_name, avatar_url)),
-          reply_to:reply_to_id(id, content, sender_id, profiles:sender_id(full_name))
+          read_receipts(*, profiles:user_id(full_name, avatar_url))
         `)
         .eq('chat_id', roomId)
         .order('created_at', { ascending: true })
@@ -137,13 +161,25 @@ export function useRealTimeChat(chatId?: string) {
 
       if (error) throw error;
 
-      const formattedMessages = data?.map(msg => ({
+      // Get sender profiles separately
+      const senderIds = [...new Set((messagesData || []).map(msg => msg.sender_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', senderIds);
+
+      const profileMap = (profiles || []).reduce((acc, profile) => {
+        acc[profile.id] = profile;
+        return acc;
+      }, {} as Record<string, any>);
+
+      const formattedMessages = (messagesData || []).map(msg => ({
         ...msg,
-        sender_profile: msg.profiles,
+        sender_profile: profileMap[msg.sender_id] || null,
         reactions: msg.message_reactions || [],
         read_receipts: msg.read_receipts || [],
-        reply_to: msg.reply_to
-      })) || [];
+        reply_to: null // Will be populated if needed
+      }));
 
       setMessages(formattedMessages);
     } catch (error) {
@@ -317,20 +353,6 @@ export function useRealTimeChat(chatId?: string) {
 
     const channels: any[] = [];
 
-    // Subscribe to chat rooms changes
-    const roomsChannel = supabase
-      .channel('chat_rooms')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'chats'
-      }, () => {
-        fetchChatRooms();
-      })
-      .subscribe();
-
-    channels.push(roomsChannel);
-
     // Subscribe to messages for current chat
     if (chatId) {
       const messagesChannel = supabase
@@ -358,18 +380,31 @@ export function useRealTimeChat(chatId?: string) {
         }, async () => {
           const { data } = await supabase
             .from('typing_indicators')
-            .select(`
-              *,
-              profiles:user_id(full_name)
-            `)
+            .select('*')
             .eq('chat_id', chatId)
             .eq('is_typing', true)
             .neq('user_id', user.id);
 
-          setTypingUsers(data?.map(indicator => ({
-            ...indicator,
-            user_profile: indicator.profiles
-          })) || []);
+          // Get profiles for typing users
+          if (data && data.length > 0) {
+            const userIds = data.map(d => d.user_id);
+            const { data: profiles } = await supabase
+              .from('profiles')
+              .select('id, full_name')
+              .in('id', userIds);
+
+            const profileMap = (profiles || []).reduce((acc, profile) => {
+              acc[profile.id] = profile;
+              return acc;
+            }, {} as Record<string, any>);
+
+            setTypingUsers(data.map(indicator => ({
+              ...indicator,
+              user_profile: profileMap[indicator.user_id] || null
+            })));
+          } else {
+            setTypingUsers([]);
+          }
         })
         .subscribe();
 
@@ -393,7 +428,7 @@ export function useRealTimeChat(chatId?: string) {
     return () => {
       channels.forEach(channel => supabase.removeChannel(channel));
     };
-  }, [user, chatId, fetchChatRooms, fetchMessages]);
+  }, [user, chatId, fetchMessages]);
 
   // Initial load
   useEffect(() => {
