@@ -1,120 +1,163 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Plus, Users } from "lucide-react";
-import { RealTimeChatInterface } from "@/components/chat/RealTimeChatInterface";
+import { Card, CardContent } from "@/components/ui/card";
+import { useRealTimeChat } from "@/hooks/useRealTimeChat";
+import { ChatRoomList } from "@/components/chat/ChatRoomList";
+import { EnhancedChatMessageList } from "@/components/chat/EnhancedChatMessageList";
+import { MessageInput } from "@/components/network/chat/MessageInput";
+import { AttachmentType } from "@/components/network/chat/MessageAttachment";
+import { useAuth } from "@/hooks/useAuth";
+import { MessageCircle } from "lucide-react";
+
+interface AttachmentData {
+  id: string;
+  type: AttachmentType;
+  url: string;
+  name: string;
+  size?: number;
+}
 
 export default function RealTimeChatPage() {
-  const [selectedChatId, setSelectedChatId] = useState<string>('demo-chat-1');
-  const [newChatName, setNewChatName] = useState('');
+  const { user } = useAuth();
+  const [selectedChatId, setSelectedChatId] = useState<string>();
+  const [replyToMessage, setReplyToMessage] = useState<any>(null);
 
-  // Mock chat rooms for demo
-  const mockChats = [
-    { id: 'demo-chat-1', name: 'General Discussion', participantCount: 12, unread: 3 },
-    { id: 'demo-chat-2', name: 'Project Alpha', participantCount: 5, unread: 0 },
-    { id: 'demo-chat-3', name: 'Design Team', participantCount: 8, unread: 1 },
-  ];
+  const {
+    chatRooms,
+    messages,
+    typingUsers,
+    currentChat,
+    isLoading,
+    sendMessage,
+    addReaction,
+    removeReaction,
+    markAsRead,
+    updateTypingStatus
+  } = useRealTimeChat(selectedChatId);
 
-  const createNewChat = () => {
-    if (!newChatName.trim()) return;
-    // This would normally create a new chat in the database
-    console.log('Creating new chat:', newChatName);
-    setNewChatName('');
+  const handleSendMessage = async (content: string, attachments: AttachmentData[], replyToId?: string) => {
+    if (!content.trim() && attachments.length === 0) return;
+
+    // Handle file attachments (first one for now)
+    const fileData = attachments.length > 0 ? {
+      url: attachments[0].url,
+      name: attachments[0].name,
+      size: attachments[0].size || 0
+    } : undefined;
+
+    const messageType = attachments.length > 0 
+      ? (attachments[0].type === 'image' ? 'image' : 'file')
+      : 'text';
+
+    await sendMessage(content || `Shared ${attachments[0]?.name}`, messageType, fileData, replyToId);
+    
+    // Clear reply context
+    setReplyToMessage(null);
   };
 
-  return (
-    <div className="container mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Real-Time Chat</h1>
-        <p className="text-muted-foreground mt-2">
-          Connect and collaborate with your team in real-time
-        </p>
+  const handleTyping = (isTyping: boolean) => {
+    updateTypingStatus(isTyping);
+  };
+
+  const handleReactToMessage = (messageId: string, emoji: string) => {
+    // Check if user already reacted with this emoji
+    const message = messages.find(m => m.id === messageId);
+    const existingReaction = message?.reactions.find(r => r.user_id === user?.id && r.reaction === emoji);
+    
+    if (existingReaction) {
+      removeReaction(messageId, emoji);
+    } else {
+      addReaction(messageId, emoji);
+    }
+  };
+
+  const handleReplyToMessage = (message: any) => {
+    setReplyToMessage(message);
+  };
+
+  const handleCancelReply = () => {
+    setReplyToMessage(null);
+  };
+
+  if (!user) {
+    return (
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardContent className="flex items-center justify-center h-64">
+            <p className="text-muted-foreground">Please log in to access chat</p>
+          </CardContent>
+        </Card>
       </div>
+    );
+  }
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Chat List Sidebar */}
+  return (
+    <div className="container mx-auto p-6 h-screen">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+        {/* Chat Rooms List */}
         <div className="lg:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5" />
-                Chats
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Create New Chat */}
-              <div className="space-y-2">
-                <Input
-                  placeholder="New chat name..."
-                  value={newChatName}
-                  onChange={(e) => setNewChatName(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && createNewChat()}
-                />
-                <Button 
-                  onClick={createNewChat} 
-                  className="w-full" 
-                  size="sm"
-                  disabled={!newChatName.trim()}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Chat
-                </Button>
-              </div>
-
-              {/* Chat List */}
-              <div className="space-y-2">
-                {mockChats.map((chat) => (
-                  <div
-                    key={chat.id}
-                    className={`
-                      p-3 rounded-lg cursor-pointer transition-colors
-                      ${selectedChatId === chat.id 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'bg-muted hover:bg-muted/80'
-                      }
-                    `}
-                    onClick={() => setSelectedChatId(chat.id)}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <h3 className="font-medium text-sm">{chat.name}</h3>
-                      {chat.unread > 0 && (
-                        <Badge variant="destructive" className="h-5 w-5 rounded-full p-0 text-xs">
-                          {chat.unread}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1 text-xs opacity-70">
-                      <Users className="h-3 w-3" />
-                      {chat.participantCount} member{chat.participantCount !== 1 ? 's' : ''}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <ChatRoomList
+            chatRooms={chatRooms}
+            selectedChatId={selectedChatId}
+            onSelectChat={setSelectedChatId}
+            isLoading={isLoading}
+          />
         </div>
 
         {/* Chat Interface */}
-        <div className="lg:col-span-3">
-          {selectedChatId ? (
-            <RealTimeChatInterface
-              chatId={selectedChatId}
-              chatName={mockChats.find(c => c.id === selectedChatId)?.name}
-            />
-          ) : (
-            <Card className="h-[600px] flex items-center justify-center">
-              <div className="text-center">
-                <MessageSquare className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">Select a chat to start messaging</h3>
-                <p className="text-muted-foreground">
-                  Choose a chat room from the sidebar or create a new one
+        <div className="lg:col-span-2">
+          <Card className="h-full flex flex-col">
+            {selectedChatId && currentChat ? (
+              <>
+                {/* Chat Header */}
+                <div className="border-b p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <MessageCircle className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">{currentChat.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {currentChat.type === 'group' ? 'Group Chat' : 'Direct Chat'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Messages */}
+                <EnhancedChatMessageList
+                  messages={messages}
+                  typingUsers={typingUsers}
+                  currentUserId={user.id}
+                  onReactToMessage={handleReactToMessage}
+                  onReplyToMessage={handleReplyToMessage}
+                  onMarkAsRead={markAsRead}
+                  isLoading={isLoading}
+                />
+
+                {/* Message Input */}
+                <MessageInput
+                  onSendMessage={handleSendMessage}
+                  onTyping={handleTyping}
+                  isLoading={isLoading}
+                  replyContext={replyToMessage ? {
+                    messageId: replyToMessage.id,
+                    content: replyToMessage.content || '📎 File',
+                    senderName: replyToMessage.sender_profile?.full_name || 'Unknown User'
+                  } : undefined}
+                  onCancelReply={handleCancelReply}
+                />
+              </>
+            ) : (
+              <CardContent className="flex flex-col items-center justify-center h-full text-center">
+                <MessageCircle className="h-16 w-16 text-muted-foreground mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Welcome to Real-Time Chat</h3>
+                <p className="text-muted-foreground mb-4">
+                  Select a chat room to start messaging, or create a new conversation.
                 </p>
-              </div>
-            </Card>
-          )}
+              </CardContent>
+            )}
+          </Card>
         </div>
       </div>
     </div>
