@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
-import { ChatMessage } from '@/hooks/useRealtimeChat';
+import { ChatMessage } from '@/hooks/useRealTimeChat';
 
 interface MessageThreadProps {
   parentMessage: ChatMessage;

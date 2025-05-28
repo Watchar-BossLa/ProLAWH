@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ChatMessage } from '@/hooks/useRealtimeChat';
+import { ChatMessage } from '@/hooks/useRealTimeChat';
 import { useAuth } from '@/hooks/useAuth';
 
 interface OptimisticMessage extends Omit<ChatMessage, 'id'> {

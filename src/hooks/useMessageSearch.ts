@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import Fuse from 'fuse.js';
 import type { FuseResult } from 'fuse.js';
-import { ChatMessage } from '@/hooks/useRealtimeChat';
+import { ChatMessage } from '@/hooks/useRealTimeChat';
 
 export interface SearchFilters {
   sender?: string;

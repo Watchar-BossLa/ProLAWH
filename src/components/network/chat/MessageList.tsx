@@ -1,11 +1,10 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MessageAttachment, AttachmentType } from "./MessageAttachment";
 import { MessageReactions } from "./MessageReactions";
 import { MessageThread } from "./MessageThread";
 import { ReadReceipts } from "./ReadReceipts";
-import { ChatMessage } from "@/hooks/useRealtimeChat";
+import { ChatMessage } from '@/hooks/useRealTimeChat';
 
 interface MessageListProps {
   messages: ChatMessage[];

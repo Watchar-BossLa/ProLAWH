@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { X, Phone, Video, MoreVertical } from "lucide-react";
 import { NetworkConnection } from "@/types/network";
-import { useRealtimeChat } from "@/hooks/useRealtimeChat";
+import { useRealTimeChat } from "@/hooks/useRealTimeChat";
 import { MessageList } from "./chat/MessageList";
 import { MessageInput } from "./chat/MessageInput";
 import { TypingIndicator } from "./chat/TypingIndicator";
@@ -30,7 +29,7 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
     addReaction,
     onlineStatus,
     isLoading
-  } = useRealtimeChat(connection.id);
+  } = useRealTimeChat(connection.id);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

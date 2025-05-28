@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,7 @@ import { usePresenceStatus } from "@/hooks/usePresenceStatus";
 import { useAuth } from "@/hooks/useAuth";
 import { TypingIndicator } from "./TypingIndicator";
 import { NetworkConnectionStatus } from "../cards/NetworkConnectionStatus";
-import { useRealtimeChat } from '@/hooks/useRealtimeChat';
+import { useRealTimeChat } from '@/hooks/useRealTimeChat';
 import { MessageReactions, MessageReactionsData } from './MessageReactions';
 
 interface NetworkChatDialogProps {
@@ -25,7 +24,7 @@ export function NetworkChatDialog({ activeChatId, activeChatConnection, onClose 
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   
-  const { messages, sendMessage, isLoading, addReaction } = useRealtimeChat(
+  const { messages, sendMessage, isLoading, addReaction } = useRealTimeChat(
     activeChatId ? activeChatId : ""
   );
 

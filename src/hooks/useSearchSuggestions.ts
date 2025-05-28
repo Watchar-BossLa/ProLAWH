@@ -1,6 +1,5 @@
-
 import { useState, useEffect, useMemo } from 'react';
-import { ChatMessage } from '@/hooks/useRealtimeChat';
+import { ChatMessage } from '@/hooks/useRealTimeChat';
 
 export interface SearchSuggestion {
   id: string;

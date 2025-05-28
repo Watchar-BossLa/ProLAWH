@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Send, Paperclip, Wifi, WifiOff } from "lucide-react";
-import { useRealtimeChat } from "@/hooks/useRealtimeChat";
+import { useRealTimeChat } from "@/hooks/useRealTimeChat";
 import { MessageReactionPicker } from "./MessageReactionPicker";
 import { FileUploadZone } from "./FileUploadZone";
 import { TypingIndicator } from "./TypingIndicator";
@@ -34,7 +33,7 @@ export function RealTimeChatInterface({ chatId, chatName = "Chat" }: RealTimeCha
     removeReaction,
     sendTypingIndicator,
     uploadFile
-  } = useRealtimeChat(chatId);
+  } = useRealTimeChat(chatId);
 
   const isLoading = false; // Mock loading state
   const isConnected = onlineStatus === 'online';

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,7 +14,7 @@ import {
   Video,
   Search
 } from 'lucide-react';
-import { useRealtimeChat } from '@/hooks/useRealtimeChat';
+import { useRealTimeChat } from "@/hooks/useRealTimeChat";
 import { MessageReactionPicker } from './MessageReactionPicker';
 import { TypingIndicator } from './TypingIndicator';
 import { FileUploadZone } from './FileUploadZone';
@@ -50,7 +49,7 @@ export function EnhancedChatInterface({
     removeReaction,
     typingUsers,
     onlineStatus
-  } = useRealtimeChat(connectionId);
+  } = useRealTimeChat(connectionId);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
