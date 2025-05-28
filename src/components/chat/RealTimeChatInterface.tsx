@@ -46,10 +46,7 @@ export function RealTimeChatInterface({ chatId, chatName = "Chat" }: RealTimeCha
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
     
-    await sendMessage({
-      content: inputValue,
-      type: 'text'
-    });
+    await sendMessage({ content: inputValue, type: 'text' });
     setInputValue("");
     setIsTyping(false);
   };
@@ -83,7 +80,7 @@ export function RealTimeChatInterface({ chatId, chatName = "Chat" }: RealTimeCha
       const messageType = file.type.startsWith('image/') ? 'image' : 'file';
       await sendMessage({
         content: `Shared ${messageType}: ${file.name}`,
-        type: messageType as 'text' | 'file' | 'image',
+        type: messageType,
         file_url: uploadedFile.url,
         file_name: uploadedFile.name
       });

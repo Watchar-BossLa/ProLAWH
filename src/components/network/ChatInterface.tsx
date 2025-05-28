@@ -51,10 +51,7 @@ export function ChatInterface({ connection, onClose }: ChatInterfaceProps) {
     }
 
     if (message.trim()) {
-      await sendMessage({
-        content: message,
-        type: 'text'
-      });
+      await sendMessage({ content: message, type: 'text' });
     }
 
     // Stop typing indicator

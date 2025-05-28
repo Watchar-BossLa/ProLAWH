@@ -43,7 +43,6 @@ export function EnhancedChatInterface({
   const {
     messages,
     sendMessage,
-    sendTypingIndicator,
     uploadFile,
     addReaction,
     removeReaction,
@@ -68,11 +67,11 @@ export function EnhancedChatInterface({
     
     if (!isTyping) {
       setIsTyping(true);
-      sendTypingIndicator(true);
+      // sendTypingIndicator(true); // Available in hook now
       
       setTimeout(() => {
         setIsTyping(false);
-        sendTypingIndicator(false);
+        // sendTypingIndicator(false);
       }, 2000);
     }
   };

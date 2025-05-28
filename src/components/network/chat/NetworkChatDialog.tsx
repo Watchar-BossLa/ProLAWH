@@ -64,10 +64,7 @@ export function NetworkChatDialog({ activeChatId, activeChatConnection, onClose 
   const handleSendMessage = () => {
     if (!message.trim() || !activeChatId || !user) return;
     
-    sendMessage({
-      content: message,
-      type: 'text'
-    });
+    sendMessage({ content: message, type: 'text' });
     
     setMessage("");
     setIsTyping(false);

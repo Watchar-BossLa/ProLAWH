@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,29 +9,74 @@ import { format } from "date-fns";
 
 interface SearchResultsProps {
   results: SearchResult[];
-  onSelectMessage: (messageId: string) => void;
-  isLoading?: boolean;
   query: string;
+  isLoading?: boolean;
+  totalResults: number;
+  onSelectMessage: (messageId: string) => void;
+  onClearSearch: () => void;
 }
 
-export function SearchResults({ results, onSelectMessage, isLoading, query }: SearchResultsProps) {
-  const highlightText = (text: string, matches: any[] = []) => {
-    if (!matches || matches.length === 0 || !query) return text;
+export function SearchResults({
+  results,
+  query,
+  isLoading,
+  totalResults,
+  onSelectMessage,
+  onClearSearch
+}: SearchResultsProps) {
+  const highlightMatch = (text: string, matches: readonly any[]) => {
+    if (!matches || matches.length === 0) return text;
     
-    try {
-      const regex = new RegExp(`(${query})`, 'gi');
-      const parts = text.split(regex);
-      
-      return parts.map((part, index) => 
-        regex.test(part) ? (
-          <mark key={index} className="bg-yellow-200 dark:bg-yellow-800">
-            {part}
-          </mark>
-        ) : part
-      );
-    } catch {
-      return text;
+    // Convert readonly array to mutable array for processing
+    const mutableMatches = [...matches];
+    
+    let highlightedText = text;
+    const highlights: Array<{ start: number; end: number }> = [];
+    
+    mutableMatches.forEach((match) => {
+      if (match.indices) {
+        match.indices.forEach(([start, end]: [number, number]) => {
+          highlights.push({ start, end: end + 1 });
+        });
+      }
+    });
+    
+    // Sort highlights by start position (descending) to avoid offset issues
+    highlights.sort((a, b) => b.start - a.start);
+    
+    highlights.forEach(({ start, end }) => {
+      const before = highlightedText.slice(0, start);
+      const highlight = highlightedText.slice(start, end);
+      const after = highlightedText.slice(end);
+      highlightedText = `${before}<mark class="bg-yellow-200 dark:bg-yellow-800/70 px-0.5 rounded-sm">${highlight}</mark>${after}`;
+    });
+    
+    return highlightedText;
+  };
+
+  const getPreviewWithContext = (content: string, matches: readonly any[], maxLength: number = 150) => {
+    if (!matches || matches.length === 0) {
+      return content.length > maxLength ? `${content.slice(0, maxLength)}...` : content;
     }
+    
+    // Convert readonly array to mutable array
+    const mutableMatches = [...matches];
+    
+    // Find the first match to center the preview around it
+    const firstMatch = mutableMatches[0];
+    if (!firstMatch?.indices?.[0]) {
+      return content.length > maxLength ? `${content.slice(0, maxLength)}...` : content;
+    }
+    
+    const [matchStart] = firstMatch.indices[0];
+    const contextStart = Math.max(0, matchStart - Math.floor(maxLength / 2));
+    const contextEnd = Math.min(content.length, contextStart + maxLength);
+    
+    let preview = content.slice(contextStart, contextEnd);
+    if (contextStart > 0) preview = `...${preview}`;
+    if (contextEnd < content.length) preview = `${preview}...`;
+    
+    return preview;
   };
 
   const getMessageTypeIcon = (type: string) => {
@@ -146,14 +190,14 @@ export function SearchResults({ results, onSelectMessage, isLoading, query }: Se
                     <div className="text-sm">
                       {message.type === 'text' ? (
                         <p className="line-clamp-2">
-                          {highlightText(message.content, result.matches)}
+                          {highlightMatch(message.content, result.matches)}
                         </p>
                       ) : (
                         <div className="flex items-center gap-2 text-muted-foreground">
                           {getMessageTypeIcon(message.type)}
                           <span>
                             {message.type === 'image' ? 'Image: ' : 'File: '}
-                            {highlightText(message.file_name || 'Attachment', result.matches)}
+                            {highlightMatch(message.file_name || 'Attachment', result.matches)}
                           </span>
                         </div>
                       )}

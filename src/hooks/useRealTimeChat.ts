@@ -12,12 +12,14 @@ export type {
   ChatMessage,
   MessageReaction,
   ReadReceipt,
-  TypingIndicator
+  TypingIndicator,
+  SendMessageParams
 } from './chat/types';
 
 export function useRealTimeChat(chatId?: string) {
   const { user } = useAuth();
   const [currentChat, setCurrentChat] = useState<any>(null);
+  const [onlineStatus, setOnlineStatus] = useState<'online' | 'offline'>('online');
 
   const {
     chatRooms,
@@ -42,14 +44,39 @@ export function useRealTimeChat(chatId?: string) {
 
   // Wrapper for sendMessage to match the original API
   const sendMessage = async (
-    content: string,
+    contentOrParams: string | { content: string; type: 'text' | 'file' | 'image'; file_url?: string; file_name?: string },
     messageType: 'text' | 'file' | 'image' = 'text',
     fileData?: { url: string; name: string; size: number },
     replyToId?: string
   ) => {
-    if (chatId) {
-      await sendMessageBase(chatId, content, messageType, fileData, replyToId);
+    if (!chatId) return;
+
+    if (typeof contentOrParams === 'string') {
+      // Legacy API support
+      await sendMessageBase(chatId, contentOrParams, messageType, fileData, replyToId);
+    } else {
+      // New object-based API
+      const { content, type, file_url, file_name } = contentOrParams;
+      const fileInfo = file_url && file_name ? { url: file_url, name: file_name, size: 0 } : undefined;
+      await sendMessageBase(chatId, content, type, fileInfo);
     }
+  };
+
+  // Mock implementation for typing indicator
+  const sendTypingIndicator = async (isTyping: boolean) => {
+    if (chatId) {
+      updateTypingStatus(isTyping, chatId);
+    }
+  };
+
+  // Mock implementation for file upload
+  const uploadFile = async (file: File) => {
+    // Mock implementation - return a fake URL
+    return {
+      url: URL.createObjectURL(file),
+      name: file.name,
+      size: file.size
+    };
   };
 
   // Initial load
@@ -76,7 +103,10 @@ export function useRealTimeChat(chatId?: string) {
     typingUsers,
     currentChat,
     isLoading,
+    onlineStatus,
     sendMessage,
+    sendTypingIndicator,
+    uploadFile,
     addReaction,
     removeReaction,
     markAsRead,
