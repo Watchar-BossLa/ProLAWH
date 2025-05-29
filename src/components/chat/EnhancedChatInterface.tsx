@@ -16,9 +16,11 @@ import {
   Search
 } from 'lucide-react';
 import { useRealTimeChat } from "@/hooks/useRealTimeChat";
+import { useAdvancedSearch } from "@/hooks/chat/useAdvancedSearch";
 import { MessageReactionPicker } from './MessageReactionPicker';
 import { TypingIndicator } from './TypingIndicator';
-import { FileUploadZone } from './FileUploadZone';
+import { FileUploadZone } from './FileUpload';
+import { SearchInterface } from './SearchInterface';
 
 interface EnhancedChatInterfaceProps {
   connectionId: string;
@@ -34,8 +36,8 @@ export function EnhancedChatInterface({
   onClose
 }: EnhancedChatInterfaceProps) {
   const [message, setMessage] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const [showFileUpload, setShowFileUpload] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [replyToMessage, setReplyToMessage] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -50,6 +52,23 @@ export function EnhancedChatInterface({
     typingUsers,
     onlineStatus
   } = useRealTimeChat(connectionId);
+
+  const {
+    query: searchQuery,
+    filters,
+    searchResults,
+    suggestions,
+    highlightedMessages,
+    isSearchActive,
+    hasResults,
+    totalResults,
+    updateQuery,
+    updateFilters,
+    clearSearch
+  } = useAdvancedSearch({ 
+    messages,
+    onSearch: (query) => console.log('Search:', query)
+  });
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -68,26 +87,27 @@ export function EnhancedChatInterface({
     
     if (!isTyping) {
       setIsTyping(true);
-      // sendTypingIndicator(true); // Available in hook now
       
       setTimeout(() => {
         setIsTyping(false);
-        // sendTypingIndicator(false);
       }, 2000);
     }
   };
 
-  const handleFileUpload = async (file: File) => {
-    const uploadedFile = await uploadFile(file);
-    if (uploadedFile) {
-      const messageType = file.type.startsWith('image/') ? 'image' : 'file';
-      await sendMessage({
-        content: `Shared ${messageType}: ${file.name}`,
-        type: messageType,
-        file_url: uploadedFile.url,
-        file_name: uploadedFile.name
-      });
+  const handleFileUpload = async (files: File[]) => {
+    for (const file of files) {
+      const uploadedFile = await uploadFile(file);
+      if (uploadedFile) {
+        const messageType = file.type.startsWith('image/') ? 'image' : 'file';
+        await sendMessage({
+          content: `Shared ${messageType}: ${file.name}`,
+          type: messageType,
+          file_url: uploadedFile.url,
+          file_name: uploadedFile.name
+        });
+      }
     }
+    setShowFileUpload(false);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -97,12 +117,7 @@ export function EnhancedChatInterface({
     }
   };
 
-  const filteredMessages = messages.filter(msg =>
-    !searchQuery || 
-    msg.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (msg.sender_name && msg.sender_name.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
-
+  const displayMessages = isSearchActive ? highlightedMessages : messages;
   const isConnected = onlineStatus === 'online';
 
   return (
@@ -134,6 +149,7 @@ export function EnhancedChatInterface({
               variant="ghost"
               size="sm"
               onClick={() => setShowSearch(!showSearch)}
+              className={showSearch ? 'bg-muted' : ''}
             >
               <Search className="h-4 w-4" />
             </Button>
@@ -156,22 +172,36 @@ export function EnhancedChatInterface({
         
         {showSearch && (
           <div className="mt-3">
-            <Input
-              placeholder="Search messages..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full"
+            <SearchInterface
+              query={searchQuery}
+              onQueryChange={updateQuery}
+              filters={filters}
+              onFiltersChange={updateFilters}
+              suggestions={suggestions}
+              onSuggestionSelect={updateQuery}
+              onClear={clearSearch}
+              totalResults={totalResults}
+              isActive={isSearchActive}
             />
           </div>
         )}
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col p-0">
+        {showFileUpload && (
+          <div className="border-b p-4">
+            <FileUploadZone
+              onFileUpload={handleFileUpload}
+              onCancel={() => setShowFileUpload(false)}
+            />
+          </div>
+        )}
+
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
-            {filteredMessages.map((msg) => (
+            {displayMessages.map((msg) => (
               <div key={msg.id} className="group">
-                {msg.reply_to && (
+                {msg.reply_to_id && (
                   <div className="text-xs text-muted-foreground mb-1 ml-12 pl-3 border-l-2 border-muted">
                     Replying to: {messages.find(m => m.id === msg.reply_to_id)?.content.substring(0, 50)}...
                   </div>
@@ -191,6 +221,11 @@ export function EnhancedChatInterface({
                       <span className="text-xs text-muted-foreground">
                         {new Date(msg.timestamp).toLocaleTimeString()}
                       </span>
+                      {isSearchActive && (
+                        <Badge variant="outline" className="text-xs">
+                          Match
+                        </Badge>
+                      )}
                     </div>
                     
                     <div className="bg-muted rounded-lg p-3">
@@ -283,14 +318,15 @@ export function EnhancedChatInterface({
               hidden
               onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) handleFileUpload(file);
+                if (file) handleFileUpload([file]);
               }}
             />
             
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => setShowFileUpload(!showFileUpload)}
+              className={showFileUpload ? 'bg-muted' : ''}
             >
               <Paperclip className="h-4 w-4" />
             </Button>
