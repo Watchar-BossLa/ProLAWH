@@ -1,122 +1,98 @@
-import { useState, useMemo, useCallback } from 'react';
-import Fuse from 'fuse.js';
-import type { FuseResult } from 'fuse.js';
-import { ChatMessage } from '@/hooks/useRealTimeChat';
 
-export interface SearchFilters {
-  sender?: string;
-  dateRange?: {
-    start: Date;
-    end: Date;
-  };
-  messageType?: 'text' | 'file' | 'image' | 'all';
-  hasReactions?: boolean;
-  hasReplies?: boolean;
-}
+import { useState, useMemo } from 'react';
+import { ChatMessage } from './chat/types';
+import Fuse from 'fuse.js';
 
 export interface SearchResult {
   message: ChatMessage;
   score: number;
-  matches: FuseResult<ChatMessage>['matches'];
+  matches: readonly Fuse.FuseResultMatch[];
 }
 
-const fuseOptions = {
-  keys: [
-    { name: 'content', weight: 0.8 },
-    { name: 'sender_name', weight: 0.2 },
-    { name: 'file_name', weight: 0.3 }
-  ],
-  threshold: 0.3,
-  includeScore: true,
-  includeMatches: true,
-  minMatchCharLength: 2,
-  ignoreLocation: true
-};
-
 export function useMessageSearch(messages: ChatMessage[]) {
-  const [query, setQuery] = useState('');
-  const [filters, setFilters] = useState<SearchFilters>({});
-  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const fuse = useMemo(() => new Fuse(messages, fuseOptions), [messages]);
-
-  const filteredMessages = useMemo(() => {
-    let filtered = messages;
-
-    if (filters.sender) {
-      filtered = filtered.filter(msg => 
-        msg.sender_name.toLowerCase().includes(filters.sender!.toLowerCase())
-      );
-    }
-
-    if (filters.dateRange) {
-      filtered = filtered.filter(msg => {
-        const msgDate = new Date(msg.timestamp);
-        return msgDate >= filters.dateRange!.start && msgDate <= filters.dateRange!.end;
-      });
-    }
-
-    if (filters.messageType && filters.messageType !== 'all') {
-      filtered = filtered.filter(msg => msg.type === filters.messageType);
-    }
-
-    if (filters.hasReactions) {
-      filtered = filtered.filter(msg => 
-        Object.keys(msg.reactions || {}).length > 0
-      );
-    }
-
-    if (filters.hasReplies) {
-      filtered = filtered.filter(msg => 
-        messages.some(m => m.reply_to === msg.id)
-      );
-    }
-
-    return filtered;
-  }, [messages, filters]);
+  const fuse = useMemo(() => {
+    return new Fuse(messages, {
+      keys: [
+        { name: 'content', weight: 2 },
+        { name: 'sender_name', weight: 1 },
+        { name: 'file_name', weight: 1 }
+      ],
+      includeScore: true,
+      includeMatches: true,
+      threshold: 0.3,
+      minMatchCharLength: 2
+    });
+  }, [messages]);
 
   const searchResults = useMemo((): SearchResult[] => {
-    if (!query.trim()) return [];
-
-    const searchableMessages = filteredMessages.length > 0 ? filteredMessages : messages;
-    const results = fuse.search(query, { limit: 50 });
-
+    if (!searchQuery.trim()) return [];
+    
+    const results = fuse.search(searchQuery);
     return results.map(result => ({
       message: result.item,
       score: result.score || 0,
       matches: result.matches || []
     }));
-  }, [query, filteredMessages, messages, fuse]);
+  }, [fuse, searchQuery]);
 
-  const highlightedMessages = useMemo(() => {
-    if (!query.trim() || !isSearchActive) return messages;
-    return searchResults.map(result => result.message);
-  }, [query, isSearchActive, messages, searchResults]);
+  const filteredMessages = useMemo(() => {
+    if (!searchQuery.trim()) return messages;
+    
+    return messages.filter(message => {
+      const contentMatch = message.content.toLowerCase().includes(searchQuery.toLowerCase());
+      const senderMatch = message.sender_name?.toLowerCase().includes(searchQuery.toLowerCase());
+      const fileMatch = message.file_name?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      return contentMatch || senderMatch || fileMatch;
+    });
+  }, [messages, searchQuery]);
 
-  const updateQuery = useCallback((newQuery: string) => {
-    setQuery(newQuery);
-    setIsSearchActive(newQuery.trim().length > 0);
-  }, []);
+  const highlightedMessageIds = useMemo(() => {
+    return searchResults.map(result => result.message.id);
+  }, [searchResults]);
 
-  const clearSearch = useCallback(() => {
-    setQuery('');
-    setIsSearchActive(false);
-    setFilters({});
-  }, []);
+  const getMessageContext = (messageId: string, contextSize: number = 2) => {
+    const messageIndex = messages.findIndex(msg => msg.id === messageId);
+    if (messageIndex === -1) return [];
+    
+    const start = Math.max(0, messageIndex - contextSize);
+    const end = Math.min(messages.length, messageIndex + contextSize + 1);
+    
+    return messages.slice(start, end);
+  };
 
-  const updateFilters = useCallback((newFilters: Partial<SearchFilters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
-  }, []);
+  const searchInTimeRange = (startDate: Date, endDate: Date) => {
+    return messages.filter(message => {
+      const messageDate = new Date(message.timestamp);
+      return messageDate >= startDate && messageDate <= endDate;
+    });
+  };
+
+  const searchByMessageType = (messageType: 'text' | 'file' | 'image') => {
+    return messages.filter(message => message.type === messageType);
+  };
+
+  const searchByUser = (userId: string) => {
+    return messages.filter(message => message.sender_id === userId);
+  };
+
+  const searchWithReplyContext = () => {
+    return messages.filter(message => message.reply_to);
+  };
 
   return {
-    query,
-    updateQuery,
-    filters,
-    updateFilters,
+    searchQuery,
+    setSearchQuery,
     searchResults,
-    highlightedMessages,
-    isSearchActive,
-    clearSearch,
+    filteredMessages,
+    highlightedMessageIds,
+    getMessageContext,
+    searchInTimeRange,
+    searchByMessageType,
+    searchByUser,
+    searchWithReplyContext,
     hasResults: searchResults.length > 0,
     totalResults: searchResults.length
   };

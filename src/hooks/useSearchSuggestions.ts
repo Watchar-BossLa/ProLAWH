@@ -1,136 +1,108 @@
-import { useState, useEffect, useMemo } from 'react';
-import { ChatMessage } from '@/hooks/useRealTimeChat';
+
+import { useMemo } from 'react';
+import { ChatMessage } from './chat/types';
 
 export interface SearchSuggestion {
-  id: string;
-  type: 'recent' | 'popular' | 'contextual';
-  query: string;
-  description?: string;
-  score: number;
+  type: 'user' | 'keyword' | 'file' | 'date';
+  value: string;
+  label: string;
+  count?: number;
 }
 
 export function useSearchSuggestions(messages: ChatMessage[], currentQuery: string = '') {
-  const [recentQueries, setRecentQueries] = useState<string[]>([]);
+  const suggestions = useMemo((): SearchSuggestion[] => {
+    if (currentQuery.length < 2) return [];
 
-  // Extract popular terms from messages
-  const popularTerms = useMemo(() => {
-    const termFrequency: Record<string, number> = {};
-    
+    const userSuggestions = new Map<string, number>();
+    const keywordSuggestions = new Map<string, number>();
+    const fileSuggestions = new Map<string, number>();
+
     messages.forEach(message => {
-      const words = message.content
-        .toLowerCase()
-        .split(/\s+/)
-        .filter(word => word.length > 3 && !word.match(/^(the|and|for|are|but|not|you|all|can|had|her|was|one|our|out|day|get|has|him|his|how|man|new|now|old|see|two|way|who|boy|did|its|let|put|say|she|too|use)$/));
-      
+      // User suggestions
+      if (message.sender_name && message.sender_name.toLowerCase().includes(currentQuery.toLowerCase())) {
+        userSuggestions.set(message.sender_name, (userSuggestions.get(message.sender_name) || 0) + 1);
+      }
+
+      // Content keyword suggestions
+      const words = message.content.toLowerCase().split(/\s+/);
       words.forEach(word => {
-        termFrequency[word] = (termFrequency[word] || 0) + 1;
+        if (word.length > 2 && word.includes(currentQuery.toLowerCase())) {
+          keywordSuggestions.set(word, (keywordSuggestions.get(word) || 0) + 1);
+        }
       });
-    });
 
-    return Object.entries(termFrequency)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 10)
-      .map(([term]) => term);
-  }, [messages]);
-
-  // Generate contextual suggestions based on current query
-  const contextualSuggestions = useMemo(() => {
-    if (!currentQuery.trim()) return [];
-
-    const suggestions: string[] = [];
-    const queryLower = currentQuery.toLowerCase();
-
-    // Add sender-based suggestions
-    const senders = [...new Set(messages.map(m => m.sender_name))];
-    senders.forEach(sender => {
-      if (sender.toLowerCase().includes(queryLower)) {
-        suggestions.push(`from:${sender}`);
+      // File suggestions
+      if (message.file_name && message.file_name.toLowerCase().includes(currentQuery.toLowerCase())) {
+        fileSuggestions.set(message.file_name, (fileSuggestions.get(message.file_name) || 0) + 1);
       }
     });
 
-    // Add file type suggestions
-    if (queryLower.includes('file') || queryLower.includes('document')) {
-      suggestions.push('type:file', 'type:image', 'type:document');
-    }
-
-    // Add date suggestions
-    if (queryLower.includes('today') || queryLower.includes('yesterday')) {
-      suggestions.push('today', 'yesterday', 'this week');
-    }
-
-    return suggestions.slice(0, 5);
-  }, [currentQuery, messages]);
-
-  const suggestions = useMemo((): SearchSuggestion[] => {
     const allSuggestions: SearchSuggestion[] = [];
 
-    // Recent queries
-    recentQueries.slice(0, 3).forEach((query, index) => {
-      allSuggestions.push({
-        id: `recent-${index}`,
-        type: 'recent',
-        query,
-        description: 'Recent search',
-        score: 1.0 - (index * 0.1)
+    // Add user suggestions
+    Array.from(userSuggestions.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .forEach(([user, count]) => {
+        allSuggestions.push({
+          type: 'user',
+          value: `from:${user}`,
+          label: `Messages from ${user}`,
+          count
+        });
       });
-    });
 
-    // Popular terms
-    popularTerms.slice(0, 5).forEach((term, index) => {
-      allSuggestions.push({
-        id: `popular-${index}`,
-        type: 'popular',
-        query: term,
-        description: 'Popular term',
-        score: 0.8 - (index * 0.1)
+    // Add keyword suggestions
+    Array.from(keywordSuggestions.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .forEach(([keyword, count]) => {
+        allSuggestions.push({
+          type: 'keyword',
+          value: keyword,
+          label: keyword,
+          count
+        });
       });
-    });
 
-    // Contextual suggestions
-    contextualSuggestions.forEach((suggestion, index) => {
-      allSuggestions.push({
-        id: `contextual-${index}`,
-        type: 'contextual',
-        query: suggestion,
-        description: 'Smart suggestion',
-        score: 0.9 - (index * 0.05)
+    // Add file suggestions
+    Array.from(fileSuggestions.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .forEach(([fileName, count]) => {
+        allSuggestions.push({
+          type: 'file',
+          value: `file:${fileName}`,
+          label: `File: ${fileName}`,
+          count
+        });
       });
-    });
 
-    return allSuggestions
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 8);
-  }, [recentQueries, popularTerms, contextualSuggestions]);
+    return allSuggestions.slice(0, 10);
+  }, [messages, currentQuery]);
 
-  const addRecentQuery = (query: string) => {
-    if (!query.trim()) return;
-    
-    setRecentQueries(prev => {
-      const filtered = prev.filter(q => q !== query);
-      return [query, ...filtered].slice(0, 10);
-    });
+  const getRecentSearches = () => {
+    try {
+      const recent = localStorage.getItem('chat-recent-searches');
+      return recent ? JSON.parse(recent) : [];
+    } catch {
+      return [];
+    }
   };
 
-  useEffect(() => {
-    // Load recent queries from localStorage
-    const stored = localStorage.getItem('message-search-recent');
-    if (stored) {
-      try {
-        setRecentQueries(JSON.parse(stored));
-      } catch (e) {
-        console.warn('Failed to parse stored recent queries');
-      }
+  const saveRecentSearch = (query: string) => {
+    try {
+      const recent = getRecentSearches();
+      const updated = [query, ...recent.filter((q: string) => q !== query)].slice(0, 5);
+      localStorage.setItem('chat-recent-searches', JSON.stringify(updated));
+    } catch {
+      // Ignore localStorage errors
     }
-  }, []);
-
-  useEffect(() => {
-    // Save recent queries to localStorage
-    localStorage.setItem('message-search-recent', JSON.stringify(recentQueries));
-  }, [recentQueries]);
+  };
 
   return {
     suggestions,
-    addRecentQuery,
-    clearRecentQueries: () => setRecentQueries([])
+    getRecentSearches,
+    saveRecentSearch
   };
 }

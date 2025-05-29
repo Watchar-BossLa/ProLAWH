@@ -1,10 +1,11 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MessageAttachment, AttachmentType } from "./MessageAttachment";
 import { MessageReactions } from "./MessageReactions";
 import { MessageThread } from "./MessageThread";
 import { ReadReceipts } from "./ReadReceipts";
-import { ChatMessage } from '@/hooks/useRealTimeChat';
+import { ChatMessage, MessageReactionsData } from '@/hooks/chat/types';
 
 interface MessageListProps {
   messages: ChatMessage[];
@@ -46,11 +47,11 @@ export function MessageList({
     const topLevelMessages: ChatMessage[] = [];
     
     messages.forEach(message => {
-      if (message.reply_to) {
-        if (!threads[message.reply_to]) {
-          threads[message.reply_to] = [];
+      if (message.reply_to_id) {
+        if (!threads[message.reply_to_id]) {
+          threads[message.reply_to_id] = [];
         }
-        threads[message.reply_to].push(message);
+        threads[message.reply_to_id].push(message);
       } else {
         topLevelMessages.push(message);
       }
@@ -63,7 +64,7 @@ export function MessageList({
     const groups: { [date: string]: ChatMessage[] } = {};
     
     messages.forEach(message => {
-      const date = new Date(message.timestamp).toDateString();
+      const date = new Date(message.created_at).toDateString();
       if (!groups[date]) {
         groups[date] = [];
       }
@@ -122,6 +123,21 @@ export function MessageList({
         : part
     );
   };
+
+  // Convert reactions array to reactions data format
+  const convertReactionsToData = (reactions: any): MessageReactionsData => {
+    if (Array.isArray(reactions)) {
+      const reactionsData: MessageReactionsData = {};
+      reactions.forEach(reaction => {
+        if (!reactionsData[reaction.reaction]) {
+          reactionsData[reaction.reaction] = [];
+        }
+        reactionsData[reaction.reaction].push(reaction);
+      });
+      return reactionsData;
+    }
+    return reactions || {};
+  };
   
   if (isLoading) {
     return (
@@ -170,8 +186,8 @@ export function MessageList({
               >
                 {!isCurrentUser && (
                   <Avatar className="h-8 w-8 mr-2 mt-1">
-                    {msg.sender_avatar ? (
-                      <AvatarImage src={msg.sender_avatar} alt={msg.sender_name} />
+                    {msg.sender_profile?.avatar_url ? (
+                      <AvatarImage src={msg.sender_profile.avatar_url} alt={msg.sender_name} />
                     ) : (
                       <AvatarFallback className="bg-primary/10 text-primary">
                         {msg.sender_name.substring(0, 2).toUpperCase()}
@@ -199,7 +215,7 @@ export function MessageList({
                         <MessageAttachment 
                           attachment={{
                             id: msg.id,
-                            type: msg.type as AttachmentType,
+                            type: msg.message_type as AttachmentType,
                             url: msg.file_url,
                             name: msg.file_name || 'File'
                           }} 
@@ -208,13 +224,13 @@ export function MessageList({
                     )}
                     
                     <p className="text-xs mt-2 opacity-70">
-                      {formatTime(msg.timestamp)}
+                      {formatTime(msg.created_at)}
                     </p>
                   </div>
                   
                   <MessageReactions
                     messageId={msg.id}
-                    reactions={msg.reactions}
+                    reactions={convertReactionsToData(msg.reactions)}
                     currentUserId={currentUserId}
                     onReact={onReactToMessage}
                   />

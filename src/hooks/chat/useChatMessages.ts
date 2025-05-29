@@ -24,6 +24,9 @@ export function useChatMessages() {
           message_type: 'text',
           created_at: new Date(Date.now() - 3600000).toISOString(),
           updated_at: new Date(Date.now() - 3600000).toISOString(),
+          timestamp: new Date(Date.now() - 3600000).toISOString(),
+          type: 'text',
+          sender_name: user.user_metadata?.full_name || 'You',
           sender_profile: {
             full_name: user.user_metadata?.full_name || 'You',
           },
@@ -38,6 +41,9 @@ export function useChatMessages() {
           message_type: 'text',
           created_at: new Date(Date.now() - 1800000).toISOString(),
           updated_at: new Date(Date.now() - 1800000).toISOString(),
+          timestamp: new Date(Date.now() - 1800000).toISOString(),
+          type: 'text',
+          sender_name: 'John Doe',
           sender_profile: {
             full_name: 'John Doe',
           },
@@ -82,6 +88,9 @@ export function useChatMessages() {
         reply_to_id: replyToId,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+        timestamp: new Date().toISOString(),
+        type: messageType,
+        sender_name: user.user_metadata?.full_name || 'You',
         sender_profile: {
           full_name: user.user_metadata?.full_name || 'You',
         },

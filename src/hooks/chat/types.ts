@@ -8,6 +8,7 @@ export interface ChatRoom {
   created_at: string;
   updated_at: string;
   participant_count?: number;
+  last_message?: ChatMessage;
 }
 
 export interface ChatMessage {
@@ -22,11 +23,18 @@ export interface ChatMessage {
   reply_to_id?: string;
   created_at: string;
   updated_at: string;
+  timestamp: string;
+  type: 'text' | 'file' | 'image';
+  sender_name: string;
+  sender_avatar?: string;
+  reply_to?: string;
+  edited_at?: string;
+  read_by?: ReadReceiptData[];
   sender_profile: {
     full_name: string;
+    avatar_url?: string;
   };
   reactions: MessageReaction[];
-  read_receipts: ReadReceipt[];
 }
 
 export interface MessageReaction {
@@ -37,10 +45,21 @@ export interface MessageReaction {
   created_at: string;
 }
 
+export interface MessageReactionsData {
+  [emoji: string]: MessageReaction[];
+}
+
 export interface ReadReceipt {
   id: string;
   message_id: string;
   user_id: string;
+  read_at: string;
+}
+
+export interface ReadReceiptData {
+  user_id: string;
+  user_name: string;
+  user_avatar?: string;
   read_at: string;
 }
 
@@ -52,6 +71,13 @@ export interface TypingIndicator {
   user_profile: {
     full_name: string;
   };
+}
+
+export interface TypingPresence {
+  user_id: string;
+  chat_id: string;
+  is_typing: boolean;
+  last_activity: string;
 }
 
 export interface SendMessageParams {
