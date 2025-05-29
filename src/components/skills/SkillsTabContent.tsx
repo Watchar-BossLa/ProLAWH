@@ -19,17 +19,23 @@ export function SkillsTabContent({
   onFilterChange 
 }: SkillsTabContentProps) {
   return (
-    <div className="space-y-6 mt-6">
-      <div className="grid gap-6 md:grid-cols-3">
-        <div className="md:col-span-1 space-y-6">
+    <div className="space-y-8">
+      {/* Stats Overview */}
+      <GreenSkillStats skills={skills} />
+      
+      {/* Main Content Grid */}
+      <div className="grid gap-8 lg:grid-cols-4">
+        {/* Sidebar - Filters and Analysis */}
+        <div className="lg:col-span-1 space-y-6">
           <GreenSkillsFilter 
             categories={categories} 
             onFilterChange={onFilterChange}
           />
           <SkillGapAnalysis skillGapData={skillGapData} />
         </div>
-        <div className="md:col-span-2 space-y-6">
-          <GreenSkillStats skills={skills} />
+        
+        {/* Main Content */}
+        <div className="lg:col-span-3 space-y-6">
           <GreenSkillCategories skills={skills} />
           <GreenSkillsList skills={skills} />
         </div>

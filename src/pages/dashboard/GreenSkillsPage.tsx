@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PageWrapper } from "@/components/ui/page-wrapper";
 import { GreenSkillsHeader } from '@/components/skills/GreenSkillsHeader';
 import { GreenSkillsLoading } from '@/components/skills/GreenSkillsLoading';
 import { GreenSkillsError } from '@/components/skills/GreenSkillsError';
@@ -49,28 +50,35 @@ export default function GreenSkillsPage() {
   };
 
   if (error) {
-    return <GreenSkillsError message={(error as Error).message} />;
+    return (
+      <PageWrapper>
+        <GreenSkillsError message={(error as Error).message} />
+      </PageWrapper>
+    );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6 animate-in fade-in">
-      <GreenSkillsHeader />
-
+    <PageWrapper
+      title="Green Skills"
+      description="Explore sustainable skills that contribute to environmental conservation and eco-friendly practices. Track their CO2 reduction potential and market growth rates to stay ahead in the green economy."
+    >
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-5 md:w-[750px]">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="skills">Skills</TabsTrigger>
-          <TabsTrigger value="impact">Impact</TabsTrigger>
-          <TabsTrigger value="careers">Careers</TabsTrigger>
-          <TabsTrigger value="projects">Projects</TabsTrigger>
-        </TabsList>
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+          <TabsList className="grid grid-cols-5 max-w-2xl">
+            <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+            <TabsTrigger value="skills" className="text-xs sm:text-sm">Skills</TabsTrigger>
+            <TabsTrigger value="impact" className="text-xs sm:text-sm">Impact</TabsTrigger>
+            <TabsTrigger value="careers" className="text-xs sm:text-sm">Careers</TabsTrigger>
+            <TabsTrigger value="projects" className="text-xs sm:text-sm">Projects</TabsTrigger>
+          </TabsList>
+        </div>
         
         {isLoading ? (
           <GreenSkillsLoading />
         ) : (
           <>
-            <TabsContent value="overview" className="space-y-6 mt-6">
-              <div className="grid gap-6 md:grid-cols-2">
+            <TabsContent value="overview" className="space-y-8 mt-0">
+              <div className="grid gap-6 lg:grid-cols-2">
                 <PersonalImpactMetrics
                   carbonReduction={analytics.personalMetrics.carbonReduction}
                   skillsAcquired={analytics.personalMetrics.skillsAcquired}
@@ -81,13 +89,16 @@ export default function GreenSkillsPage() {
                   totalReduction={analytics.environmentalImpact.reduce((sum, item) => sum + item.value, 0)}
                 />
               </div>
-              <Separator className="my-6" />
-              <GreenSkillsOverview />
-              <Separator className="my-6" />
-              <TopGreenSkills skills={greenSkills} />
+              
+              <Separator className="my-8" />
+              
+              <div className="space-y-8">
+                <GreenSkillsOverview />
+                <TopGreenSkills skills={greenSkills} />
+              </div>
             </TabsContent>
 
-            <TabsContent value="skills">
+            <TabsContent value="skills" className="mt-0">
               <SkillsTabContent 
                 skills={greenSkills}
                 categories={categories}
@@ -96,14 +107,14 @@ export default function GreenSkillsPage() {
               />
             </TabsContent>
 
-            <TabsContent value="impact">
+            <TabsContent value="impact" className="mt-0">
               <ImpactTabContent 
                 environmentalImpact={analytics.environmentalImpact}
                 sdgData={sdgData}
               />
             </TabsContent>
 
-            <TabsContent value="careers">
+            <TabsContent value="careers" className="mt-0">
               <CareersTabContent 
                 userSkills={userSkills}
                 careerOptions={analytics.careerOptions}
@@ -111,7 +122,7 @@ export default function GreenSkillsPage() {
               />
             </TabsContent>
             
-            <TabsContent value="projects">
+            <TabsContent value="projects" className="mt-0">
               <ProjectsTabContent 
                 selectedProject={sampleProject}
                 projects={analytics.projects}
@@ -120,6 +131,6 @@ export default function GreenSkillsPage() {
           </>
         )}
       </Tabs>
-    </div>
+    </PageWrapper>
   );
 }

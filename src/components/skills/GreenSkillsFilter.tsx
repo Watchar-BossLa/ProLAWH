@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Search, Filter } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -44,33 +45,62 @@ export function GreenSkillsFilter({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Search green skills..."
-          value={search}
-          onChange={handleSearchChange}
-          className="pl-10"
-        />
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <Badge variant="outline" className="cursor-pointer">
-          All Skills
-        </Badge>
-        <Badge variant="outline" className="cursor-pointer">
-          High Impact
-        </Badge>
-        <Badge variant="outline" className="cursor-pointer">
-          Growing Demand
-        </Badge>
-        <Badge variant="outline" className="cursor-pointer bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-          Sustainable
-        </Badge>
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        <div className="grid gap-2">
-          <label className="text-sm text-muted-foreground">Category</label>
+    <Card className="h-fit">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Filter className="h-5 w-5 text-primary" />
+          Filters
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Search */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">Search Skills</label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search green skills..."
+              value={search}
+              onChange={handleSearchChange}
+              className="pl-10"
+            />
+          </div>
+        </div>
+
+        {/* Quick Filters */}
+        <div className="space-y-3">
+          <label className="text-sm font-medium text-foreground">Quick Filters</label>
+          <div className="flex flex-wrap gap-2">
+            <Badge 
+              variant="outline" 
+              className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+            >
+              All Skills
+            </Badge>
+            <Badge 
+              variant="outline" 
+              className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+            >
+              High Impact
+            </Badge>
+            <Badge 
+              variant="outline" 
+              className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+            >
+              Growing Demand
+            </Badge>
+            <Badge 
+              variant="outline" 
+              className="cursor-pointer hover:bg-green-500 hover:text-white transition-colors bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-700"
+            >
+              Sustainable
+            </Badge>
+          </div>
+        </div>
+
+        {/* Category Filter */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">Category</label>
           <Select value={category} onValueChange={handleCategoryChange}>
             <SelectTrigger>
               <SelectValue placeholder="All Categories" />
@@ -85,8 +115,10 @@ export function GreenSkillsFilter({
             </SelectContent>
           </Select>
         </div>
-        <div className="grid gap-2">
-          <label className="text-sm text-muted-foreground">Impact Level</label>
+
+        {/* Impact Level Filter */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">Impact Level</label>
           <Select value={impactLevel} onValueChange={handleImpactChange}>
             <SelectTrigger>
               <SelectValue placeholder="All Levels" />
@@ -99,7 +131,7 @@ export function GreenSkillsFilter({
             </SelectContent>
           </Select>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

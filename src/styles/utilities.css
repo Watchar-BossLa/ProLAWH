@@ -1,107 +1,58 @@
 
 @layer utilities {
+  /* Text utilities */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  /* Container utilities */
+  .container-prose {
+    max-width: 65ch;
+  }
+
+  /* Professional spacing */
+  .space-y-professional > * + * {
+    margin-top: 1.5rem;
+  }
+
+  /* Glass morphism effects */
   .glass-card {
-    @apply bg-white/80 dark:bg-gray-950/80 backdrop-blur-lg border border-white/20 dark:border-gray-800/20;
+    @apply backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 border border-white/20 dark:border-gray-700/50;
   }
 
-  .gradient-border {
-    @apply relative before:absolute before:inset-0 before:-z-10 before:p-[1px] before:rounded-lg before:content-[''];
-  }
-
+  /* Smooth hover transitions */
   .hover-card {
-    @apply transition-all duration-300 hover:scale-[1.02] hover:shadow-xl;
+    @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5;
   }
 
-  .shimmer {
-    @apply relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-shimmer before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent;
+  /* Professional gradients */
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.8) 100%);
   }
 
-  /* High contrast text utilities */
-  .high-contrast-heading {
-    @apply text-gray-900 dark:text-gray-50;
+  .gradient-secondary {
+    background: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--secondary)/0.8) 100%);
   }
 
-  .high-contrast-subheading {
-    @apply text-gray-800 dark:text-gray-100;
-  }
-
-  .high-contrast-body {
-    @apply text-gray-700 dark:text-gray-200;
-  }
-
-  /* Dynamic theme gradient utilities */
-  .dynamic {
-    /* Gradient Card Component */
-    .gradient-card {
-      @apply relative overflow-hidden rounded-lg shadow-md;
-      background: var(--gradient-surface);
-      backdrop-filter: blur(10px);
-      border: 1px solid transparent;
-      border-image: var(--gradient-border);
-      border-image-slice: 1;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-      }
-    }
-
-    /* Gradient Border */
-    .gradient-border {
-      @apply relative before:absolute before:inset-0 before:-z-10 before:p-[1px] before:rounded-lg before:content-[''];
-      &::before {
-        background: var(--gradient-primary);
-        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-        mask-composite: exclude;
-        -webkit-mask-composite: xor;
-      }
-    }
-
-    /* Gradient Text */
-    .gradient-text {
-      @apply bg-clip-text text-transparent transition-colors;
-      background-image: var(--gradient-primary);
-    }
-
-    /* Gradient Hover Effect */
-    .gradient-hover {
-      @apply transition-all duration-300;
-      &:hover {
-        background-image: var(--gradient-background);
-        transform: translateY(-1px);
-      }
-    }
-
-    /* Active Gradient Element */
-    .gradient-active {
-      background-image: var(--gradient-primary);
-      @apply text-primary-foreground;
-    }
-    
-    /* Gradient Button */
-    .gradient-button {
-      @apply relative overflow-hidden shadow-md;
-      background-image: var(--gradient-primary);
-      transition: all 0.3s ease;
-
-      &:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      }
-
-      &:active {
-        transform: translateY(1px);
-      }
-    }
-  }
-
-  /* Additional utility for dynamic theme compatibility */
-  .gradient-text-hover {
-    @apply transition-all duration-300;
-    &:hover {
-      @apply bg-clip-text text-transparent;
-      background-image: var(--gradient-primary);
-    }
+  /* Enhanced focus states */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background;
   }
 }
