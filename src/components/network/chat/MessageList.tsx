@@ -2,10 +2,10 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MessageAttachment, AttachmentType } from "./MessageAttachment";
-import { MessageReactions } from "./MessageReactions";
+import { MessageReactions, MessageReactionsData } from "./MessageReactions";
 import { MessageThread } from "./MessageThread";
 import { ReadReceipts } from "./ReadReceipts";
-import { ChatMessage, MessageReactionsData } from '@/hooks/chat/types';
+import { ChatMessage } from '@/hooks/chat/types';
 
 interface MessageListProps {
   messages: ChatMessage[];

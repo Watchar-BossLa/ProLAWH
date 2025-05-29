@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Plus, Smile } from "lucide-react";
+import { MessageReaction } from '@/hooks/chat/types';
 
 export interface MessageReactionsData {
-  [emoji: string]: string[]; // emoji -> array of user IDs
+  [emoji: string]: MessageReaction[];
 }
 
 interface MessageReactionsProps {
@@ -39,9 +40,9 @@ export function MessageReactions({
     onReact(messageId, emoji);
   };
 
-  // Convert reactions object to array for display
-  const reactionEntries = Object.entries(reactions || {}).filter(([, userIds]) => 
-    Array.isArray(userIds) && userIds.length > 0
+  // Convert reactions array to reactions data format if needed
+  const reactionEntries = Object.entries(reactions || {}).filter(([, reactionList]) => 
+    Array.isArray(reactionList) && reactionList.length > 0
   );
 
   if (reactionEntries.length === 0 && !currentUserId) {
@@ -51,9 +52,10 @@ export function MessageReactions({
   return (
     <div className={`flex items-center gap-1 mt-1 ${className}`}>
       {/* Existing reactions */}
-      {reactionEntries.map(([emoji, userIds]) => {
-        const count = Array.isArray(userIds) ? userIds.length : 0;
-        const isUserReaction = currentUserId && Array.isArray(userIds) && userIds.includes(currentUserId);
+      {reactionEntries.map(([emoji, reactionList]) => {
+        const count = Array.isArray(reactionList) ? reactionList.length : 0;
+        const isUserReaction = currentUserId && Array.isArray(reactionList) && 
+          reactionList.some(r => r.user_id === currentUserId);
         
         if (count === 0) return null;
 

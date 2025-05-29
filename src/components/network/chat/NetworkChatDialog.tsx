@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -79,6 +80,21 @@ export function NetworkChatDialog({ activeChatId, activeChatConnection, onClose 
     }
   };
 
+  // Convert reactions array to reactions data format
+  const convertReactionsToData = (reactions: any): MessageReactionsData => {
+    if (Array.isArray(reactions)) {
+      const reactionsData: MessageReactionsData = {};
+      reactions.forEach(reaction => {
+        if (!reactionsData[reaction.reaction]) {
+          reactionsData[reaction.reaction] = [];
+        }
+        reactionsData[reaction.reaction].push(reaction);
+      });
+      return reactionsData;
+    }
+    return reactions || {};
+  };
+
   if (!activeChatId || !activeChatConnection) return null;
 
   const isRecipientTyping = user ? isUserTypingTo(activeChatId, user.id) : false;
@@ -130,7 +146,7 @@ export function NetworkChatDialog({ activeChatId, activeChatConnection, onClose 
                 
                 <MessageReactions
                   messageId={msg.id}
-                  reactions={msg.reactions || {}}
+                  reactions={convertReactionsToData(msg.reactions)}
                   currentUserId={user?.id}
                   onReact={handleReactToMessage}
                 />

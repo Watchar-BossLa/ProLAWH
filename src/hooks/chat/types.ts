@@ -27,9 +27,10 @@ export interface ChatMessage {
   type: 'text' | 'file' | 'image';
   sender_name: string;
   sender_avatar?: string;
-  reply_to?: string;
+  reply_to?: ChatMessage;
   edited_at?: string;
   read_by?: ReadReceiptData[];
+  read_receipts: ReadReceipt[];
   sender_profile: {
     full_name: string;
     avatar_url?: string;
@@ -54,6 +55,10 @@ export interface ReadReceipt {
   message_id: string;
   user_id: string;
   read_at: string;
+  user_profile?: {
+    full_name: string;
+    avatar_url?: string;
+  };
 }
 
 export interface ReadReceiptData {
@@ -86,4 +91,21 @@ export interface SendMessageParams {
   file_url?: string;
   file_name?: string;
   reply_to?: string;
+}
+
+// Search-related types
+export interface SearchFilters {
+  messageType?: 'text' | 'file' | 'image';
+  sender?: string;
+  dateRange?: {
+    start: Date;
+    end: Date;
+  };
+  hasAttachments?: boolean;
+}
+
+export interface SearchResult {
+  message: ChatMessage;
+  score: number;
+  matches: readonly any[];
 }
