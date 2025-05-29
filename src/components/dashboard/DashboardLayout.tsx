@@ -1,12 +1,14 @@
 
 import { Outlet } from "react-router-dom";
+import { Navigate } from "react-router-dom";
+import { DashboardLayoutProvider, useDashboardLayoutContext } from "./layout/DashboardLayoutProvider";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { DashboardHeader } from "./DashboardHeader";
-import { useAuth } from "@/hooks/useAuth";
-import { Navigate } from "react-router-dom";
+import { DashboardContainer } from "./layout/DashboardContainer";
+import { DashboardMain } from "./layout/DashboardMain";
 
-export function DashboardLayout() {
-  const { user, loading } = useAuth();
+function DashboardLayoutContent() {
+  const { user, loading } = useDashboardLayoutContext();
 
   if (loading) {
     return (
@@ -23,12 +25,20 @@ export function DashboardLayout() {
   return (
     <div className="flex h-screen bg-background">
       <DashboardSidebar />
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <DashboardContainer>
         <DashboardHeader />
-        <main className="flex-1 overflow-hidden">
+        <DashboardMain>
           <Outlet />
-        </main>
-      </div>
+        </DashboardMain>
+      </DashboardContainer>
     </div>
+  );
+}
+
+export function DashboardLayout() {
+  return (
+    <DashboardLayoutProvider>
+      <DashboardLayoutContent />
+    </DashboardLayoutProvider>
   );
 }
