@@ -1,6 +1,7 @@
 
 import { createContext, useContext, ReactNode } from 'react';
 import { useDashboardLayout } from '@/hooks/dashboard/useDashboardLayout';
+import { DEVELOPMENT_CONFIG } from "@/config/development";
 
 interface DashboardLayoutContextType {
   user: any;
@@ -25,6 +26,11 @@ interface DashboardLayoutProviderProps {
 
 export function DashboardLayoutProvider({ children }: DashboardLayoutProviderProps) {
   const layoutState = useDashboardLayout();
+
+  // Add development mode indicator
+  if (DEVELOPMENT_CONFIG.BYPASS_AUTH) {
+    console.log('🚀 Development mode: Authentication bypass enabled');
+  }
 
   return (
     <DashboardLayoutContext.Provider value={layoutState}>

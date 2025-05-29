@@ -6,6 +6,7 @@ import { DashboardSidebar } from "./DashboardSidebar";
 import { DashboardHeader } from "./DashboardHeader";
 import { DashboardContainer } from "./layout/DashboardContainer";
 import { DashboardMain } from "./layout/DashboardMain";
+import { DEVELOPMENT_CONFIG } from "@/config/development";
 
 function DashboardLayoutContent() {
   const { user, loading } = useDashboardLayoutContext();
@@ -18,7 +19,8 @@ function DashboardLayoutContent() {
     );
   }
 
-  if (!user) {
+  // Skip auth check in development mode
+  if (!DEVELOPMENT_CONFIG.BYPASS_AUTH && !user) {
     return <Navigate to="/auth" replace />;
   }
 
