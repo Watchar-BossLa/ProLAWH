@@ -9,6 +9,7 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { LucideSchool, AlertCircle, Search } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { PageWrapper } from "@/components/ui/page-wrapper";
 
 export default function LearningDashboard() {
   const { user } = useAuth();
@@ -17,11 +18,13 @@ export default function LearningDashboard() {
 
   if (!user) {
     return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Access Denied</AlertTitle>
-        <AlertDescription>Please log in to access the learning dashboard.</AlertDescription>
-      </Alert>
+      <PageWrapper>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Access Denied</AlertTitle>
+          <AlertDescription>Please log in to access the learning dashboard.</AlertDescription>
+        </Alert>
+      </PageWrapper>
     );
   }
 
@@ -52,15 +55,10 @@ export default function LearningDashboard() {
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex items-center gap-3 mb-8">
-        <LucideSchool className="h-8 w-8 text-primary" />
-        <div>
-          <h1 className="text-3xl font-bold">Learning Dashboard</h1>
-          <p className="text-muted-foreground">Explore our curated learning paths and specialized courses</p>
-        </div>
-      </div>
-      
+    <PageWrapper
+      title="Learning Dashboard"
+      description="Explore our curated learning paths and specialized courses"
+    >
       {/* Search */}
       <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -136,6 +134,6 @@ export default function LearningDashboard() {
           </div>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageWrapper>
   );
 }

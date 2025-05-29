@@ -60,22 +60,22 @@ function App() {
                 <Route index element={<DashboardHome />} />
                 <Route path="home" element={<DashboardPage />} />
                 <Route path="learning" element={<LearningDashboard />} />
-                <Route path="skills" element={<GreenSkillsPage />} />
+                <Route path="green-skills" element={<GreenSkillsPage />} />
+                <Route path="skills" element={<SkillsAndBadgesPage />} />
                 <Route path="network" element={<NetworkDashboard />} />
                 <Route path="network/:id" element={<NetworkConnectionProfile />} />
                 <Route path="mentorship" element={<MentorshipDashboard />} />
                 <Route path="mentorship/:id" element={<MentorshipDetailPage />} />
+                <Route path="opportunities" element={<OpportunityMarketplace />} />
                 <Route path="career-twin" element={<CareerTwinPage />} />
                 <Route path="arcade" element={<ArcadePage />} />
                 <Route path="challenge/:id" element={<ChallengePage />} />
                 <Route path="course/:id" element={<CourseDetailsPage />} />
                 <Route path="learning-path/:id" element={<LearningPathPage />} />
-                <Route path="marketplace" element={<OpportunityMarketplace />} />
-                <Route path="skills-badges" element={<SkillsAndBadgesPage />} />
                 <Route path="staking" element={<SkillStakingPage />} />
-                <Route path="studybee" element={<StudyBeePage />} />
+                <Route path="study-bee" element={<StudyBeePage />} />
                 <Route path="veriskill" element={<VeriSkillNetworkPage />} />
-                <Route path="quantum" element={<QuantumMatchingPage />} />
+                <Route path="quantum-matching" element={<QuantumMatchingPage />} />
                 <Route path="quorumforge" element={<QuorumForgeDashboard />} />
                 <Route path="enhanced-ai" element={<EnhancedAIDashboard />} />
                 <Route path="collaboration" element={<CollaborationPage />} />

@@ -6,6 +6,7 @@ import { AgentNotificationPanel } from "@/components/ai/AgentNotificationPanel";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Atom, Brain, Sparkles } from "lucide-react";
+import { PageWrapper } from "@/components/ui/page-wrapper";
 
 export default function QuantumMatchingPage() {
   const { user } = useAuth();
@@ -59,32 +60,27 @@ export default function QuantumMatchingPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex flex-col items-center gap-4">
-          <Atom className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Preparing quantum systems...</p>
+      <PageWrapper
+        title="Quantum AI Matching"
+        description="Experience the future of skill matching with quantum-enhanced algorithms and AI assistance"
+      >
+        <div className="flex items-center justify-center h-64">
+          <div className="flex flex-col items-center gap-4">
+            <Atom className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-muted-foreground">Preparing quantum systems...</p>
+          </div>
         </div>
-      </div>
+      </PageWrapper>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Sparkles className="h-8 w-8 text-primary" />
-            Quantum AI Matching
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Experience the future of skill matching with quantum-enhanced algorithms and AI assistance
-          </p>
-        </div>
-      </div>
-
+    <PageWrapper
+      title="Quantum AI Matching"
+      description="Experience the future of skill matching with quantum-enhanced algorithms and AI assistance"
+    >
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Skills in Quantum State</CardTitle>
@@ -126,7 +122,7 @@ export default function QuantumMatchingPage() {
       </div>
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Quantum Matching Dashboard */}
         <div className="lg:col-span-2">
           <QuantumMatchingDashboard 
@@ -182,6 +178,6 @@ export default function QuantumMatchingPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </PageWrapper>
   );
 }

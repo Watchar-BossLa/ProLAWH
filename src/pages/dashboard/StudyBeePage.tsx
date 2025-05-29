@@ -3,9 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { ExternalLink, GraduationCap, Book, BookOpen, NotebookPen, Users } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { pageTransitions } from "@/lib/transitions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { PageWrapper } from "@/components/ui/page-wrapper";
 import { StudyBeeOverview } from "@/components/studybee/StudyBeeOverview";
 import { StudyBeeEmbed } from "@/components/studybee/StudyBeeEmbed";
 import { StudyBeeFeatures } from "@/components/studybee/StudyBeeFeatures";
@@ -25,16 +25,11 @@ const StudyBeePage: React.FC = () => {
   }, []);
 
   return (
-    <div className={`container mx-auto py-6 space-y-6 ${pageTransitions.initial}`}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <GraduationCap className="h-8 w-8 text-primary" />
-          <div>
-            <h1 className="text-3xl font-bold">Study Bee</h1>
-            <p className="text-muted-foreground">Your personal study companion</p>
-          </div>
-        </div>
-        
+    <PageWrapper
+      title="Study Bee"
+      description="Your personal study companion for enhanced learning and productivity"
+    >
+      <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <span className={`inline-block w-3 h-3 rounded-full ${
             connectionStatus === 'connected' ? 'bg-green-500' : 
@@ -102,7 +97,7 @@ const StudyBeePage: React.FC = () => {
           )}
         </TabsContent>
       </Tabs>
-    </div>
+    </PageWrapper>
   );
 };
 

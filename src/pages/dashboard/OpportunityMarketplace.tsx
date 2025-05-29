@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Shield } from "lucide-react";
 import { FilterSidebar } from "@/components/marketplace/FilterSidebar";
 import { OpportunityList } from "@/components/marketplace/OpportunityList";
-import { pageTransitions } from "@/lib/transitions";
+import { PageWrapper } from "@/components/ui/page-wrapper";
 import type { Opportunity, FilterState } from "@/types/marketplace";
 
 const mockOpportunities: Opportunity[] = [
@@ -106,17 +106,10 @@ export default function OpportunityMarketplace() {
   };
 
   return (
-    <div className={`container mx-auto py-6 space-y-6 ${pageTransitions.initial}`}>
-      <div className="flex items-center gap-3 mb-6">
-        <Briefcase className="h-8 w-8 text-primary" />
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-            Green Career Opportunities
-          </h1>
-          <p className="text-muted-foreground">Discover sustainable and impactful projects aligned with your green skills</p>
-        </div>
-      </div>
-
+    <PageWrapper
+      title="Green Career Opportunities"
+      description="Discover sustainable and impactful projects aligned with your green skills"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <FilterSidebar 
           filter={filter}
@@ -199,6 +192,6 @@ export default function OpportunityMarketplace() {
           </div>
         </div>
       </div>
-    </div>
+    </PageWrapper>
   );
 }
