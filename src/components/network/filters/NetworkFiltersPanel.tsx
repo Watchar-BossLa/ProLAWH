@@ -75,7 +75,7 @@ export function NetworkFiltersPanel({
           <NetworkIndustrySelector
             industries={industries}
             selectedIndustry={selectedIndustry}
-            onSelectIndustry={onSelectIndustry}
+            onIndustryChange={onSelectIndustry}
           />
           
           <Button variant="ghost" size="icon" onClick={handleReset}>
