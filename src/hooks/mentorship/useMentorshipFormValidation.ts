@@ -2,33 +2,26 @@
 import { useState, useMemo } from 'react';
 import { MentorshipRequest } from '@/types/network';
 
-interface ValidationErrors {
-  goals?: string;
-  message?: string;
-  duration?: string;
-  focusAreas?: string;
-}
-
 export function useMentorshipFormValidation() {
-  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validateForm = (request: Partial<MentorshipRequest>): boolean => {
-    const newErrors: ValidationErrors = {};
+    const newErrors: Record<string, string> = {};
 
-    if (!request.goals || request.goals.trim().length < 10) {
-      newErrors.goals = 'Goals must be at least 10 characters long';
-    }
-
-    if (!request.message || request.message.trim().length < 20) {
-      newErrors.message = 'Message must be at least 20 characters long';
-    }
-
-    if (!request.duration) {
-      newErrors.duration = 'Please select a duration';
+    if (!request.message || request.message.trim().length < 10) {
+      newErrors.message = 'Message must be at least 10 characters long';
     }
 
     if (!request.focusAreas || request.focusAreas.length === 0) {
       newErrors.focusAreas = 'Please select at least one focus area';
+    }
+
+    if (!request.industry || request.industry.trim().length === 0) {
+      newErrors.industry = 'Please select an industry';
+    }
+
+    if (!request.expectedDuration) {
+      newErrors.expectedDuration = 'Please select a duration';
     }
 
     setErrors(newErrors);
