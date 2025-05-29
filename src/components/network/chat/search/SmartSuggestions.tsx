@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, TrendingUp, Sparkles, Search } from "lucide-react";
-import { SearchSuggestion } from "@/hooks/useSearchSuggestions";
+import { SearchSuggestion } from "@/hooks/chat/types";
 
 interface SmartSuggestionsProps {
   suggestions: SearchSuggestion[];
@@ -63,16 +63,16 @@ export function SmartSuggestions({ suggestions, onSuggestionClick, className = "
           </div>
           
           <div className="flex flex-wrap gap-2">
-            {typeSuggestions.map((suggestion) => (
+            {Array.isArray(typeSuggestions) && typeSuggestions.map((suggestion) => (
               <Button
                 key={suggestion.id}
                 variant="ghost"
                 size="sm"
-                onClick={() => onSuggestionClick(suggestion.query)}
+                onClick={() => onSuggestionClick(suggestion.query || suggestion.value)}
                 className={`h-auto p-2 ${getSuggestionColor(suggestion.type)}`}
               >
                 <div className="flex items-center gap-1.5">
-                  <span className="text-sm">{suggestion.query}</span>
+                  <span className="text-sm">{suggestion.query || suggestion.value}</span>
                   {suggestion.description && (
                     <Badge variant="secondary" className="text-xs ml-1">
                       {suggestion.description}

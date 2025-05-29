@@ -1,12 +1,12 @@
 
 import { useState, useMemo } from 'react';
-import Fuse from 'fuse.js';
+import Fuse, { type FuseResult, type FuseResultMatch } from 'fuse.js';
 import { ChatMessage, SearchFilters } from './chat/types';
 
 export interface SearchResult {
   message: ChatMessage;
   score: number;
-  matches: readonly Fuse.FuseResultMatch[];
+  matches: readonly FuseResultMatch[];
 }
 
 export type { SearchFilters };

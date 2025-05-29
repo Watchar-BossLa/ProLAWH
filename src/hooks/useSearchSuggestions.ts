@@ -2,6 +2,8 @@
 import { useMemo } from 'react';
 import { ChatMessage, SearchSuggestion } from './chat/types';
 
+export { SearchSuggestion } from './chat/types';
+
 export function useSearchSuggestions(messages: ChatMessage[], currentQuery: string = '') {
   const suggestions = useMemo((): SearchSuggestion[] => {
     if (currentQuery.length < 2) return [];
