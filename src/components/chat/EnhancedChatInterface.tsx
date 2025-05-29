@@ -19,7 +19,7 @@ import { useRealTimeChat } from "@/hooks/useRealTimeChat";
 import { useAdvancedSearch } from "@/hooks/chat/useAdvancedSearch";
 import { MessageReactionPicker } from './MessageReactionPicker';
 import { TypingIndicator } from './TypingIndicator';
-import { FileUploadZone } from './FileUpload';
+import { FileUploadZone } from './FileUpload/FileUploadZone';
 import { SearchInterface } from './SearchInterface';
 
 interface EnhancedChatInterfaceProps {
