@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { DEVELOPMENT_CONFIG } from '@/config/development';
 import type { User } from '@supabase/supabase-js';
 
 export function useAuth() {
@@ -8,6 +9,13 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // If development bypass is enabled, use mock user
+    if (DEVELOPMENT_CONFIG.BYPASS_AUTH) {
+      setUser(DEVELOPMENT_CONFIG.MOCK_USER as User);
+      setLoading(false);
+      return;
+    }
+
     // Get initial session
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -29,6 +37,11 @@ export function useAuth() {
   }, []);
 
   const signOut = async () => {
+    // Skip actual sign out in development mode
+    if (DEVELOPMENT_CONFIG.BYPASS_AUTH) {
+      return;
+    }
+    
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Error signing out:', error);

@@ -6,43 +6,22 @@ import { CareerTwinMentorRecommendations } from "@/components/mentorship/CareerT
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
 import { 
   BookOpen, 
   Users, 
   CalendarIcon, 
   ArrowUpRight 
 } from "lucide-react";
+import { PageWrapper } from "@/components/ui/page-wrapper";
 
 export default function MentorshipDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
-  const { user } = useAuth();
-
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <Card>
-          <CardHeader>
-            <CardTitle>Authentication Required</CardTitle>
-            <CardDescription>Please sign in to access the mentorship dashboard.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button>Sign In</Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Mentorship Hub</h2>
-        <p className="text-muted-foreground">
-          Connect with mentors, share knowledge, and grow your skills
-        </p>
-      </div>
-
+    <PageWrapper
+      title="Mentorship Hub"
+      description="Connect with mentors, share knowledge, and grow your skills"
+    >
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card className="hover-card glass-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -161,6 +140,6 @@ export default function MentorshipDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageWrapper>
   );
 }

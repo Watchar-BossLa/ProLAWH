@@ -1,32 +1,18 @@
 
-import { useAuth } from "@/hooks/useAuth";
 import { useLearningData } from "@/hooks/useLearningData";
 import { CourseCard } from "@/components/learning/CourseCard";
 import { LearningPathCard } from "@/components/learning/LearningPathCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { LucideSchool, AlertCircle, Search } from "lucide-react";
+import { AlertCircle, Search } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { PageWrapper } from "@/components/ui/page-wrapper";
 
 export default function LearningDashboard() {
-  const { user } = useAuth();
   const { courses, learningPaths, userEnrollments, isLoading } = useLearningData();
   const [searchQuery, setSearchQuery] = useState("");
-
-  if (!user) {
-    return (
-      <PageWrapper>
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Access Denied</AlertTitle>
-          <AlertDescription>Please log in to access the learning dashboard.</AlertDescription>
-        </Alert>
-      </PageWrapper>
-    );
-  }
 
   // Filter learning paths and courses by search query
   const filteredPaths = learningPaths?.filter(path => 

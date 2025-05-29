@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { DEVELOPMENT_CONFIG } from '@/config/development';
 import type { User } from '@supabase/supabase-js';
 
 export function useAuthState() {
@@ -9,6 +10,13 @@ export function useAuthState() {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
+    // If development bypass is enabled, use mock user
+    if (DEVELOPMENT_CONFIG.BYPASS_AUTH) {
+      setUser(DEVELOPMENT_CONFIG.MOCK_USER as User);
+      setLoading(false);
+      return;
+    }
+
     const getInitialSession = async () => {
       try {
         const { data, error } = await supabase.auth.getSession();
