@@ -1,13 +1,6 @@
 
 import { useMemo } from 'react';
-import { ChatMessage } from './chat/types';
-
-export interface SearchSuggestion {
-  type: 'user' | 'keyword' | 'file' | 'date';
-  value: string;
-  label: string;
-  count?: number;
-}
+import { ChatMessage, SearchSuggestion } from './chat/types';
 
 export function useSearchSuggestions(messages: ChatMessage[], currentQuery: string = '') {
   const suggestions = useMemo((): SearchSuggestion[] => {
@@ -45,9 +38,12 @@ export function useSearchSuggestions(messages: ChatMessage[], currentQuery: stri
       .slice(0, 3)
       .forEach(([user, count]) => {
         allSuggestions.push({
+          id: `user-${user}`,
           type: 'user',
           value: `from:${user}`,
           label: `Messages from ${user}`,
+          query: `from:${user}`,
+          description: `Messages from ${user}`,
           count
         });
       });
@@ -58,9 +54,12 @@ export function useSearchSuggestions(messages: ChatMessage[], currentQuery: stri
       .slice(0, 5)
       .forEach(([keyword, count]) => {
         allSuggestions.push({
+          id: `keyword-${keyword}`,
           type: 'keyword',
           value: keyword,
           label: keyword,
+          query: keyword,
+          description: keyword,
           count
         });
       });
@@ -71,9 +70,12 @@ export function useSearchSuggestions(messages: ChatMessage[], currentQuery: stri
       .slice(0, 3)
       .forEach(([fileName, count]) => {
         allSuggestions.push({
+          id: `file-${fileName}`,
           type: 'file',
           value: `file:${fileName}`,
           label: `File: ${fileName}`,
+          query: `file:${fileName}`,
+          description: `File: ${fileName}`,
           count
         });
       });

@@ -1,7 +1,7 @@
 
 import { useState, useMemo } from 'react';
-import { ChatMessage, SearchFilters } from './chat/types';
 import Fuse from 'fuse.js';
+import { ChatMessage, SearchFilters } from './chat/types';
 
 export interface SearchResult {
   message: ChatMessage;
@@ -9,7 +9,7 @@ export interface SearchResult {
   matches: readonly Fuse.FuseResultMatch[];
 }
 
-export { SearchFilters };
+export type { SearchFilters };
 
 export function useMessageSearch(messages: ChatMessage[]) {
   const [searchQuery, setSearchQuery] = useState('');

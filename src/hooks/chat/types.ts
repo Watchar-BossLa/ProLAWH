@@ -102,10 +102,22 @@ export interface SearchFilters {
     end: Date;
   };
   hasAttachments?: boolean;
+  hasReactions?: boolean;
+  hasReplies?: boolean;
 }
 
 export interface SearchResult {
   message: ChatMessage;
   score: number;
   matches: readonly any[];
+}
+
+export interface SearchSuggestion {
+  id?: string;
+  type: 'user' | 'keyword' | 'file' | 'date' | 'recent' | 'popular' | 'contextual';
+  value: string;
+  label: string;
+  query?: string;
+  description?: string;
+  count?: number;
 }

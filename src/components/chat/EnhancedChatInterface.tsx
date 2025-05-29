@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -172,7 +173,7 @@ export function EnhancedChatInterface({
               <div key={msg.id} className="group">
                 {msg.reply_to && (
                   <div className="text-xs text-muted-foreground mb-1 ml-12 pl-3 border-l-2 border-muted">
-                    Replying to: {messages.find(m => m.id === msg.reply_to)?.content.substring(0, 50)}...
+                    Replying to: {messages.find(m => m.id === msg.reply_to_id)?.content.substring(0, 50)}...
                   </div>
                 )}
                 
