@@ -25,7 +25,7 @@ function DashboardLayoutContent() {
   }
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background w-full">
       <DashboardSidebar />
       <DashboardContainer>
         <DashboardHeader />

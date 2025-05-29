@@ -1,7 +1,18 @@
 
 import React from "react";
-import { SidebarWrapper } from "./sidebar/SidebarWrapper";
+import { SidebarProvider, Sidebar } from "@/components/ui/sidebar";
+import { SidebarHeader } from "./sidebar/SidebarHeader";
+import { SidebarContent } from "./sidebar/SidebarContent";
 
 export function DashboardSidebar() {
-  return <SidebarWrapper />;
+  return (
+    <SidebarProvider>
+      <Sidebar>
+        <div className="flex flex-col h-full">
+          <SidebarHeader />
+          <SidebarContent />
+        </div>
+      </Sidebar>
+    </SidebarProvider>
+  );
 }

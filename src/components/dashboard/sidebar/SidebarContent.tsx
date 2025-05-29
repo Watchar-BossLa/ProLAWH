@@ -5,12 +5,15 @@ import {
   SidebarGroup,
 } from "@/components/ui/sidebar";
 import { SidebarMenu } from './SidebarMenu';
+import { SidebarProvider } from './SidebarProvider';
 
 export function SidebarContent() {
   return (
     <SidebarContentBase>
       <SidebarGroup>
-        <SidebarMenu />
+        <SidebarProvider>
+          <SidebarMenu />
+        </SidebarProvider>
       </SidebarGroup>
     </SidebarContentBase>
   );
