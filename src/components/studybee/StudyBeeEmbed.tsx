@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,6 @@ import { useStudyBeeIntegration } from '@/hooks/useStudyBeeIntegration';
 export const StudyBeeEmbed: React.FC = () => {
   const { user } = useAuth();
   const { isConnected, progress } = useStudyBeeIntegration();
-  const [authToken, setAuthToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const generateAuthUrl = async () => {
@@ -18,9 +17,12 @@ export const StudyBeeEmbed: React.FC = () => {
     
     try {
       setIsLoading(true);
-      const response = await fetch('/api/generate-studybee-token', {
+      const response = await fetch('/functions/v1/generate-studybee-token', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await import('@/integrations/supabase/client')).supabase.auth.session()?.access_token}`
+        },
         body: JSON.stringify({ user_id: user.id })
       });
       

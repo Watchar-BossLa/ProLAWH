@@ -41,8 +41,13 @@ export function StudyBeeIntegration() {
   };
 
   const launchStudyBee = () => {
-    const studyBeeUrl = user 
-      ? `https://www.studybee.info/dashboard?user=${encodeURIComponent(user.id)}`
+    // Use a different parameter for development users
+    const userParam = user?.id === 'dev-user-123' 
+      ? 'dev-user' 
+      : user?.id ? encodeURIComponent(user.id) : '';
+    
+    const studyBeeUrl = userParam
+      ? `https://www.studybee.info/dashboard?user=${userParam}`
       : 'https://www.studybee.info';
     
     window.open(studyBeeUrl, '_blank', 'noopener,noreferrer');

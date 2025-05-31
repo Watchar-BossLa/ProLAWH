@@ -23,7 +23,7 @@ export function useStudyBeeIntegration() {
     try {
       // Check if user has Study Bee integration enabled
       const { data, error } = await supabase
-        .from('study_bee_integrations')
+        .from('study_bee_integrations' as any)
         .select('*')
         .eq('user_id', user?.id)
         .single();
@@ -47,25 +47,25 @@ export function useStudyBeeIntegration() {
 
       // Fetch recent sessions
       const { data: sessionsData } = await supabase
-        .from('study_bee_sessions')
+        .from('study_bee_sessions' as any)
         .select('*')
         .eq('user_id', user.id)
         .order('started_at', { ascending: false })
         .limit(10);
 
       if (sessionsData) {
-        setSessions(sessionsData);
+        setSessions(sessionsData as StudyBeeSession[]);
       }
 
       // Fetch progress data
       const { data: progressData } = await supabase
-        .from('study_bee_progress')
+        .from('study_bee_progress' as any)
         .select('*')
         .eq('user_id', user.id)
         .single();
 
       if (progressData) {
-        setProgress(progressData);
+        setProgress(progressData as StudyBeeProgress);
       }
 
     } catch (err) {
@@ -99,7 +99,7 @@ export function useStudyBeeIntegration() {
     try {
       // Create integration record
       const { error } = await supabase
-        .from('study_bee_integrations')
+        .from('study_bee_integrations' as any)
         .upsert({
           user_id: user?.id,
           auth_token: token,

@@ -2652,6 +2652,150 @@ export type Database = {
         }
         Relationships: []
       }
+      study_bee_auth_tokens: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      study_bee_integrations: {
+        Row: {
+          auth_token: string
+          connected_at: string
+          created_at: string
+          id: string
+          is_active: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auth_token: string
+          connected_at?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auth_token?: string
+          connected_at?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      study_bee_progress: {
+        Row: {
+          achievements: string[]
+          created_at: string
+          current_streak: number
+          id: string
+          longest_streak: number
+          performance_metrics: Json
+          sessions_this_week: number
+          subjects_studied: string[]
+          total_study_time: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          achievements?: string[]
+          created_at?: string
+          current_streak?: number
+          id?: string
+          longest_streak?: number
+          performance_metrics?: Json
+          sessions_this_week?: number
+          subjects_studied?: string[]
+          total_study_time?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          achievements?: string[]
+          created_at?: string
+          current_streak?: number
+          id?: string
+          longest_streak?: number
+          performance_metrics?: Json
+          sessions_this_week?: number
+          subjects_studied?: string[]
+          total_study_time?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      study_bee_sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          duration_minutes: number
+          id: string
+          metadata: Json
+          notes_count: number
+          progress_percentage: number
+          quiz_score: number | null
+          session_id: string
+          session_type: string
+          started_at: string
+          subject: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          duration_minutes: number
+          id?: string
+          metadata?: Json
+          notes_count?: number
+          progress_percentage?: number
+          quiz_score?: number | null
+          session_id: string
+          session_type: string
+          started_at: string
+          subject: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          metadata?: Json
+          notes_count?: number
+          progress_percentage?: number
+          quiz_score?: number | null
+          session_id?: string
+          session_type?: string
+          started_at?: string
+          subject?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       system_metrics: {
         Row: {
           created_at: string
