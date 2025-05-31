@@ -17,11 +17,13 @@ export const StudyBeeEmbed: React.FC = () => {
     
     try {
       setIsLoading(true);
+      const { data: { session } } = await (await import('@/integrations/supabase/client')).supabase.auth.getSession();
+      
       const response = await fetch('/functions/v1/generate-studybee-token', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await import('@/integrations/supabase/client')).supabase.auth.session()?.access_token}`
+          'Authorization': `Bearer ${session?.access_token || ''}`
         },
         body: JSON.stringify({ user_id: user.id })
       });

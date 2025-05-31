@@ -23,7 +23,7 @@ export function useStudyBeeIntegration() {
     try {
       // Check if user has Study Bee integration enabled
       const { data, error } = await supabase
-        .from('study_bee_integrations' as any)
+        .from('study_bee_integrations')
         .select('*')
         .eq('user_id', user?.id)
         .single();
@@ -46,26 +46,30 @@ export function useStudyBeeIntegration() {
       setLoading(true);
 
       // Fetch recent sessions
-      const { data: sessionsData } = await supabase
-        .from('study_bee_sessions' as any)
+      const { data: sessionsData, error: sessionsError } = await supabase
+        .from('study_bee_sessions')
         .select('*')
         .eq('user_id', user.id)
         .order('started_at', { ascending: false })
         .limit(10);
 
-      if (sessionsData) {
-        setSessions(sessionsData as StudyBeeSession[]);
+      if (sessionsError) {
+        console.error('Error fetching sessions:', sessionsError);
+      } else if (sessionsData) {
+        setSessions(sessionsData as unknown as StudyBeeSession[]);
       }
 
       // Fetch progress data
-      const { data: progressData } = await supabase
-        .from('study_bee_progress' as any)
+      const { data: progressData, error: progressError } = await supabase
+        .from('study_bee_progress')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
-      if (progressData) {
-        setProgress(progressData as StudyBeeProgress);
+      if (progressError && progressError.code !== 'PGRST116') {
+        console.error('Error fetching progress:', progressError);
+      } else if (progressData) {
+        setProgress(progressData as unknown as StudyBeeProgress);
       }
 
     } catch (err) {
@@ -99,7 +103,7 @@ export function useStudyBeeIntegration() {
     try {
       // Create integration record
       const { error } = await supabase
-        .from('study_bee_integrations' as any)
+        .from('study_bee_integrations')
         .upsert({
           user_id: user?.id,
           auth_token: token,
