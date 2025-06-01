@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { handleAsyncError } from '@/utils/errorHandling';
 import { DeviceSession } from '../types';
@@ -54,7 +53,6 @@ export class SessionService {
 
           if (error) throw error;
           
-          // Return the data without type casting since the table doesn't exist yet
           return data || [];
         } catch (tableError) {
           console.warn('User sessions table not available yet');
@@ -64,9 +62,13 @@ export class SessionService {
       { operation: 'fetch_sessions' }
     );
 
-    // Only cast to DeviceSession[] if we actually have data, otherwise return empty array
+    // Avoid casting entirely - just check if we have valid data structure
+    const validData = Array.isArray(data) && data.length > 0 && 
+                     typeof data[0] === 'object' && 
+                     'id' in data[0] ? data as DeviceSession[] : [];
+    
     return { 
-      data: data && Array.isArray(data) ? data as DeviceSession[] : [], 
+      data: validData, 
       error 
     };
   }
