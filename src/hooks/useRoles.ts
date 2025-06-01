@@ -28,8 +28,9 @@ export function useRoles() {
 
     const { data, error: fetchError } = await handleAsyncError(
       async () => {
+        // Use type assertion to work around the TypeScript issue temporarily
         const { data, error } = await supabase
-          .from('user_roles')
+          .from('user_roles' as any)
           .select('role')
           .eq('user_id', user.id);
         
@@ -70,8 +71,9 @@ export function useRoles() {
 
     const { error: assignError } = await handleAsyncError(
       async () => {
+        // Use type assertion to work around the TypeScript issue temporarily
         const { error } = await supabase
-          .from('user_roles')
+          .from('user_roles' as any)
           .insert({ user_id: targetUserId, role });
         
         if (error) throw error;

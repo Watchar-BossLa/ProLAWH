@@ -3186,6 +3186,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_skills: {
         Row: {
           created_at: string
@@ -3299,8 +3323,16 @@ export type Database = {
           network: string
         }[]
       }
+      get_user_role: {
+        Args: { check_user_id: string }
+        Returns: string
+      }
       has_admin_role: {
         Args: { user_id: string; required_role: string }
+        Returns: boolean
+      }
+      has_user_role: {
+        Args: { check_user_id: string; check_role: string }
         Returns: boolean
       }
       is_admin: {
@@ -3311,6 +3343,7 @@ export type Database = {
     Enums: {
       connection_status: "pending" | "accepted" | "declined"
       stake_status: "active" | "completed" | "withdrawn"
+      user_role: "admin" | "mentor" | "learner" | "employer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3428,6 +3461,7 @@ export const Constants = {
     Enums: {
       connection_status: ["pending", "accepted", "declined"],
       stake_status: ["active", "completed", "withdrawn"],
+      user_role: ["admin", "mentor", "learner", "employer"],
     },
   },
 } as const

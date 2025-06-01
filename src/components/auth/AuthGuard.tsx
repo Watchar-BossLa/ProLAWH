@@ -21,11 +21,11 @@ export function AuthGuard({
   fallback 
 }: AuthGuardProps) {
   const { user, loading: authLoading } = useAuth();
-  const { hasAnyRole, loading: rolesLoading } = useRoles();
+  const { hasAnyRole, loading: rolesLoading, error: rolesError } = useRoles();
   const location = useLocation();
 
   // Show loading while checking authentication
-  if (authLoading || rolesLoading) {
+  if (authLoading || (user && rolesLoading)) {
     return <Loading message="Checking permissions..." />;
   }
 
@@ -36,6 +36,21 @@ export function AuthGuard({
 
   // Check if specific roles are required
   if (requiredRoles.length > 0 && user) {
+    // If there's an error loading roles, show the error
+    if (rolesError) {
+      return (
+        <div className="min-h-[400px] flex items-center justify-center p-4">
+          <Alert variant="destructive" className="max-w-md">
+            <Shield className="h-4 w-4" />
+            <AlertDescription>
+              Error loading user permissions: {rolesError}
+            </AlertDescription>
+          </Alert>
+        </div>
+      );
+    }
+
+    // Check if user has required roles
     if (!hasAnyRole(requiredRoles)) {
       if (fallback) {
         return <>{fallback}</>;

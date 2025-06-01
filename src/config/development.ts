@@ -1,26 +1,17 @@
 
-// Development configuration
 export const DEVELOPMENT_CONFIG = {
   // Set to true to bypass authentication in development
   BYPASS_AUTH: true,
   
-  // Mock user data for development mode - complete User object
+  // Mock user for development (when BYPASS_AUTH is true)
   MOCK_USER: {
-    id: 'dev-user-123',
-    aud: 'authenticated',
-    role: 'authenticated',
-    email: 'dev@example.com',
-    email_confirmed_at: new Date().toISOString(),
-    phone: '',
-    last_sign_in_at: new Date().toISOString(),
-    app_metadata: {
-      provider: 'email',
-      providers: ['email']
-    },
+    id: "550e8400-e29b-41d4-a716-446655440000", // Valid UUID format
+    email: "dev@prolawh.com",
     user_metadata: {
-      name: 'Developer User'
+      full_name: "Development User"
     },
-    identities: [],
+    app_metadata: {},
+    aud: "authenticated",
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   }
