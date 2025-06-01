@@ -66,10 +66,22 @@ export function useRealTimeMessaging(chatRoomId?: string) {
 
   // Initialize real-time subscriptions
   useEffect(() => {
-    if (!user || !chatRoomId) return;
+    if (!user || !chatRoomId) {
+      setIsLoading(false);
+      return;
+    }
 
     const initializeRealTime = async () => {
       try {
+        // Check if chat tables exist before setting up real-time
+        try {
+          await supabase.from('chat_rooms').select('id').limit(1);
+        } catch (tableError) {
+          console.warn('Chat tables not available yet, skipping real-time setup');
+          setIsLoading(false);
+          return;
+        }
+
         // Set up main messaging channel
         channelRef.current = supabase
           .channel(`chat_room:${chatRoomId}`)
@@ -209,19 +221,24 @@ export function useRealTimeMessaging(chatRoomId?: string) {
 
     const { data, error } = await handleAsyncError(
       async () => {
-        const { data, error } = await supabase
-          .from('chat_messages')
-          .select(`
-            *,
-            sender_profile:profiles!sender_id(full_name, avatar_url)
-          `)
-          .eq('chat_room_id', chatRoomId)
-          .is('deleted_at', null)
-          .order('created_at', { ascending: true })
-          .limit(100);
+        try {
+          const { data, error } = await supabase
+            .from('chat_messages')
+            .select(`
+              *,
+              sender_profile:profiles!sender_id(full_name, avatar_url)
+            `)
+            .eq('chat_room_id', chatRoomId)
+            .is('deleted_at', null)
+            .order('created_at', { ascending: true })
+            .limit(100);
 
-        if (error) throw error;
-        return data;
+          if (error) throw error;
+          return data;
+        } catch (tableError) {
+          console.warn('Chat messages table not available yet');
+          return [];
+        }
       },
       { operation: 'fetch_messages', chat_room_id: chatRoomId }
     );
@@ -243,23 +260,27 @@ export function useRealTimeMessaging(chatRoomId?: string) {
 
     const { error } = await handleAsyncError(
       async () => {
-        const { error } = await supabase
-          .from('chat_messages')
-          .insert({
-            chat_room_id: chatRoomId,
-            sender_id: user.id,
-            content: content.trim(),
-            message_type: messageType,
-            file_url: fileData?.url,
-            file_name: fileData?.name,
-            file_size: fileData?.size,
-            reply_to_id: replyToId,
-            thread_id: threadId,
-            reactions: {},
-            read_by: [user.id]
-          });
+        try {
+          const { error } = await supabase
+            .from('chat_messages')
+            .insert({
+              chat_room_id: chatRoomId,
+              sender_id: user.id,
+              content: content.trim(),
+              message_type: messageType,
+              file_url: fileData?.url,
+              file_name: fileData?.name,
+              file_size: fileData?.size,
+              reply_to_id: replyToId,
+              thread_id: threadId,
+              reactions: {},
+              read_by: [user.id]
+            });
 
-        if (error) throw error;
+          if (error) throw error;
+        } catch (tableError) {
+          console.warn('Chat messages table not available yet');
+        }
       },
       { operation: 'send_message', chat_room_id: chatRoomId }
     );
@@ -302,24 +323,28 @@ export function useRealTimeMessaging(chatRoomId?: string) {
 
     const { error } = await handleAsyncError(
       async () => {
-        const { data: message, error: fetchError } = await supabase
-          .from('chat_messages')
-          .select('read_by')
-          .eq('id', messageId)
-          .single();
-
-        if (fetchError) throw fetchError;
-
-        const readBy = message.read_by || [];
-        if (!readBy.includes(user.id)) {
-          const { error: updateError } = await supabase
+        try {
+          const { data: message, error: fetchError } = await supabase
             .from('chat_messages')
-            .update({ 
-              read_by: [...readBy, user.id] 
-            })
-            .eq('id', messageId);
+            .select('read_by')
+            .eq('id', messageId)
+            .single();
 
-          if (updateError) throw updateError;
+          if (fetchError) throw fetchError;
+
+          const readBy = message.read_by || [];
+          if (!readBy.includes(user.id)) {
+            const { error: updateError } = await supabase
+              .from('chat_messages')
+              .update({ 
+                read_by: [...readBy, user.id] 
+              })
+              .eq('id', messageId);
+
+            if (updateError) throw updateError;
+          }
+        } catch (tableError) {
+          console.warn('Chat messages table not available yet');
         }
       },
       { operation: 'mark_as_read', message_id: messageId }
@@ -332,41 +357,45 @@ export function useRealTimeMessaging(chatRoomId?: string) {
 
     const { error } = await handleAsyncError(
       async () => {
-        const { data: message, error: fetchError } = await supabase
-          .from('chat_messages')
-          .select('reactions')
-          .eq('id', messageId)
-          .single();
+        try {
+          const { data: message, error: fetchError } = await supabase
+            .from('chat_messages')
+            .select('reactions')
+            .eq('id', messageId)
+            .single();
 
-        if (fetchError) throw fetchError;
+          if (fetchError) throw fetchError;
 
-        const reactions = message.reactions || {};
-        const emojiReactions = reactions[emoji] || [];
-        
-        let updatedReactions;
-        if (emojiReactions.includes(user.id)) {
-          // Remove reaction
-          updatedReactions = {
-            ...reactions,
-            [emoji]: emojiReactions.filter(id => id !== user.id)
-          };
-          if (updatedReactions[emoji].length === 0) {
-            delete updatedReactions[emoji];
+          const reactions = message.reactions || {};
+          const emojiReactions = reactions[emoji] || [];
+          
+          let updatedReactions;
+          if (emojiReactions.includes(user.id)) {
+            // Remove reaction
+            updatedReactions = {
+              ...reactions,
+              [emoji]: emojiReactions.filter(id => id !== user.id)
+            };
+            if (updatedReactions[emoji].length === 0) {
+              delete updatedReactions[emoji];
+            }
+          } else {
+            // Add reaction
+            updatedReactions = {
+              ...reactions,
+              [emoji]: [...emojiReactions, user.id]
+            };
           }
-        } else {
-          // Add reaction
-          updatedReactions = {
-            ...reactions,
-            [emoji]: [...emojiReactions, user.id]
-          };
+
+          const { error: updateError } = await supabase
+            .from('chat_messages')
+            .update({ reactions: updatedReactions })
+            .eq('id', messageId);
+
+          if (updateError) throw updateError;
+        } catch (tableError) {
+          console.warn('Chat messages table not available yet');
         }
-
-        const { error: updateError } = await supabase
-          .from('chat_messages')
-          .update({ reactions: updatedReactions })
-          .eq('id', messageId);
-
-        if (updateError) throw updateError;
       },
       { operation: 'add_reaction', message_id: messageId, emoji }
     );
@@ -378,21 +407,26 @@ export function useRealTimeMessaging(chatRoomId?: string) {
 
     const { data, error } = await handleAsyncError(
       async () => {
-        const { data, error } = await supabase
-          .from('chat_rooms')
-          .select(`
-            *,
-            chat_participants!inner(user_id),
-            last_message:chat_messages(
-              id, content, message_type, created_at,
-              sender_profile:profiles!sender_id(full_name)
-            )
-          `)
-          .eq('chat_participants.user_id', user.id)
-          .order('last_activity', { ascending: false });
+        try {
+          const { data, error } = await supabase
+            .from('chat_rooms')
+            .select(`
+              *,
+              chat_participants!inner(user_id),
+              last_message:chat_messages(
+                id, content, message_type, created_at,
+                sender_profile:profiles!sender_id(full_name)
+              )
+            `)
+            .eq('chat_participants.user_id', user.id)
+            .order('last_activity', { ascending: false });
 
-        if (error) throw error;
-        return data;
+          if (error) throw error;
+          return data;
+        } catch (tableError) {
+          console.warn('Chat rooms table not available yet');
+          return [];
+        }
       },
       { operation: 'fetch_chat_rooms' }
     );

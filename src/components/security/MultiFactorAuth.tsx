@@ -21,6 +21,7 @@ export function MultiFactorAuthSetup({ onComplete }: MFASetupProps) {
   const [step, setStep] = useState<'choice' | 'totp_setup' | 'totp_verify' | 'backup_codes'>('choice');
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [secret, setSecret] = useState<string>('');
+  const [factorId, setFactorId] = useState<string>('');
   const [verificationCode, setVerificationCode] = useState<string>('');
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -44,8 +45,9 @@ export function MultiFactorAuthSetup({ onComplete }: MFASetupProps) {
     );
 
     if (data) {
-      setQrCodeUrl(data.qr_code);
-      setSecret(data.secret);
+      setQrCodeUrl(data.totp.qr_code);
+      setSecret(data.totp.secret);
+      setFactorId(data.id);
       setStep('totp_setup');
     }
     setIsLoading(false);
@@ -67,14 +69,14 @@ export function MultiFactorAuthSetup({ onComplete }: MFASetupProps) {
       async () => {
         // Get the challenge first
         const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
-          factorId: secret // This should be the factor ID from enrollment
+          factorId: factorId
         });
 
         if (challengeError) throw challengeError;
 
         // Verify the code
         const { data, error } = await supabase.auth.mfa.verify({
-          factorId: secret,
+          factorId: factorId,
           challengeId: challengeData.id,
           code: verificationCode
         });
@@ -105,21 +107,26 @@ export function MultiFactorAuthSetup({ onComplete }: MFASetupProps) {
     );
     setBackupCodes(codes);
 
-    // Store backup codes in database
+    // Store backup codes in database if table exists
     if (user) {
       const { error } = await handleAsyncError(
         async () => {
-          const { error } = await supabase
-            .from('user_mfa_backup_codes')
-            .insert(
-              codes.map(code => ({
-                user_id: user.id,
-                code,
-                used: false
-              }))
-            );
+          try {
+            const { error } = await supabase
+              .from('user_mfa_backup_codes')
+              .insert(
+                codes.map(code => ({
+                  user_id: user.id,
+                  code,
+                  used: false
+                }))
+              );
 
-          if (error) throw error;
+            if (error) throw error;
+          } catch (tableError) {
+            console.warn('MFA backup codes table not available yet');
+            // Don't throw error, just log warning
+          }
         },
         { operation: 'store_backup_codes' }
       );

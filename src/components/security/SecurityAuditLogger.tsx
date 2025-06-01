@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -71,13 +70,20 @@ export class SecurityAuditLogger {
       const events = [...this.eventQueue];
       this.eventQueue = [];
 
-      const { error } = await supabase
-        .from('security_audit_logs')
-        .insert(events);
+      // Check if the table exists before trying to insert
+      try {
+        const { error } = await supabase
+          .from('security_audit_logs')
+          .insert(events);
 
-      if (error) {
-        console.error('Failed to log security events:', error);
-        // Put events back in queue for retry
+        if (error) {
+          console.error('Failed to log security events:', error);
+          // Put events back in queue for retry
+          this.eventQueue.unshift(...events);
+        }
+      } catch (tableError) {
+        console.warn('Security audit logs table not available yet, events queued locally');
+        // Keep events in queue for when table becomes available
         this.eventQueue.unshift(...events);
       }
     } catch (error) {

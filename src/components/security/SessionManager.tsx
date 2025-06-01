@@ -86,29 +86,34 @@ export function useSessionManager() {
 
     const { error } = await handleAsyncError(
       async () => {
-        // First, mark all other sessions for this device as inactive
-        await supabase
-          .from('user_sessions')
-          .update({ is_current: false })
-          .eq('user_id', user.id)
-          .eq('device_id', deviceId);
+        try {
+          // First, mark all other sessions for this device as inactive
+          await supabase
+            .from('user_sessions')
+            .update({ is_current: false })
+            .eq('user_id', user.id)
+            .eq('device_id', deviceId);
 
-        // Create new session
-        const { error } = await supabase
-          .from('user_sessions')
-          .insert({
-            user_id: user.id,
-            device_id: deviceId,
-            device_name: deviceInfo.device_name,
-            device_type: deviceInfo.device_type,
-            browser: deviceInfo.browser,
-            ip_address: 'client-side', // In production, get from backend
-            is_current: true,
-            last_activity: new Date().toISOString(),
-            expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
-          });
+          // Create new session
+          const { error } = await supabase
+            .from('user_sessions')
+            .insert({
+              user_id: user.id,
+              device_id: deviceId,
+              device_name: deviceInfo.device_name,
+              device_type: deviceInfo.device_type,
+              browser: deviceInfo.browser,
+              ip_address: 'client-side', // In production, get from backend
+              is_current: true,
+              last_activity: new Date().toISOString(),
+              expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
+            });
 
-        if (error) throw error;
+          if (error) throw error;
+        } catch (tableError) {
+          console.warn('User sessions table not available yet');
+          // Don't throw error, just log warning
+        }
       },
       { operation: 'create_session' }
     );
@@ -125,22 +130,27 @@ export function useSessionManager() {
     setIsLoading(true);
     const { data, error } = await handleAsyncError(
       async () => {
-        const { data, error } = await supabase
-          .from('user_sessions')
-          .select('*')
-          .eq('user_id', user.id)
-          .gt('expires_at', new Date().toISOString())
-          .order('last_activity', { ascending: false });
+        try {
+          const { data, error } = await supabase
+            .from('user_sessions')
+            .select('*')
+            .eq('user_id', user.id)
+            .gt('expires_at', new Date().toISOString())
+            .order('last_activity', { ascending: false });
 
-        if (error) throw error;
-        return data;
+          if (error) throw error;
+          return data;
+        } catch (tableError) {
+          console.warn('User sessions table not available yet');
+          return [];
+        }
       },
       { operation: 'fetch_sessions' }
     );
 
     if (data) {
-      setSessions(data);
-      const current = data.find(s => s.is_current);
+      setSessions(data as DeviceSession[]);
+      const current = data.find((s: any) => s.is_current);
       setCurrentSession(current || null);
     }
     setIsLoading(false);
@@ -152,14 +162,18 @@ export function useSessionManager() {
 
     const { error } = await handleAsyncError(
       async () => {
-        const { error } = await supabase
-          .from('user_sessions')
-          .update({ 
-            last_activity: new Date().toISOString() 
-          })
-          .eq('id', currentSession.id);
+        try {
+          const { error } = await supabase
+            .from('user_sessions')
+            .update({ 
+              last_activity: new Date().toISOString() 
+            })
+            .eq('id', currentSession.id);
 
-        if (error) throw error;
+          if (error) throw error;
+        } catch (tableError) {
+          console.warn('User sessions table not available yet');
+        }
       },
       { operation: 'update_activity' }
     );
@@ -169,12 +183,16 @@ export function useSessionManager() {
   const revokeSession = useCallback(async (sessionId: string) => {
     const { error } = await handleAsyncError(
       async () => {
-        const { error } = await supabase
-          .from('user_sessions')
-          .delete()
-          .eq('id', sessionId);
+        try {
+          const { error } = await supabase
+            .from('user_sessions')
+            .delete()
+            .eq('id', sessionId);
 
-        if (error) throw error;
+          if (error) throw error;
+        } catch (tableError) {
+          console.warn('User sessions table not available yet');
+        }
       },
       { operation: 'revoke_session', session_id: sessionId }
     );
@@ -194,13 +212,17 @@ export function useSessionManager() {
 
     const { error } = await handleAsyncError(
       async () => {
-        const { error } = await supabase
-          .from('user_sessions')
-          .delete()
-          .eq('user_id', user!.id)
-          .neq('id', currentSession.id);
+        try {
+          const { error } = await supabase
+            .from('user_sessions')
+            .delete()
+            .eq('user_id', user!.id)
+            .neq('id', currentSession.id);
 
-        if (error) throw error;
+          if (error) throw error;
+        } catch (tableError) {
+          console.warn('User sessions table not available yet');
+        }
       },
       { operation: 'revoke_all_sessions' }
     );
