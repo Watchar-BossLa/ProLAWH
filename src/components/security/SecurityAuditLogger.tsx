@@ -73,8 +73,8 @@ export class SecurityAuditLogger {
       // Check if the table exists before trying to insert
       try {
         const { error } = await supabase
-          .from('security_audit_logs')
-          .insert(events);
+          .from('security_audit_logs' as any)
+          .insert(events as any);
 
         if (error) {
           console.error('Failed to log security events:', error);

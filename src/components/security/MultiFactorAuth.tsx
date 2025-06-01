@@ -113,13 +113,13 @@ export function MultiFactorAuthSetup({ onComplete }: MFASetupProps) {
         async () => {
           try {
             const { error } = await supabase
-              .from('user_mfa_backup_codes')
+              .from('user_mfa_backup_codes' as any)
               .insert(
                 codes.map(code => ({
                   user_id: user.id,
                   code,
                   used: false
-                }))
+                })) as any
               );
 
             if (error) throw error;
