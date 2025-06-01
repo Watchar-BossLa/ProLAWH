@@ -1,17 +1,39 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { StudyBeeSession, StudyBeeProgress } from '@/integrations/studybee/types';
+import { useStudyBeeErrorHandler } from './useStudyBeeErrorHandler';
+import { useStudyBeeCache } from './useStudyBeeCache';
+import { StudyBeeDataValidator } from '@/utils/studybee/dataValidator';
 
 export function useStudyBeeIntegration() {
   const { user } = useAuth();
+  const { handleError, retry, clearError } = useStudyBeeErrorHandler();
+  const { 
+    cache, 
+    getCachedSessions, 
+    getCachedProgress, 
+    addSession, 
+    updateProgress: updateCachedProgress,
+    invalidateCache 
+  } = useStudyBeeCache();
+
   const [isConnected, setIsConnected] = useState(false);
   const [sessions, setSessions] = useState<StudyBeeSession[]>([]);
   const [progress, setProgress] = useState<StudyBeeProgress | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
+
+  // Load cached data first for better UX
+  useEffect(() => {
+    const cachedSessions = getCachedSessions();
+    const cachedProgress = getCachedProgress();
+    
+    if (cachedSessions) setSessions(cachedSessions);
+    if (cachedProgress) setProgress(cachedProgress);
+    if (cache.lastSyncTime) setLastSyncTime(cache.lastSyncTime);
+  }, [getCachedSessions, getCachedProgress, cache.lastSyncTime]);
 
   useEffect(() => {
     if (!user) return;
@@ -28,9 +50,20 @@ export function useStudyBeeIntegration() {
         table: 'study_bee_sessions',
         filter: `user_id=eq.${user.id}`
       }, (payload) => {
-        const newSession = payload.new as unknown as StudyBeeSession;
-        setSessions(prev => [newSession, ...prev.slice(0, 9)]);
-        setLastSyncTime(new Date());
+        try {
+          const validation = StudyBeeDataValidator.validateSession(payload.new);
+          if (validation.isValid && validation.sanitizedData) {
+            const newSession = validation.sanitizedData as StudyBeeSession;
+            setSessions(prev => [newSession, ...prev.slice(0, 9)]);
+            addSession(newSession);
+            setLastSyncTime(new Date());
+            clearError();
+          } else {
+            console.warn('Invalid session data received:', validation.errors);
+          }
+        } catch (err) {
+          handleError(err, 'real-time session update');
+        }
       })
       .subscribe();
 
@@ -42,9 +75,20 @@ export function useStudyBeeIntegration() {
         table: 'study_bee_progress',
         filter: `user_id=eq.${user.id}`
       }, (payload) => {
-        const updatedProgress = payload.new as unknown as StudyBeeProgress;
-        setProgress(updatedProgress);
-        setLastSyncTime(new Date());
+        try {
+          const validation = StudyBeeDataValidator.validateProgress(payload.new);
+          if (validation.isValid && validation.sanitizedData) {
+            const updatedProgress = validation.sanitizedData as StudyBeeProgress;
+            setProgress(updatedProgress);
+            updateCachedProgress(updatedProgress);
+            setLastSyncTime(new Date());
+            clearError();
+          } else {
+            console.warn('Invalid progress data received:', validation.errors);
+          }
+        } catch (err) {
+          handleError(err, 'real-time progress update');
+        }
       })
       .subscribe();
 
@@ -52,7 +96,7 @@ export function useStudyBeeIntegration() {
       supabase.removeChannel(sessionsSubscription);
       supabase.removeChannel(progressSubscription);
     };
-  }, [user]);
+  }, [user, handleError, clearError, addSession, updateCachedProgress]);
 
   const initializeStudyBeeConnection = async () => {
     try {
@@ -68,8 +112,8 @@ export function useStudyBeeIntegration() {
 
       setIsConnected(!!data);
     } catch (err) {
-      console.error('Error checking Study Bee connection:', err);
-      setError('Failed to connect to Study Bee');
+      const studyBeeError = handleError(err, 'connection check');
+      setError(studyBeeError.message);
     }
   };
 
@@ -78,37 +122,81 @@ export function useStudyBeeIntegration() {
 
     try {
       setLoading(true);
+      setError(null);
+
+      // Try to use cached data first if available
+      const cachedSessions = getCachedSessions(2 * 60 * 1000); // 2 minutes
+      const cachedProgress = getCachedProgress(2 * 60 * 1000);
+
+      if (cachedSessions && cachedProgress) {
+        setSessions(cachedSessions);
+        setProgress(cachedProgress);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch fresh data with timeout
+      const fetchWithTimeout = async (promise: Promise<any>, timeout = 10000) => {
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Request timeout')), timeout)
+        );
+        return Promise.race([promise, timeoutPromise]);
+      };
 
       // Fetch recent sessions
-      const { data: sessionsData, error: sessionsError } = await supabase
+      const sessionsPromise = supabase
         .from('study_bee_sessions')
         .select('*')
         .eq('user_id', user.id)
         .order('started_at', { ascending: false })
         .limit(10);
 
+      const { data: sessionsData, error: sessionsError } = await fetchWithTimeout(sessionsPromise);
+
       if (sessionsError) {
         console.error('Error fetching sessions:', sessionsError);
       } else if (sessionsData) {
-        setSessions(sessionsData as unknown as StudyBeeSession[]);
+        // Validate all sessions
+        const validSessions = sessionsData
+          .map(session => StudyBeeDataValidator.validateSession(session))
+          .filter(validation => validation.isValid)
+          .map(validation => validation.sanitizedData as StudyBeeSession);
+
+        setSessions(validSessions);
+        validSessions.forEach(session => addSession(session));
       }
 
       // Fetch progress data
-      const { data: progressData, error: progressError } = await supabase
+      const progressPromise = supabase
         .from('study_bee_progress')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
+      const { data: progressData, error: progressError } = await fetchWithTimeout(progressPromise);
+
       if (progressError && progressError.code !== 'PGRST116') {
         console.error('Error fetching progress:', progressError);
       } else if (progressData) {
-        setProgress(progressData as unknown as StudyBeeProgress);
+        const validation = StudyBeeDataValidator.validateProgress(progressData);
+        if (validation.isValid && validation.sanitizedData) {
+          const validProgress = validation.sanitizedData as StudyBeeProgress;
+          setProgress(validProgress);
+          updateCachedProgress(validProgress);
+        }
       }
 
+      setLastSyncTime(new Date());
+
     } catch (err) {
-      console.error('Error fetching Study Bee data:', err);
-      setError('Failed to fetch study data');
+      const studyBeeError = handleError(err, 'data fetch');
+      setError(studyBeeError.message);
+      
+      // Fallback to cached data on error
+      const cachedSessions = getCachedSessions();
+      const cachedProgress = getCachedProgress();
+      if (cachedSessions) setSessions(cachedSessions);
+      if (cachedProgress) setProgress(cachedProgress);
     } finally {
       setLoading(false);
     }
@@ -125,7 +213,7 @@ export function useStudyBeeIntegration() {
       if (error) throw error;
       return data.token;
     } catch (err) {
-      console.error('Error generating auth token:', err);
+      handleError(err, 'token generation');
       return null;
     }
   };
@@ -148,10 +236,11 @@ export function useStudyBeeIntegration() {
 
       setIsConnected(true);
       setLastSyncTime(new Date());
+      invalidateCache(); // Clear cache to force fresh data
       return true;
     } catch (err) {
-      console.error('Error connecting to Study Bee:', err);
-      setError('Failed to connect to Study Bee');
+      const studyBeeError = handleError(err, 'connection');
+      setError(studyBeeError.message);
       return false;
     }
   };
@@ -159,9 +248,8 @@ export function useStudyBeeIntegration() {
   const syncData = useCallback(async () => {
     if (!isConnected) return;
     
-    await fetchStudyBeeData();
-    setLastSyncTime(new Date());
-  }, [isConnected, user]);
+    await retry(fetchStudyBeeData);
+  }, [isConnected, retry]);
 
   const getStudyStats = useCallback(() => {
     if (!progress || sessions.length === 0) return null;
