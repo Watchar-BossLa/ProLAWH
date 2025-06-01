@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { handleAsyncError } from '@/utils/errorHandling';
 import { DeviceSession } from '../types';
@@ -62,13 +63,20 @@ export class SessionService {
       { operation: 'fetch_sessions' }
     );
 
-    // Avoid casting entirely - just check if we have valid data structure
-    const validData = Array.isArray(data) && data.length > 0 && 
-                     typeof data[0] === 'object' && 
-                     'id' in data[0] ? data as DeviceSession[] : [];
-    
+    // Check if data exists and has the expected structure, otherwise return empty array
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      return { data: [], error };
+    }
+
+    // Check if the first item has the expected DeviceSession structure
+    const firstItem = data[0];
+    if (!firstItem || typeof firstItem !== 'object' || !('id' in firstItem)) {
+      return { data: [], error };
+    }
+
+    // Only return the data if it appears to be valid DeviceSession objects
     return { 
-      data: validData, 
+      data: data as DeviceSession[], 
       error 
     };
   }
