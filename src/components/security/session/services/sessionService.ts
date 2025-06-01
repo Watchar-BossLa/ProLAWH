@@ -53,7 +53,7 @@ export class SessionService {
             .order('last_activity', { ascending: false });
 
           if (error) throw error;
-          return data;
+          return data || [];
         } catch (tableError) {
           console.warn('User sessions table not available yet');
           return [];
@@ -62,7 +62,7 @@ export class SessionService {
       { operation: 'fetch_sessions' }
     );
 
-    return { data: data as DeviceSession[], error };
+    return { data: (data || []) as DeviceSession[], error };
   }
 
   static async updateActivity(sessionId: string): Promise<{ error?: any }> {

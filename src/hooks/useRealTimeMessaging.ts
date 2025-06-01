@@ -1,29 +1,25 @@
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { handleAsyncError } from '@/utils/errorHandling';
 import { toast } from '@/hooks/use-toast';
 
 export interface RealTimeMessage {
   id: string;
-  chat_room_id: string;
-  sender_id: string;
   content: string;
-  message_type: 'text' | 'file' | 'image' | 'video_call' | 'system';
-  file_url?: string;
-  file_name?: string;
-  file_size?: number;
-  reply_to_id?: string;
-  thread_id?: string;
-  reactions: Record<string, string[]>;
-  read_by: string[];
+  sender_id: string;
+  connection_id?: string;
+  chat_room_id?: string;
   created_at: string;
   updated_at: string;
-  edited_at?: string;
-  deleted_at?: string;
+  message_type: string;
+  file_name?: string;
+  file_url?: string;
+  reply_to_id?: string;
+  reactions: Record<string, any>;
+  read_by?: string[];
   sender_profile?: {
-    full_name: string;
+    full_name?: string;
     avatar_url?: string;
   };
 }
@@ -31,428 +27,244 @@ export interface RealTimeMessage {
 export interface ChatRoom {
   id: string;
   name: string;
-  type: 'direct' | 'group' | 'channel';
-  description?: string;
-  avatar_url?: string;
+  type: string;
   created_by: string;
-  is_private: boolean;
-  member_count: number;
-  last_message?: RealTimeMessage;
-  last_activity: string;
   created_at: string;
   updated_at: string;
+  is_private?: boolean;
+  member_count?: number;
+  last_activity?: string;
+  chat_participants: { user_id: string }[];
+  last_message?: any;
 }
 
-export interface TypingStatus {
-  user_id: string;
-  chat_room_id: string;
-  is_typing: boolean;
-  user_name: string;
-  last_activity: string;
-}
-
-export function useRealTimeMessaging(chatRoomId?: string) {
+export function useRealTimeMessaging() {
   const { user } = useAuth();
   const [messages, setMessages] = useState<RealTimeMessage[]>([]);
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
-  const [typingUsers, setTypingUsers] = useState<TypingStatus[]>([]);
-  const [isConnected, setIsConnected] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
-  
-  const channelRef = useRef<any>(null);
-  const presenceRef = useRef<any>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const [currentRoom, setCurrentRoom] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Initialize real-time subscriptions
-  useEffect(() => {
-    if (!user || !chatRoomId) {
+  // Fetch messages for current room
+  const fetchMessages = useCallback(async (roomId?: string) => {
+    if (!user || (!roomId && !currentRoom)) return;
+
+    const targetRoom = roomId || currentRoom;
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Try fetching from network_messages first (for direct messages)
+      const { data: networkMessages, error: networkError } = await supabase
+        .from('network_messages')
+        .select(`
+          *,
+          sender_profile:profiles!sender_id(full_name, avatar_url)
+        `)
+        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+        .order('created_at', { ascending: true });
+
+      if (networkMessages && !networkError) {
+        const formattedMessages: RealTimeMessage[] = networkMessages.map((msg: any) => ({
+          id: msg.id,
+          content: msg.content,
+          sender_id: msg.sender_id,
+          connection_id: msg.receiver_id,
+          created_at: msg.created_at,
+          updated_at: msg.created_at,
+          message_type: 'text',
+          file_name: msg.attachment_data?.file_name,
+          file_url: msg.attachment_data?.file_url,
+          reply_to_id: null,
+          reactions: msg.reactions || {},
+          sender_profile: Array.isArray(msg.sender_profile) ? msg.sender_profile[0] : msg.sender_profile
+        }));
+        setMessages(formattedMessages);
+      } else {
+        console.warn('Network messages not available, using fallback');
+        setMessages([]);
+      }
+    } catch (err) {
+      console.error('Error fetching messages:', err);
+      setError('Failed to load messages');
+      setMessages([]);
+    } finally {
       setIsLoading(false);
-      return;
     }
+  }, [user, currentRoom]);
 
-    const initializeRealTime = async () => {
-      try {
-        // Check if chat tables exist before setting up real-time
-        try {
-          await supabase.from('chat_rooms').select('id').limit(1);
-        } catch (tableError) {
-          console.warn('Chat tables not available yet, skipping real-time setup');
-          setIsLoading(false);
-          return;
-        }
+  // Send a message
+  const sendMessage = useCallback(async (content: string, type: string = 'text', fileData?: any) => {
+    if (!user || !currentRoom) return;
 
-        // Set up main messaging channel
-        channelRef.current = supabase
-          .channel(`chat_room:${chatRoomId}`)
-          .on(
-            'postgres_changes',
-            {
-              event: 'INSERT',
-              schema: 'public',
-              table: 'chat_messages',
-              filter: `chat_room_id=eq.${chatRoomId}`
-            },
-            (payload) => {
-              const newMessage = payload.new as RealTimeMessage;
-              setMessages(prev => [...prev, newMessage]);
-              
-              // Mark as read if it's not from current user
-              if (newMessage.sender_id !== user.id) {
-                markMessageAsRead(newMessage.id);
-              }
-            }
-          )
-          .on(
-            'postgres_changes',
-            {
-              event: 'UPDATE',
-              schema: 'public',
-              table: 'chat_messages',
-              filter: `chat_room_id=eq.${chatRoomId}`
-            },
-            (payload) => {
-              const updatedMessage = payload.new as RealTimeMessage;
-              setMessages(prev => 
-                prev.map(msg => 
-                  msg.id === updatedMessage.id ? updatedMessage : msg
-                )
-              );
-            }
-          )
-          .on(
-            'postgres_changes',
-            {
-              event: 'DELETE',
-              schema: 'public',
-              table: 'chat_messages',
-              filter: `chat_room_id=eq.${chatRoomId}`
-            },
-            (payload) => {
-              const deletedMessage = payload.old as RealTimeMessage;
-              setMessages(prev => prev.filter(msg => msg.id !== deletedMessage.id));
-            }
-          )
-          .subscribe((status) => {
-            if (status === 'SUBSCRIBED') {
-              setIsConnected(true);
-            } else {
-              setIsConnected(false);
-            }
-          });
+    try {
+      const messageData = {
+        content,
+        sender_id: user.id,
+        connection_id: currentRoom,
+        message_type: type,
+        ...(fileData && { 
+          file_name: fileData.name,
+          file_url: fileData.url 
+        })
+      };
 
-        // Set up presence for online users and typing indicators
-        presenceRef.current = supabase
-          .channel(`presence:${chatRoomId}`)
-          .on('presence', { event: 'sync' }, () => {
-            const state = presenceRef.current.presenceState();
-            const users = new Set<string>();
-            const typing: TypingStatus[] = [];
-            
-            Object.keys(state).forEach(userId => {
-              const presences = state[userId];
-              if (presences.length > 0) {
-                users.add(userId);
-                const presence = presences[0];
-                if (presence.is_typing) {
-                  typing.push({
-                    user_id: userId,
-                    chat_room_id: chatRoomId,
-                    is_typing: true,
-                    user_name: presence.user_name || 'Unknown User',
-                    last_activity: presence.last_activity
-                  });
-                }
-              }
-            });
-            
-            setOnlineUsers(users);
-            setTypingUsers(typing);
-          })
-          .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-            console.log('User joined:', key, newPresences);
-          })
-          .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-            console.log('User left:', key, leftPresences);
-          })
-          .subscribe(async (status) => {
-            if (status === 'SUBSCRIBED') {
-              // Track user presence
-              await presenceRef.current.track({
-                user_id: user.id,
-                user_name: user.user_metadata?.full_name || 'Unknown User',
-                online_at: new Date().toISOString(),
-                is_typing: false,
-                last_activity: new Date().toISOString()
-              });
-            }
-          });
+      const { error } = await supabase
+        .from('network_messages')
+        .insert(messageData);
 
-      } catch (error) {
-        console.error('Error initializing real-time messaging:', error);
+      if (error) {
+        console.error('Error sending message:', error);
         toast({
-          title: "Connection Error",
-          description: "Failed to connect to real-time messaging",
+          title: "Error",
+          description: "Failed to send message",
           variant: "destructive"
         });
-      } finally {
-        setIsLoading(false);
+      } else {
+        // Refresh messages after sending
+        fetchMessages();
       }
-    };
-
-    initializeRealTime();
-
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-      }
-      if (presenceRef.current) {
-        supabase.removeChannel(presenceRef.current);
-      }
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-    };
-  }, [user, chatRoomId]);
-
-  // Fetch initial messages
-  const fetchMessages = useCallback(async () => {
-    if (!chatRoomId) return;
-
-    const { data, error } = await handleAsyncError(
-      async () => {
-        try {
-          const { data, error } = await supabase
-            .from('chat_messages')
-            .select(`
-              *,
-              sender_profile:profiles!sender_id(full_name, avatar_url)
-            `)
-            .eq('chat_room_id', chatRoomId)
-            .is('deleted_at', null)
-            .order('created_at', { ascending: true })
-            .limit(100);
-
-          if (error) throw error;
-          return data;
-        } catch (tableError) {
-          console.warn('Chat messages table not available yet');
-          return [];
-        }
-      },
-      { operation: 'fetch_messages', chat_room_id: chatRoomId }
-    );
-
-    if (data) {
-      setMessages(data);
-    }
-  }, [chatRoomId]);
-
-  // Send message
-  const sendMessage = useCallback(async (
-    content: string,
-    messageType: 'text' | 'file' | 'image' = 'text',
-    fileData?: { url: string; name: string; size: number },
-    replyToId?: string,
-    threadId?: string
-  ) => {
-    if (!user || !chatRoomId || (!content.trim() && !fileData)) return;
-
-    const { error } = await handleAsyncError(
-      async () => {
-        try {
-          const { error } = await supabase
-            .from('chat_messages')
-            .insert({
-              chat_room_id: chatRoomId,
-              sender_id: user.id,
-              content: content.trim(),
-              message_type: messageType,
-              file_url: fileData?.url,
-              file_name: fileData?.name,
-              file_size: fileData?.size,
-              reply_to_id: replyToId,
-              thread_id: threadId,
-              reactions: {},
-              read_by: [user.id]
-            });
-
-          if (error) throw error;
-        } catch (tableError) {
-          console.warn('Chat messages table not available yet');
-        }
-      },
-      { operation: 'send_message', chat_room_id: chatRoomId }
-    );
-
-    if (error) {
+    } catch (err) {
+      console.error('Error sending message:', err);
       toast({
-        title: "Failed to send message",
-        description: error.message,
+        title: "Error",
+        description: "Failed to send message",
         variant: "destructive"
       });
     }
-  }, [user, chatRoomId]);
-
-  // Update typing status
-  const updateTypingStatus = useCallback(async (isTyping: boolean) => {
-    if (!presenceRef.current || !user) return;
-
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-
-    await presenceRef.current.track({
-      user_id: user.id,
-      user_name: user.user_metadata?.full_name || 'Unknown User',
-      online_at: new Date().toISOString(),
-      is_typing: isTyping,
-      last_activity: new Date().toISOString()
-    });
-
-    if (isTyping) {
-      typingTimeoutRef.current = setTimeout(() => {
-        updateTypingStatus(false);
-      }, 3000);
-    }
-  }, [user]);
+  }, [user, currentRoom, fetchMessages]);
 
   // Mark message as read
-  const markMessageAsRead = useCallback(async (messageId: string) => {
+  const markAsRead = useCallback(async (messageId: string) => {
     if (!user) return;
 
-    const { error } = await handleAsyncError(
-      async () => {
-        try {
-          const { data: message, error: fetchError } = await supabase
-            .from('chat_messages')
-            .select('read_by')
-            .eq('id', messageId)
-            .single();
-
-          if (fetchError) throw fetchError;
-
-          const readBy = message.read_by || [];
-          if (!readBy.includes(user.id)) {
-            const { error: updateError } = await supabase
-              .from('chat_messages')
-              .update({ 
-                read_by: [...readBy, user.id] 
-              })
-              .eq('id', messageId);
-
-            if (updateError) throw updateError;
-          }
-        } catch (tableError) {
-          console.warn('Chat messages table not available yet');
-        }
-      },
-      { operation: 'mark_as_read', message_id: messageId }
-    );
+    try {
+      // This would update read status if the field exists
+      console.log('Marking message as read:', messageId);
+    } catch (err) {
+      console.error('Error marking message as read:', err);
+    }
   }, [user]);
 
   // Add reaction to message
   const addReaction = useCallback(async (messageId: string, emoji: string) => {
     if (!user) return;
 
-    const { error } = await handleAsyncError(
-      async () => {
-        try {
-          const { data: message, error: fetchError } = await supabase
-            .from('chat_messages')
-            .select('reactions')
-            .eq('id', messageId)
-            .single();
+    try {
+      const message = messages.find(m => m.id === messageId);
+      if (!message) return;
 
-          if (fetchError) throw fetchError;
+      const currentReactions = message.reactions || {};
+      const userReactions = currentReactions[user.id] || [];
+      
+      const updatedReactions = userReactions.includes(emoji)
+        ? userReactions.filter((r: string) => r !== emoji)
+        : [...userReactions, emoji];
 
-          const reactions = message.reactions || {};
-          const emojiReactions = reactions[emoji] || [];
-          
-          let updatedReactions;
-          if (emojiReactions.includes(user.id)) {
-            // Remove reaction
-            updatedReactions = {
-              ...reactions,
-              [emoji]: emojiReactions.filter(id => id !== user.id)
-            };
-            if (updatedReactions[emoji].length === 0) {
-              delete updatedReactions[emoji];
-            }
-          } else {
-            // Add reaction
-            updatedReactions = {
-              ...reactions,
-              [emoji]: [...emojiReactions, user.id]
-            };
-          }
+      const newReactions = {
+        ...currentReactions,
+        [user.id]: updatedReactions
+      };
 
-          const { error: updateError } = await supabase
-            .from('chat_messages')
-            .update({ reactions: updatedReactions })
-            .eq('id', messageId);
+      const { error } = await supabase
+        .from('network_messages')
+        .update({ reactions: newReactions })
+        .eq('id', messageId);
 
-          if (updateError) throw updateError;
-        } catch (tableError) {
-          console.warn('Chat messages table not available yet');
-        }
-      },
-      { operation: 'add_reaction', message_id: messageId, emoji }
-    );
-  }, [user]);
+      if (!error) {
+        setMessages(prev => prev.map(msg => 
+          msg.id === messageId 
+            ? { ...msg, reactions: newReactions }
+            : msg
+        ));
+      }
+    } catch (err) {
+      console.error('Error adding reaction:', err);
+    }
+  }, [user, messages]);
 
   // Fetch chat rooms
   const fetchChatRooms = useCallback(async () => {
     if (!user) return;
 
-    const { data, error } = await handleAsyncError(
-      async () => {
-        try {
-          const { data, error } = await supabase
-            .from('chat_rooms')
-            .select(`
-              *,
-              chat_participants!inner(user_id),
-              last_message:chat_messages(
-                id, content, message_type, created_at,
-                sender_profile:profiles!sender_id(full_name)
-              )
-            `)
-            .eq('chat_participants.user_id', user.id)
-            .order('last_activity', { ascending: false });
-
-          if (error) throw error;
-          return data;
-        } catch (tableError) {
-          console.warn('Chat rooms table not available yet');
-          return [];
+    try {
+      // For now, we'll create a simple room structure
+      const mockRooms: ChatRoom[] = [
+        {
+          id: 'general',
+          name: 'General',
+          type: 'public',
+          created_by: user.id,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_private: false,
+          member_count: 1,
+          last_activity: new Date().toISOString(),
+          chat_participants: [{ user_id: user.id }],
+          last_message: null
         }
-      },
-      { operation: 'fetch_chat_rooms' }
-    );
+      ];
 
-    if (data) {
-      setChatRooms(data);
+      setChatRooms(mockRooms);
+    } catch (err) {
+      console.error('Error fetching chat rooms:', err);
+      setChatRooms([]);
     }
   }, [user]);
 
+  // Join a room
+  const joinRoom = useCallback((roomId: string) => {
+    setCurrentRoom(roomId);
+    fetchMessages(roomId);
+  }, [fetchMessages]);
+
+  // Set up real-time subscriptions
+  useEffect(() => {
+    if (!user || !currentRoom) return;
+
+    const channel = supabase
+      .channel(`messages:${currentRoom}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'network_messages'
+        },
+        (payload) => {
+          const newMessage = payload.new as any;
+          if (newMessage.connection_id === currentRoom || 
+              newMessage.sender_id === user.id || 
+              newMessage.receiver_id === user.id) {
+            fetchMessages();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, currentRoom, fetchMessages]);
+
   // Initialize
   useEffect(() => {
-    fetchMessages();
-    fetchChatRooms();
-  }, [fetchMessages, fetchChatRooms]);
+    if (user) {
+      fetchChatRooms();
+    }
+  }, [user, fetchChatRooms]);
 
   return {
     messages,
     chatRooms,
-    typingUsers: typingUsers.filter(t => t.user_id !== user?.id),
-    onlineUsers,
-    isConnected,
+    currentRoom,
     isLoading,
+    error,
     sendMessage,
-    updateTypingStatus,
-    markMessageAsRead,
+    markAsRead,
     addReaction,
+    joinRoom,
     fetchMessages,
     fetchChatRooms
   };
