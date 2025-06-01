@@ -71,7 +71,7 @@ export class SessionService {
     // Check if we have valid session data structure
     const isValidSessionData = data.length === 0 || (
       data.length > 0 && 
-      data[0] !== null && 
+      data[0] != null && 
       typeof data[0] === 'object' && 
       'id' in data[0] &&
       'user_id' in data[0] &&
