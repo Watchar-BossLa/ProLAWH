@@ -24,13 +24,6 @@ export function useStudyBeeData() {
   const [error, setError] = useState<string | null>(null);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
 
-  const fetchWithTimeout = async <T>(promise: Promise<T>, timeout = 10000): Promise<T> => {
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Request timeout')), timeout)
-    );
-    return Promise.race([promise, timeoutPromise]);
-  };
-
   const fetchStudyBeeData = async () => {
     if (!user) return;
 
@@ -50,14 +43,12 @@ export function useStudyBeeData() {
       }
 
       // Fetch recent sessions
-      const sessionsQuery = supabase
+      const sessionsResult = await supabase
         .from('study_bee_sessions')
         .select('*')
         .eq('user_id', user.id)
         .order('started_at', { ascending: false })
         .limit(10);
-
-      const sessionsResult = await fetchWithTimeout(sessionsQuery);
 
       if (sessionsResult.error) {
         console.error('Error fetching sessions:', sessionsResult.error);
@@ -73,13 +64,11 @@ export function useStudyBeeData() {
       }
 
       // Fetch progress data
-      const progressQuery = supabase
+      const progressResult = await supabase
         .from('study_bee_progress')
         .select('*')
         .eq('user_id', user.id)
         .single();
-
-      const progressResult = await fetchWithTimeout(progressQuery);
 
       if (progressResult.error && progressResult.error.code !== 'PGRST116') {
         console.error('Error fetching progress:', progressResult.error);
