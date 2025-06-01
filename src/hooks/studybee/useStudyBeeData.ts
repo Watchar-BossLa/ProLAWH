@@ -57,7 +57,8 @@ export function useStudyBeeData() {
         .order('started_at', { ascending: false })
         .limit(10);
 
-      const { data: sessionsData, error: sessionsError } = await fetchWithTimeout(sessionsQuery);
+      const sessionsResult = await fetchWithTimeout(sessionsQuery);
+      const { data: sessionsData, error: sessionsError } = sessionsResult;
 
       if (sessionsError) {
         console.error('Error fetching sessions:', sessionsError);
@@ -79,7 +80,8 @@ export function useStudyBeeData() {
         .eq('user_id', user.id)
         .single();
 
-      const { data: progressData, error: progressError } = await fetchWithTimeout(progressQuery);
+      const progressResult = await fetchWithTimeout(progressQuery);
+      const { data: progressData, error: progressError } = progressResult;
 
       if (progressError && progressError.code !== 'PGRST116') {
         console.error('Error fetching progress:', progressError);
