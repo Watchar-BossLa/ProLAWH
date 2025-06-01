@@ -63,20 +63,28 @@ export class SessionService {
       { operation: 'fetch_sessions' }
     );
 
-    // Check if data exists and has the expected structure, otherwise return empty array
-    if (!data || !Array.isArray(data) || data.length === 0) {
+    // Safe type checking without casting
+    if (!data || !Array.isArray(data)) {
       return { data: [], error };
     }
 
-    // Check if the first item has the expected DeviceSession structure
-    const firstItem = data[0];
-    if (!firstItem || typeof firstItem !== 'object' || !('id' in firstItem)) {
+    // Check if we have valid session data structure
+    const isValidSessionData = data.length === 0 || (
+      data.length > 0 && 
+      data[0] !== null && 
+      typeof data[0] === 'object' && 
+      'id' in data[0] &&
+      'user_id' in data[0] &&
+      'device_id' in data[0]
+    );
+
+    if (!isValidSessionData) {
       return { data: [], error };
     }
 
-    // Only return the data if it appears to be valid DeviceSession objects
+    // Only cast if we've verified the structure
     return { 
-      data: data as DeviceSession[], 
+      data: data as unknown as DeviceSession[], 
       error 
     };
   }
