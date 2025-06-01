@@ -64,7 +64,11 @@ export class SessionService {
       { operation: 'fetch_sessions' }
     );
 
-    return { data: data as DeviceSession[], error };
+    // Only cast to DeviceSession[] if we actually have data, otherwise return empty array
+    return { 
+      data: data && Array.isArray(data) ? data as DeviceSession[] : [], 
+      error 
+    };
   }
 
   static async updateActivity(sessionId: string): Promise<{ error?: any }> {
