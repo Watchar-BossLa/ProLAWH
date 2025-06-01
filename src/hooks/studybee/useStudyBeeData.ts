@@ -58,13 +58,12 @@ export function useStudyBeeData() {
         .limit(10);
 
       const sessionsResult = await fetchWithTimeout(sessionsQuery);
-      const { data: sessionsData, error: sessionsError } = sessionsResult;
 
-      if (sessionsError) {
-        console.error('Error fetching sessions:', sessionsError);
-      } else if (sessionsData) {
+      if (sessionsResult.error) {
+        console.error('Error fetching sessions:', sessionsResult.error);
+      } else if (sessionsResult.data) {
         // Validate all sessions
-        const validSessions = sessionsData
+        const validSessions = sessionsResult.data
           .map(session => StudyBeeDataValidator.validateSession(session))
           .filter(validation => validation.isValid)
           .map(validation => validation.sanitizedData as StudyBeeSession);
@@ -81,12 +80,11 @@ export function useStudyBeeData() {
         .single();
 
       const progressResult = await fetchWithTimeout(progressQuery);
-      const { data: progressData, error: progressError } = progressResult;
 
-      if (progressError && progressError.code !== 'PGRST116') {
-        console.error('Error fetching progress:', progressError);
-      } else if (progressData) {
-        const validation = StudyBeeDataValidator.validateProgress(progressData);
+      if (progressResult.error && progressResult.error.code !== 'PGRST116') {
+        console.error('Error fetching progress:', progressResult.error);
+      } else if (progressResult.data) {
+        const validation = StudyBeeDataValidator.validateProgress(progressResult.data);
         if (validation.isValid && validation.sanitizedData) {
           const validProgress = validation.sanitizedData as StudyBeeProgress;
           setProgress(validProgress);
