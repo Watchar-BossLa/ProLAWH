@@ -53,16 +53,18 @@ export class SessionService {
             .order('last_activity', { ascending: false });
 
           if (error) throw error;
-          return (data || []) as DeviceSession[];
+          
+          // Return the data without type casting since the table doesn't exist yet
+          return data || [];
         } catch (tableError) {
           console.warn('User sessions table not available yet');
-          return [] as DeviceSession[];
+          return [];
         }
       },
       { operation: 'fetch_sessions' }
     );
 
-    return { data, error };
+    return { data: data as DeviceSession[], error };
   }
 
   static async updateActivity(sessionId: string): Promise<{ error?: any }> {
