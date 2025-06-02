@@ -69,13 +69,13 @@ export class SessionService {
     }
 
     // Check if we have valid session data structure
+    const firstItem = data.length > 0 ? data[0] : null;
     const isValidSessionData = data.length === 0 || (
-      data.length > 0 && 
-      data[0] != null && 
-      typeof data[0] === 'object' && 
-      'id' in data[0] &&
-      'user_id' in data[0] &&
-      'device_id' in data[0]
+      firstItem != null && 
+      typeof firstItem === 'object' && 
+      'id' in firstItem &&
+      'user_id' in firstItem &&
+      'device_id' in firstItem
     );
 
     if (!isValidSessionData) {
