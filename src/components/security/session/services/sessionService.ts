@@ -69,17 +69,22 @@ export class SessionService {
     }
 
     // Check if we have valid session data structure
-    const firstItem = data.length > 0 ? data[0] : null;
-    const isValidSessionData = data.length === 0 || (
-      firstItem !== null && 
-      firstItem !== undefined &&
-      typeof firstItem === 'object' && 
-      'id' in firstItem &&
-      'user_id' in firstItem &&
-      'device_id' in firstItem
-    );
+    if (data.length === 0) {
+      return { data: [], error };
+    }
 
-    if (!isValidSessionData) {
+    // Type guard function to check if item has required session properties
+    const isValidSessionItem = (item: any): item is DeviceSession => {
+      return item !== null && 
+             item !== undefined &&
+             typeof item === 'object' && 
+             'id' in item &&
+             'user_id' in item &&
+             'device_id' in item;
+    };
+
+    const firstItem = data[0];
+    if (!isValidSessionItem(firstItem)) {
       return { data: [], error };
     }
 
