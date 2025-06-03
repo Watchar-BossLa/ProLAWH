@@ -7,58 +7,40 @@ export class SecurityMonitoringService {
   detectDOMTampering(): void {
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
-        if (mutation.type === 'childList') {
-          mutation.addedNodes.forEach((node) => {
+        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+          const suspiciousNodes = Array.from(mutation.addedNodes).filter((node) => {
             if (node.nodeType === Node.ELEMENT_NODE) {
               const element = node as Element;
-              const tag = element.tagName?.toLowerCase();
-              
-              // Check for suspicious script injections
-              if (tag === 'script' || tag === 'iframe') {
-                this.onSecurityEvent({
-                  type: 'injection_attempt',
-                  severity: 'critical',
-                  description: `Suspicious ${tag} element injected into DOM`,
-                  context: this.createSecurityContext(),
-                  metadata: { 
-                    tagName: tag,
-                    innerHTML: element.innerHTML?.substring(0, 200),
-                    attributes: Array.from(element.attributes || []).map(attr => ({
-                      name: attr.name,
-                      value: attr.value
-                    }))
-                  }
-                });
-              }
+              return element.tagName === 'SCRIPT' || element.tagName === 'IFRAME';
             }
+            return false;
           });
+
+          if (suspiciousNodes.length > 0) {
+            this.onSecurityEvent({
+              type: 'suspicious_activity',
+              severity: 'high',
+              description: 'Suspicious DOM modification detected',
+              context: this.createSecurityContext(),
+              metadata: { nodeCount: suspiciousNodes.length }
+            });
+          }
         }
       });
     });
 
-    observer.observe(document.body, { 
-      childList: true, 
-      subtree: true 
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
     });
   }
 
   monitorDataAccess(tableName: string, operation: string, recordCount: number): void {
-    // Flag unusual data access patterns
     if (recordCount > 1000) {
       this.onSecurityEvent({
         type: 'data_access',
-        severity: 'high',
-        description: 'Large data access detected',
-        context: this.createSecurityContext(),
-        metadata: { tableName, operation, recordCount }
-      });
-    }
-
-    if (operation === 'SELECT' && recordCount > 100) {
-      this.onSecurityEvent({
-        type: 'data_access',
         severity: 'medium',
-        description: 'Bulk data read operation',
+        description: 'Large data access detected',
         context: this.createSecurityContext(),
         metadata: { tableName, operation, recordCount }
       });

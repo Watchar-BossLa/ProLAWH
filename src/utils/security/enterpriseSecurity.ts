@@ -1,3 +1,4 @@
+
 import { enterpriseLogger } from '../logging';
 import { 
   SecurityContext, 
@@ -8,6 +9,10 @@ import {
   SecurityEventType,
   SecuritySeverity
 } from './types';
+import { InputSanitizationService } from './inputSanitization';
+import { RateLimitingService } from './rateLimiting';
+import { SecurityValidationService } from './securityValidation';
+import { SecurityMonitoringService } from './securityMonitoring';
 
 class EnterpriseSecurity {
   private static instance: EnterpriseSecurity;
