@@ -56,7 +56,7 @@ export function useLoadingState() {
     setLoading(key, true);
 
     const result = await handleAsyncError(operation, {
-      operation_key: key,
+      operation: key,
       ...options?.context
     });
 

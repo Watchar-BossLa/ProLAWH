@@ -44,7 +44,7 @@ export function MFAStatus() {
         });
         if (error) throw error;
       },
-      { operation: 'disable_mfa', factor_id: factorId }
+      { operation: 'disable_mfa', metadata: { factorId } }
     );
 
     if (!error) {

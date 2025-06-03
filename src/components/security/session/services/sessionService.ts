@@ -131,7 +131,7 @@ export class SessionService {
           console.warn('User sessions table not available yet');
         }
       },
-      { operation: 'revoke_session', session_id: sessionId }
+      { operation: 'revoke_session', metadata: { sessionId } }
     );
 
     return { error };

@@ -3,7 +3,7 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
-import { handleError } from '@/utils/errorHandling';
+import { handleSyncError } from '@/utils/errorHandling';
 
 interface Props {
   children: ReactNode;
@@ -44,7 +44,11 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
     };
 
     // Handle error with our centralized error handler
-    handleError(error, errorDetails);
+    handleSyncError(error, { 
+      operation: 'component_error',
+      component: 'EnhancedErrorBoundary',
+      metadata: errorDetails
+    });
 
     // Call optional error callback
     if (this.props.onError) {

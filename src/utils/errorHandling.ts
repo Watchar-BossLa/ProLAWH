@@ -8,15 +8,28 @@ export interface ErrorContext {
   metadata?: Record<string, any>;
 }
 
+export interface AppError {
+  message: string;
+  code?: string;
+  context?: ErrorContext;
+  originalError?: Error;
+}
+
 export async function handleAsyncError<T>(
   asyncOperation: () => Promise<T>,
   context: ErrorContext = {}
-): Promise<{ data?: T; error?: any }> {
+): Promise<{ data?: T; error?: AppError }> {
   try {
     const data = await asyncOperation();
     return { data };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
+    const appError: AppError = {
+      message: errorMessage,
+      context,
+      originalError: error instanceof Error ? error : undefined
+    };
     
     enterpriseLogger.error(
       `Error in ${context.operation || 'async operation'}: ${errorMessage}`,
@@ -29,7 +42,7 @@ export async function handleAsyncError<T>(
       context.component || 'ErrorHandler'
     );
 
-    return { error };
+    return { error: appError };
   }
 }
 
@@ -50,3 +63,6 @@ export function handleSyncError(
     context.component || 'ErrorHandler'
   );
 }
+
+// Export handleError as an alias for handleSyncError for backwards compatibility
+export const handleError = handleSyncError;

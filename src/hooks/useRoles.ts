@@ -37,7 +37,7 @@ export function useRoles() {
         if (error) throw error;
         return data;
       },
-      { operation: 'fetch_user_roles', user_id: user.id }
+      { operation: 'fetch_user_roles', userId: user.id }
     );
 
     if (fetchError) {
@@ -78,7 +78,7 @@ export function useRoles() {
         
         if (error) throw error;
       },
-      { operation: 'assign_role', target_user_id: targetUserId, role }
+      { operation: 'assign_role', metadata: { targetUserId, role } }
     );
 
     if (assignError) {
