@@ -1,11 +1,12 @@
 
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useProductionAuth } from '@/components/auth/ProductionAuthProvider';
 import { useRoles, UserRole } from '@/hooks/useRoles';
 import { Loading } from '@/components/ui/loading';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield } from 'lucide-react';
+import { ENV } from '@/config';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -20,7 +21,7 @@ export function AuthGuard({
   requireAuth = true,
   fallback 
 }: AuthGuardProps) {
-  const { user, loading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useProductionAuth();
   const { hasAnyRole, loading: rolesLoading, error: rolesError } = useRoles();
   const location = useLocation();
 
@@ -31,7 +32,8 @@ export function AuthGuard({
 
   // Check if authentication is required
   if (requireAuth && !user) {
-    return <Navigate to="/auth" state={{ returnUrl: location.pathname }} replace />;
+    const redirectPath = ENV.isProduction ? "/auth" : "/auth";
+    return <Navigate to={redirectPath} state={{ returnUrl: location.pathname }} replace />;
   }
 
   // Check if specific roles are required

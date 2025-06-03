@@ -1,21 +1,20 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, LogIn, UserPlus, AlertTriangle } from "lucide-react";
+import { Loader2, LogIn, UserPlus } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ENV, CONFIG } from "@/config";
+import { useProductionAuth } from "@/components/auth/ProductionAuthProvider";
+import { ENV } from "@/config";
 
 interface LocationState {
   returnUrl?: string;
 }
 
-export default function AuthPage() {
+export default function ProductionAuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,8 +22,17 @@ export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { signIn, signUp, user } = useProductionAuth();
+  
   const state = location.state as LocationState;
   const returnUrl = state?.returnUrl || "/dashboard";
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user) {
+      navigate(returnUrl);
+    }
+  }, [user, navigate, returnUrl]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,21 +40,9 @@ export default function AuthPage() {
 
     try {
       if (isSignUp) {
-        const redirectUrl = `${window.location.origin}/dashboard`;
+        const userData = fullName ? { full_name: fullName } : undefined;
+        await signUp(email, password, userData);
         
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: redirectUrl,
-            data: {
-              full_name: fullName,
-            }
-          }
-        });
-
-        if (error) throw error;
-
         toast({
           title: "Account Created",
           description: ENV.isProduction 
@@ -58,28 +54,18 @@ export default function AuthPage() {
           setIsSignUp(false);
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) throw error;
-        
+        await signIn(email, password);
         navigate(returnUrl);
       }
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Authentication Error",
+        description: error.message || "An error occurred during authentication",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleBypassAuth = () => {
-    navigate(returnUrl);
   };
 
   return (
@@ -101,23 +87,6 @@ export default function AuthPage() {
           )}
         </CardHeader>
         <CardContent className="space-y-4">
-          {!ENV.isProduction && CONFIG.BYPASS_AUTH && (
-            <Alert variant="warning" className="mb-4 bg-amber-100 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800">
-              <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-              <AlertDescription className="text-amber-800 dark:text-amber-300">
-                Authentication is currently bypassed for development. 
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="ml-2 bg-amber-200 hover:bg-amber-300 dark:bg-amber-800 dark:hover:bg-amber-700 border-amber-300"
-                  onClick={handleBypassAuth}
-                >
-                  Continue to {returnUrl.replace("/dashboard/", "") || "Dashboard"}
-                </Button>
-              </AlertDescription>
-            </Alert>
-          )}
-
           <form onSubmit={handleAuth} className="space-y-4">
             {isSignUp && (
               <div className="space-y-2">
