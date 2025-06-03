@@ -263,7 +263,8 @@ class EnterpriseSecurity {
     }
   }
 
-  private logSecurityEvent(event: SecurityEvent): void {
+  // Changed from private to public to allow external access
+  logSecurityEvent(event: SecurityEvent): void {
     this.securityEvents.push(event);
     
     // Log to enterprise logger
