@@ -1,55 +1,53 @@
 
-import { HealthCheckResult, SystemHealthReport, HealthExportData } from './types';
+import { SystemHealthReport, HealthExportData, HealthCheckResult } from './types';
 
 export class HealthUtils {
   static calculateOverallHealth(checks: HealthCheckResult[]): 'healthy' | 'degraded' | 'unhealthy' {
-    const unhealthyCount = checks.filter(check => check.status === 'unhealthy').length;
-    const degradedCount = checks.filter(check => check.status === 'degraded').length;
-    
-    if (unhealthyCount > 0) {
+    if (checks.some(check => check.status === 'unhealthy')) {
       return 'unhealthy';
     }
-    
-    if (degradedCount > 1) {
+    if (checks.some(check => check.status === 'degraded')) {
       return 'degraded';
     }
-    
     return 'healthy';
   }
 
-  static exportHealthData(
-    startTime: number,
-    healthHistory: SystemHealthReport[]
-  ): HealthExportData {
+  static exportHealthData(startTime: number, healthHistory: SystemHealthReport[]): HealthExportData {
+    const uptime = Date.now() - startTime;
     const totalChecks = healthHistory.length;
-    const healthyChecks = healthHistory.filter(report => report.overall === 'healthy').length;
-    
-    const serviceResponseTimes: Record<string, number[]> = {};
-    
+    const healthyCount = healthHistory.filter(report => report.overall === 'healthy').length;
+    const healthyPercentage = totalChecks > 0 ? Math.round((healthyCount / totalChecks) * 100) : 100;
+
+    // Calculate average response times per service
+    const averageResponseTimes: Record<string, number> = {};
+    const serviceCounts: Record<string, number> = {};
+
     healthHistory.forEach(report => {
       report.checks.forEach(check => {
-        if (!serviceResponseTimes[check.service]) {
-          serviceResponseTimes[check.service] = [];
+        if (!averageResponseTimes[check.service]) {
+          averageResponseTimes[check.service] = 0;
+          serviceCounts[check.service] = 0;
         }
-        serviceResponseTimes[check.service].push(check.responseTime);
+        averageResponseTimes[check.service] += check.responseTime;
+        serviceCounts[check.service]++;
       });
     });
 
-    const averageResponseTimes: Record<string, number> = {};
-    Object.entries(serviceResponseTimes).forEach(([service, times]) => {
-      averageResponseTimes[service] = times.reduce((sum, time) => sum + time, 0) / times.length;
+    // Calculate averages
+    Object.keys(averageResponseTimes).forEach(service => {
+      averageResponseTimes[service] = Math.round(averageResponseTimes[service] / serviceCounts[service]);
     });
 
     return {
       summary: {
-        uptime: Date.now() - startTime,
+        uptime,
         totalChecks,
-        healthyPercentage: totalChecks > 0 ? (healthyChecks / totalChecks) * 100 : 0
+        healthyPercentage
       },
-      recentReports: healthHistory.slice(-10),
+      recentReports: healthHistory.slice(-10), // Last 10 reports
       trends: {
         averageResponseTimes,
-        uptimePercentage: totalChecks > 0 ? (healthyChecks / totalChecks) * 100 : 0
+        uptimePercentage: healthyPercentage
       }
     };
   }

@@ -1,4 +1,5 @@
 
+import { supabase } from '@/integrations/supabase/client';
 import { HealthCheckResult } from './types';
 
 export class ApiHealthChecker {
@@ -6,36 +7,40 @@ export class ApiHealthChecker {
     const startTime = performance.now();
     
     try {
-      // Test API connectivity with a simple request
-      const response = await fetch('/api/health', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
-      }).catch(() => null);
+      // Test basic Supabase connectivity
+      const { error } = await supabase
+        .from('profiles')
+        .select('id')
+        .limit(1);
       
       const responseTime = performance.now() - startTime;
       
-      if (!response || !response.ok) {
+      if (error) {
         return {
           service: 'api',
-          status: 'degraded', // Not critical if API health endpoint doesn't exist
+          status: 'unhealthy',
           responseTime,
-          error: 'API health endpoint not available'
+          error: error.message
         };
       }
 
-      const status = responseTime > 1500 ? 'degraded' : 'healthy';
+      const status = responseTime > 2000 ? 'degraded' : 'healthy';
       
       return {
         service: 'api',
         status,
-        responseTime
+        responseTime,
+        metadata: {
+          endpoint: 'supabase',
+          responseTime
+        }
       };
     } catch (error) {
       return {
         service: 'api',
-        status: 'degraded',
+        status: 'unhealthy',
         responseTime: performance.now() - startTime,
-        error: error instanceof Error ? error.message : 'API connectivity issue'
+        error: error instanceof Error ? error.message : 'Unknown API error'
       };
     }
   }

@@ -6,50 +6,53 @@ export class ClientHealthChecker {
     const startTime = performance.now();
     
     try {
+      // Check memory usage if available
       const memoryInfo = (performance as any).memory;
-      const connection = (navigator as any).connection;
+      let memoryStatus = 'healthy';
+      let memoryMetadata = {};
       
-      const metrics = {
-        memoryUsage: memoryInfo ? {
-          used: memoryInfo.usedJSHeapSize,
-          total: memoryInfo.totalJSHeapSize,
-          limit: memoryInfo.jsHeapSizeLimit
-        } : null,
-        connectionType: connection?.effectiveType || 'unknown',
-        online: navigator.onLine,
-        cookiesEnabled: navigator.cookieEnabled,
-        userAgent: navigator.userAgent
-      };
-
+      if (memoryInfo) {
+        const memoryUsage = memoryInfo.usedJSHeapSize / memoryInfo.totalJSHeapSize;
+        memoryMetadata = {
+          usedMemory: memoryInfo.usedJSHeapSize,
+          totalMemory: memoryInfo.totalJSHeapSize,
+          memoryUsage: Math.round(memoryUsage * 100)
+        };
+        
+        if (memoryUsage > 0.9) memoryStatus = 'unhealthy';
+        else if (memoryUsage > 0.7) memoryStatus = 'degraded';
+      }
+      
+      // Check local storage availability
+      let storageAvailable = true;
+      try {
+        localStorage.setItem('health_test', 'test');
+        localStorage.removeItem('health_test');
+      } catch {
+        storageAvailable = false;
+      }
+      
       const responseTime = performance.now() - startTime;
+      const status = memoryStatus === 'unhealthy' || !storageAvailable ? 'unhealthy' :
+                    memoryStatus === 'degraded' ? 'degraded' : 'healthy';
       
-      // Check for potential issues
-      let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
-      const issues: string[] = [];
-
-      if (!navigator.onLine) {
-        status = 'unhealthy';
-        issues.push('Client is offline');
-      }
-
-      if (memoryInfo && memoryInfo.usedJSHeapSize > memoryInfo.jsHeapSizeLimit * 0.8) {
-        status = 'degraded';
-        issues.push('High memory usage detected');
-      }
-
       return {
         service: 'client',
         status,
         responseTime,
-        metadata: metrics,
-        error: issues.length > 0 ? issues.join(', ') : undefined
+        metadata: {
+          ...memoryMetadata,
+          storageAvailable,
+          userAgent: navigator.userAgent,
+          online: navigator.onLine
+        }
       };
     } catch (error) {
       return {
         service: 'client',
-        status: 'degraded',
+        status: 'unhealthy',
         responseTime: performance.now() - startTime,
-        error: error instanceof Error ? error.message : 'Client health check failed'
+        error: error instanceof Error ? error.message : 'Unknown client error'
       };
     }
   }

@@ -6,41 +6,45 @@ export class PerformanceHealthChecker {
     const startTime = performance.now();
     
     try {
-      const performanceEntries = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-      const paintEntries = performance.getEntriesByType('paint');
+      // Check frame rate (if available)
+      let frameRate = 0;
+      let performanceScore = 100;
       
-      const metrics = {
-        domContentLoaded: performanceEntries?.domContentLoadedEventEnd - performanceEntries?.domContentLoadedEventStart,
-        loadComplete: performanceEntries?.loadEventEnd - performanceEntries?.loadEventStart,
-        firstPaint: paintEntries.find(entry => entry.name === 'first-paint')?.startTime,
-        firstContentfulPaint: paintEntries.find(entry => entry.name === 'first-contentful-paint')?.startTime
-      };
-
+      // Simple performance test - measure how long it takes to do some operations
+      const operations = 1000;
+      const testStart = performance.now();
+      
+      for (let i = 0; i < operations; i++) {
+        Math.random() * Math.random();
+      }
+      
+      const operationTime = performance.now() - testStart;
       const responseTime = performance.now() - startTime;
       
-      // Performance thresholds
-      let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
+      // Calculate performance score based on operation time
+      if (operationTime > 10) performanceScore = 30;
+      else if (operationTime > 5) performanceScore = 60;
+      else if (operationTime > 2) performanceScore = 80;
       
-      if (metrics.firstContentfulPaint && metrics.firstContentfulPaint > 3000) {
-        status = 'degraded';
-      }
+      const status = performanceScore < 50 ? 'unhealthy' :
+                    performanceScore < 80 ? 'degraded' : 'healthy';
       
-      if (metrics.loadComplete > 5000) {
-        status = 'degraded';
-      }
-
       return {
         service: 'performance',
         status,
         responseTime,
-        metadata: metrics
+        metadata: {
+          performanceScore,
+          operationTime,
+          frameRate: frameRate || 'unavailable'
+        }
       };
     } catch (error) {
       return {
         service: 'performance',
-        status: 'degraded',
+        status: 'unhealthy',
         responseTime: performance.now() - startTime,
-        error: error instanceof Error ? error.message : 'Performance metrics unavailable'
+        error: error instanceof Error ? error.message : 'Unknown performance error'
       };
     }
   }

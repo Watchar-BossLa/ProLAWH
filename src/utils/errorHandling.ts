@@ -1,80 +1,52 @@
 
-import { toast } from '@/hooks/use-toast';
+import { enterpriseLogger } from './logging';
 
-export interface AppError {
-  message: string;
-  code?: string;
-  context?: Record<string, any>;
-  severity: 'info' | 'warning' | 'error' | 'critical';
+export interface ErrorContext {
+  operation?: string;
+  userId?: string;
+  component?: string;
+  metadata?: Record<string, any>;
 }
 
-export class ProLawhError extends Error {
-  public code?: string;
-  public context?: Record<string, any>;
-  public severity: 'info' | 'warning' | 'error' | 'critical';
-
-  constructor(message: string, options?: {
-    code?: string;
-    context?: Record<string, any>;
-    severity?: 'info' | 'warning' | 'error' | 'critical';
-  }) {
-    super(message);
-    this.name = 'ProLawhError';
-    this.code = options?.code;
-    this.context = options?.context;
-    this.severity = options?.severity || 'error';
-  }
-}
-
-export const handleError = (error: unknown, context?: Record<string, any>) => {
-  let appError: AppError;
-
-  if (error instanceof ProLawhError) {
-    appError = {
-      message: error.message,
-      code: error.code,
-      context: { ...error.context, ...context },
-      severity: error.severity
-    };
-  } else if (error instanceof Error) {
-    appError = {
-      message: error.message,
-      context,
-      severity: 'error'
-    };
-  } else {
-    appError = {
-      message: 'An unexpected error occurred',
-      context,
-      severity: 'error'
-    };
-  }
-
-  // Log error for monitoring
-  console.error('[ProLawh Error]', appError);
-
-  // Show user-friendly toast
-  const shouldShowToast = appError.severity !== 'info';
-  if (shouldShowToast) {
-    toast({
-      title: appError.severity === 'critical' ? 'Critical Error' : 'Error',
-      description: appError.message,
-      variant: 'destructive'
-    });
-  }
-
-  return appError;
-};
-
-export const handleAsyncError = async <T>(
-  operation: () => Promise<T>,
-  context?: Record<string, any>
-): Promise<{ data?: T; error?: AppError }> => {
+export async function handleAsyncError<T>(
+  asyncOperation: () => Promise<T>,
+  context: ErrorContext = {}
+): Promise<{ data?: T; error?: any }> {
   try {
-    const data = await operation();
+    const data = await asyncOperation();
     return { data };
   } catch (error) {
-    const appError = handleError(error, context);
-    return { error: appError };
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
+    enterpriseLogger.error(
+      `Error in ${context.operation || 'async operation'}: ${errorMessage}`,
+      error as Error,
+      {
+        ...context.metadata,
+        userId: context.userId,
+        component: context.component
+      },
+      context.component || 'ErrorHandler'
+    );
+
+    return { error };
   }
-};
+}
+
+export function handleSyncError(
+  error: any,
+  context: ErrorContext = {}
+): void {
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+  
+  enterpriseLogger.error(
+    `Error in ${context.operation || 'sync operation'}: ${errorMessage}`,
+    error as Error,
+    {
+      ...context.metadata,
+      userId: context.userId,
+      component: context.component
+    },
+    context.component || 'ErrorHandler'
+  );
+}

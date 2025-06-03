@@ -178,6 +178,90 @@ export type Database = {
         }
         Relationships: []
       }
+      application_logs: {
+        Row: {
+          action: string | null
+          component: string | null
+          created_at: string
+          id: string
+          ip_address: string | null
+          level: string
+          message: string
+          metadata: Json | null
+          request_id: string | null
+          session_id: string | null
+          stack_trace: string | null
+          timestamp: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action?: string | null
+          component?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          level: string
+          message: string
+          metadata?: Json | null
+          request_id?: string | null
+          session_id?: string | null
+          stack_trace?: string | null
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string | null
+          component?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          level?: string
+          message?: string
+          metadata?: Json | null
+          request_id?: string | null
+          session_id?: string | null
+          stack_trace?: string | null
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      application_metrics: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          tags: Json | null
+          timestamp: string
+          unit: string
+          user_id: string | null
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          tags?: Json | null
+          timestamp?: string
+          unit: string
+          user_id?: string | null
+          value: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          tags?: Json | null
+          timestamp?: string
+          unit?: string
+          user_id?: string | null
+          value?: number
+        }
+        Relationships: []
+      }
       arcade_challenges: {
         Row: {
           created_at: string
@@ -2336,6 +2420,45 @@ export type Database = {
         }
         Relationships: []
       }
+      security_audit_logs: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          risk_level: string
+          session_id: string | null
+          timestamp: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          risk_level: string
+          session_id?: string | null
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          risk_level?: string
+          session_id?: string | null
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       skill_badges: {
         Row: {
           category: string
@@ -3210,6 +3333,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_sessions: {
+        Row: {
+          browser: string
+          created_at: string
+          device_id: string
+          device_name: string
+          device_type: string
+          expires_at: string
+          id: string
+          ip_address: string
+          is_current: boolean
+          last_activity: string
+          location: string | null
+          user_id: string
+        }
+        Insert: {
+          browser: string
+          created_at?: string
+          device_id: string
+          device_name: string
+          device_type: string
+          expires_at: string
+          id?: string
+          ip_address: string
+          is_current?: boolean
+          last_activity?: string
+          location?: string | null
+          user_id: string
+        }
+        Update: {
+          browser?: string
+          created_at?: string
+          device_id?: string
+          device_name?: string
+          device_type?: string
+          expires_at?: string
+          id?: string
+          ip_address?: string
+          is_current?: boolean
+          last_activity?: string
+          location?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_skills: {
         Row: {
           created_at: string
@@ -3315,6 +3483,14 @@ export type Database = {
       }
     }
     Functions: {
+      clean_expired_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      clean_old_application_logs: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_active_staking_contracts: {
         Args: Record<PropertyKey, never>
         Returns: {
