@@ -5,6 +5,9 @@ export { PerformanceMonitoring } from './performanceMonitoring';
 export { UserActionTracking } from './userActionTracking';
 export type { EnterpriseSystemStatus, EnterpriseInitConfig } from './types';
 
+// Import the class to create the singleton instance
+import { EnterpriseSystem } from './enterpriseSystem';
+
 // Create and export the singleton instance
 const enterpriseSystem = EnterpriseSystem.getInstance();
 
