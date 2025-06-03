@@ -19,7 +19,7 @@ export function SessionMonitor() {
       toast({
         title: "Multiple Sessions Detected",
         description: `You have ${sessions.length} active sessions. Consider revoking old sessions for security.`,
-        variant: "warning"
+        variant: "destructive" // Changed from "warning" to "destructive"
       });
     }
   }, [sessions, user]);
@@ -39,7 +39,7 @@ export function SessionMonitor() {
       toast({
         title: "Session Expiring Soon",
         description: "Your session will expire in a few minutes. Please save your work.",
-        variant: "warning"
+        variant: "destructive" // Changed from "warning" to "destructive"
       });
     }
   }, [session]);
