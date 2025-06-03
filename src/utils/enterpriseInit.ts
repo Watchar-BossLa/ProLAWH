@@ -1,6 +1,5 @@
-
-import { enterpriseLogger, PerformanceTracker } from './enterpriseLogging';
-import { enterpriseSecurity } from './enterpriseSecurity';
+import { enterpriseLogger, PerformanceTracker } from './logging';
+import { enterpriseSecurity } from './security';
 import { enterpriseHealthMonitor } from './enterpriseHealthCheck';
 
 class EnterpriseSystem {

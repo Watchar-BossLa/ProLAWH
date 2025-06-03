@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +21,7 @@ import {
   Download
 } from "lucide-react";
 import { enterpriseHealthMonitor, SystemHealthReport } from '@/utils/enterpriseHealthCheck';
-import { enterpriseSecurity } from '@/utils/enterpriseSecurity';
+import { enterpriseSecurity } from '@/utils/security';
 import { enterpriseLogger } from '@/utils/enterpriseLogging';
 
 export function EnterpriseStatusDashboard() {
