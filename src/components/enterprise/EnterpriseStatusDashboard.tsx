@@ -20,9 +20,9 @@ import {
   BarChart3,
   Download
 } from "lucide-react";
-import { enterpriseHealthMonitor, SystemHealthReport } from '@/utils/enterpriseHealthCheck';
+import { enterpriseHealthMonitor, SystemHealthReport } from '@/utils/health';
 import { enterpriseSecurity } from '@/utils/security';
-import { enterpriseLogger } from '@/utils/enterpriseLogging';
+import { enterpriseLogger } from '@/utils/logging';
 
 export function EnterpriseStatusDashboard() {
   const [healthReport, setHealthReport] = useState<SystemHealthReport | null>(null);

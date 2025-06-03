@@ -1,6 +1,6 @@
 import { enterpriseLogger, PerformanceTracker } from './logging';
 import { enterpriseSecurity } from './security';
-import { enterpriseHealthMonitor } from './enterpriseHealthCheck';
+import { enterpriseHealthMonitor } from './health';
 
 class EnterpriseSystem {
   private static instance: EnterpriseSystem;

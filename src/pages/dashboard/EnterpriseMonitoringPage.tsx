@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { PageWrapper } from "@/components/ui/page-wrapper";
 import { EnterpriseStatusDashboard } from '@/components/enterprise';
-import { enterpriseHealthMonitor } from '@/utils/enterpriseHealthCheck';
+import { enterpriseHealthMonitor } from '@/utils/health';
 import { enterpriseSecurity } from '@/utils/security';
 import { enterpriseLogger } from '@/utils/logging';
 

@@ -1,10 +1,13 @@
-
-import { enterpriseLogger } from '../enterpriseLogging';
-import { SecurityEvent, SecurityContext, SecurityMetrics } from './types';
-import { InputSanitizationService } from './inputSanitization';
-import { RateLimitingService } from './rateLimiting';
-import { SecurityValidationService } from './securityValidation';
-import { SecurityMonitoringService } from './securityMonitoring';
+import { enterpriseLogger } from '../logging';
+import { 
+  SecurityContext, 
+  SecurityEvent, 
+  SecurityMetrics, 
+  SessionInfo, 
+  SecurityAlert,
+  SecurityEventType,
+  SecuritySeverity
+} from './types';
 
 class EnterpriseSecurity {
   private static instance: EnterpriseSecurity;
