@@ -3,6 +3,18 @@ export const PRODUCTION_CONFIG = {
   // Production authentication settings
   BYPASS_AUTH: false, // Always false in production
   
+  // Mock user for development (only used if BYPASS_AUTH is true)
+  MOCK_USER: {
+    id: 'dev-user-123',
+    email: 'dev@prolawh.com',
+    user_metadata: {
+      full_name: 'Development User'
+    },
+    app_metadata: {},
+    aud: 'authenticated',
+    created_at: new Date().toISOString()
+  },
+  
   // Enterprise system settings
   ENTERPRISE: {
     ENABLE_MONITORING: true,
