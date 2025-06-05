@@ -1,124 +1,154 @@
 
-import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, Brain, Briefcase, GraduationCap, Trophy, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ArrowRight, BookOpen, Users, Trophy, Brain, Shield, Zap } from "lucide-react";
+import { useProductionAuth } from "@/components/auth/ProductionAuthProvider";
+import { CONFIG, ENV } from "@/config";
 
-const Index = () => {
+export default function Index() {
   const navigate = useNavigate();
+  const { user, isLoading } = useProductionAuth();
+
+  // Auto-redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!isLoading) {
+      // Check if user is authenticated (either real user or development bypass)
+      const isAuthenticated = user || (!ENV.isProduction && CONFIG.BYPASS_AUTH);
+      
+      if (isAuthenticated) {
+        navigate("/dashboard");
+      }
+    }
+  }, [user, isLoading, navigate]);
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   const features = [
     {
-      icon: <Brain className="h-10 w-10 text-blue-500" />,
-      title: "AI Career Twin",
-      description: "Get personalized career insights and recommendations powered by AI"
+      icon: <Brain className="h-6 w-6" />,
+      title: "AI-Powered Learning",
+      description: "Personalized learning paths with advanced AI tutoring and real-time feedback"
     },
     {
-      icon: <GraduationCap className="h-10 w-10 text-green-500" />,
-      title: "Skill-Staking",
-      description: "Stake your credentials and earn rewards as you validate your skills"
+      icon: <Users className="h-6 w-6" />,
+      title: "Professional Network",
+      description: "Connect with mentors, peers, and industry professionals worldwide"
     },
     {
-      icon: <Trophy className="h-10 w-10 text-amber-500" />,
-      title: "Nano-Challenge Arcade",
-      description: "Complete quick challenges to earn micro-credentials and badges"
+      icon: <Trophy className="h-6 w-6" />,
+      title: "Skill Verification",
+      description: "Blockchain-verified credentials and peer-reviewed skill assessments"
     },
     {
-      icon: <Users className="h-10 w-10 text-purple-500" />,
-      title: "Mentorship",
-      description: "Connect with industry experts for guidance and support"
+      icon: <Shield className="h-6 w-6" />,
+      title: "Enterprise Security",
+      description: "Bank-grade security with zero-trust architecture and enterprise monitoring"
     },
     {
-      icon: <BookOpen className="h-10 w-10 text-red-500" />,
-      title: "Learning Paths",
-      description: "Structured learning journeys tailored to your career goals"
+      icon: <Zap className="h-6 w-6" />,
+      title: "Real-time Collaboration",
+      description: "Live coding sessions, study groups, and instant messaging with voice/video"
     },
     {
-      icon: <Briefcase className="h-10 w-10 text-cyan-500" />,
-      title: "Work Opportunities",
-      description: "Connect with employers looking for validated skills"
+      icon: <BookOpen className="h-6 w-6" />,
+      title: "Comprehensive Courses",
+      description: "Industry-leading content from beginner to advanced levels across all domains"
     }
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-b from-blue-50 to-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
-            <span className="block">ProLawh</span>
-            <span className="block text-blue-700">Learning And Workforce Hub</span>
+      <div className="container mx-auto px-4 py-20">
+        <div className="text-center max-w-4xl mx-auto mb-16 animate-in fade-in duration-700">
+          <Badge variant="secondary" className="mb-4 px-4 py-2">
+            🚀 Next-Generation Learning Platform
+          </Badge>
+          <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent mb-6">
+            ProLawh
           </h1>
-          <p className="mt-6 max-w-2xl mx-auto text-xl text-gray-700">
-            Empowering your journey through personalized education, verifiable skills, and dynamic work opportunities.
+          <p className="text-xl md:text-2xl text-muted-foreground mb-8 leading-relaxed">
+            The ultimate AI-native learning ecosystem combining personalized education, 
+            verifiable skills, and dynamic work marketplaces
           </p>
-          <div className="mt-10 flex justify-center gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
-              onClick={() => navigate("/dashboard")}
-              size="lg"
-              className="rounded-md shadow"
+              size="lg" 
+              className="text-lg px-8 py-6 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 transition-all duration-300 transform hover:scale-105"
+              onClick={() => navigate("/auth")}
             >
-              Enter Dashboard
+              Get Started <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             <Button 
-              onClick={() => navigate("/auth")}
               variant="outline" 
-              size="lg"
+              size="lg" 
+              className="text-lg px-8 py-6 border-2 hover:bg-muted/50 transition-all duration-300"
+              onClick={() => navigate("/auth")}
             >
               Sign In
             </Button>
           </div>
-        </div>
-      </div>
-      
-      {/* Features Section */}
-      <div className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-extrabold text-gray-900">
-              Platform Features
-            </h2>
-            <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-700">
-              Everything you need to learn, validate skills, and advance your career
-            </p>
-          </div>
           
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature, index) => (
-              <div 
-                key={index} 
-                className="border rounded-lg p-6 hover:shadow-md transition-shadow"
-              >
-                <div className="mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-bold mb-2 text-gray-800">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
-              </div>
-            ))}
-          </div>
+          {!ENV.isProduction && CONFIG.BYPASS_AUTH && (
+            <div className="mt-4 p-3 bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+              <p className="text-amber-800 dark:text-amber-300 text-sm">
+                🔧 Development Mode: Authentication bypass enabled
+              </p>
+            </div>
+          )}
         </div>
-      </div>
-      
-      {/* CTA Section */}
-      <div className="bg-blue-600 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-extrabold text-white">
-            Ready to start your journey?
-          </h2>
-          <p className="mt-4 max-w-2xl mx-auto text-xl text-blue-50">
-            Join ProLawh today and take control of your learning and career path.
-          </p>
-          <div className="mt-8">
-            <Button 
-              onClick={() => navigate("/auth")}
-              size="lg" 
-              variant="secondary"
+
+        {/* Features Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+          {features.map((feature, index) => (
+            <Card 
+              key={index} 
+              className="group hover:shadow-lg transition-all duration-300 hover:scale-105 animate-in fade-in-up duration-700"
+              style={{ animationDelay: `${index * 100}ms` }}
             >
-              Get Started
-            </Button>
-          </div>
+              <CardHeader className="pb-4">
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors duration-300">
+                  {feature.icon}
+                </div>
+                <CardTitle className="text-lg">{feature.title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-sm leading-relaxed">
+                  {feature.description}
+                </CardDescription>
+              </CardContent>
+            </Card>
+          ))}
         </div>
+
+        {/* CTA Section */}
+        <Card className="bg-gradient-to-r from-primary/5 via-purple-500/5 to-primary/5 border-primary/20 animate-in fade-in-up duration-700">
+          <CardContent className="text-center py-12">
+            <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Career?</h2>
+            <p className="text-lg text-muted-foreground mb-6 max-w-2xl mx-auto">
+              Join thousands of learners who are advancing their careers with AI-powered education, 
+              verified credentials, and a global professional network.
+            </p>
+            <Button 
+              size="lg" 
+              className="text-lg px-8 py-6 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 transition-all duration-300 transform hover:scale-105"
+              onClick={() => navigate("/auth")}
+            >
+              Start Learning Today <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
-};
-
-export default Index;
+}

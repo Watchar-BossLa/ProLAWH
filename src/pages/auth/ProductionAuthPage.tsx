@@ -5,8 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, LogIn, UserPlus } from "lucide-react";
+import { Loader2, LogIn, UserPlus, AlertCircle } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useProductionAuth } from "@/components/auth/ProductionAuthProvider";
 import { ENV } from "@/config";
 
@@ -20,6 +21,7 @@ export default function ProductionAuthPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { signIn, signUp, user } = useProductionAuth();
@@ -37,30 +39,60 @@ export default function ProductionAuthPage() {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
     try {
       if (isSignUp) {
         const userData = fullName ? { full_name: fullName } : undefined;
-        await signUp(email, password, userData);
+        const result = await signUp(email, password, userData);
+        
+        if (result?.error) {
+          throw new Error(result.error.message);
+        }
         
         toast({
           title: "Account Created",
           description: ENV.isProduction 
-            ? "Please check your email to verify your account."
+            ? "Please check your email to verify your account before signing in."
             : "Account created successfully. You can now sign in.",
         });
         
         if (!ENV.isProduction) {
           setIsSignUp(false);
+          setPassword("");
         }
       } else {
-        await signIn(email, password);
-        navigate(returnUrl);
+        const result = await signIn(email, password);
+        
+        if (result?.error) {
+          throw new Error(result.error.message);
+        }
+        
+        // Navigation will happen automatically via useEffect when user state updates
+        toast({
+          title: "Welcome back!",
+          description: "Successfully signed in to your account.",
+        });
       }
     } catch (error: any) {
+      const errorMessage = error.message || "An error occurred during authentication";
+      
+      // Provide helpful error messages
+      let friendlyMessage = errorMessage;
+      if (errorMessage.includes("Email logins are disabled")) {
+        friendlyMessage = "Email authentication is not enabled. Please contact support.";
+      } else if (errorMessage.includes("Signups not allowed")) {
+        friendlyMessage = "New account registration is currently disabled. Please contact support.";
+      } else if (errorMessage.includes("Invalid login credentials")) {
+        friendlyMessage = "Invalid email or password. Please check your credentials and try again.";
+      } else if (errorMessage.includes("Email not confirmed")) {
+        friendlyMessage = "Please check your email and click the verification link before signing in.";
+      }
+      
+      setError(friendlyMessage);
       toast({
         title: "Authentication Error",
-        description: error.message || "An error occurred during authentication",
+        description: friendlyMessage,
         variant: "destructive",
       });
     } finally {
@@ -87,6 +119,13 @@ export default function ProductionAuthPage() {
           )}
         </CardHeader>
         <CardContent className="space-y-4">
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
           <form onSubmit={handleAuth} className="space-y-4">
             {isSignUp && (
               <div className="space-y-2">
@@ -145,7 +184,11 @@ export default function ProductionAuthPage() {
                 type="button"
                 variant="ghost"
                 className="w-full transition-colors duration-200"
-                onClick={() => setIsSignUp(!isSignUp)}
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setError(null);
+                  setPassword("");
+                }}
               >
                 {isSignUp
                   ? "Already have an account? Sign in"

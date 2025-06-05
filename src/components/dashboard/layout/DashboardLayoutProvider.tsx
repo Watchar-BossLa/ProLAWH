@@ -1,7 +1,7 @@
 
-import { createContext, useContext, ReactNode } from 'react';
-import { useDashboardLayout } from '@/hooks/dashboard/useDashboardLayout';
-import { DEVELOPMENT_CONFIG } from "@/config/development";
+import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import { useProductionAuth } from '@/components/auth/ProductionAuthProvider';
+import { CONFIG, ENV } from "@/config";
 
 interface DashboardLayoutContextType {
   user: any;
@@ -25,15 +25,44 @@ interface DashboardLayoutProviderProps {
 }
 
 export function DashboardLayoutProvider({ children }: DashboardLayoutProviderProps) {
-  const layoutState = useDashboardLayout();
+  const { user, isLoading } = useProductionAuth();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Use development bypass if enabled
+  const effectiveUser = (!ENV.isProduction && CONFIG.BYPASS_AUTH) ? CONFIG.MOCK_USER : user;
+  const effectiveLoading = (!ENV.isProduction && CONFIG.BYPASS_AUTH) ? false : isLoading;
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setSidebarCollapsed(true);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Check initial size
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed(prev => !prev);
+  };
 
   // Add development mode indicator
-  if (DEVELOPMENT_CONFIG.BYPASS_AUTH) {
+  if (!ENV.isProduction && CONFIG.BYPASS_AUTH) {
     console.log('🚀 Development mode: Authentication bypass enabled');
   }
 
+  const value = {
+    user: effectiveUser,
+    loading: effectiveLoading,
+    sidebarCollapsed,
+    toggleSidebar
+  };
+
   return (
-    <DashboardLayoutContext.Provider value={layoutState}>
+    <DashboardLayoutContext.Provider value={value}>
       {children}
     </DashboardLayoutContext.Provider>
   );
