@@ -2622,6 +2622,8 @@ export type Database = {
           created_at: string
           ends_at: string | null
           id: string
+          polygon_contract_address: string | null
+          polygon_tx_hash: string | null
           skill_id: string
           started_at: string
           status: Database["public"]["Enums"]["stake_status"]
@@ -2633,6 +2635,8 @@ export type Database = {
           created_at?: string
           ends_at?: string | null
           id?: string
+          polygon_contract_address?: string | null
+          polygon_tx_hash?: string | null
           skill_id: string
           started_at?: string
           status?: Database["public"]["Enums"]["stake_status"]
@@ -2644,6 +2648,8 @@ export type Database = {
           created_at?: string
           ends_at?: string | null
           id?: string
+          polygon_contract_address?: string | null
+          polygon_tx_hash?: string | null
           skill_id?: string
           started_at?: string
           status?: Database["public"]["Enums"]["stake_status"]
@@ -3444,6 +3450,8 @@ export type Database = {
           created_at: string | null
           ends_at: string | null
           id: string | null
+          polygon_contract_address: string | null
+          polygon_tx_hash: string | null
           skill_category: string | null
           skill_id: string | null
           skill_name: string | null

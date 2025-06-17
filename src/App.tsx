@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -39,6 +38,7 @@ import UsersPage from "./pages/admin/UsersPage";
 import AnalyticsPage from "./pages/admin/AnalyticsPage";
 import PaymentsPage from "./pages/admin/PaymentsPage";
 import SettingsPage from "./pages/admin/SettingsPage";
+import EnterpriseSecurityPage from "./pages/admin/EnterpriseSecurityPage";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import NotFound from "./pages/NotFound";
 
@@ -93,6 +93,7 @@ function App() {
                 <Route path="analytics" element={<AnalyticsPage />} />
                 <Route path="payments" element={<PaymentsPage />} />
                 <Route path="settings" element={<SettingsPage />} />
+                <Route path="enterprise-security" element={<EnterpriseSecurityPage />} />
               </Route>
 
               <Route path="/404" element={<NotFound />} />
