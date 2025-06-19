@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { useProductionAuth } from '@/components/auth/ProductionAuthProvider';
-import { supabase } from '@/integrations/supabase/client';
 import { handleAsyncError } from '@/utils/errorHandling';
 
 export interface Tenant {
@@ -39,46 +38,7 @@ export function useTenantManagement() {
     setIsLoading(true);
     
     try {
-      // Try to fetch from the tenants table if it exists
-      const { data: tenantsData, error: tenantsError } = await supabase
-        .from('tenants')
-        .select('*')
-        .eq('is_active', true);
-
-      if (!tenantsError && tenantsData && tenantsData.length > 0) {
-        // If tenants table exists and has data, use it
-        setUserTenants(tenantsData);
-        
-        if (tenantsData.length > 0 && !currentTenant) {
-          setCurrentTenant(tenantsData[0]);
-        }
-      } else {
-        // Fall back to mock data if table doesn't exist or is empty
-        const mockTenants: Tenant[] = [
-          {
-            id: '1',
-            name: 'Default Organization',
-            slug: 'default-org',
-            domain: undefined,
-            settings: {},
-            plan_type: 'standard',
-            max_users: 100,
-            is_active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-        ];
-
-        setUserTenants(mockTenants);
-        
-        if (mockTenants.length > 0 && !currentTenant) {
-          setCurrentTenant(mockTenants[0]);
-        }
-      }
-    } catch (error) {
-      console.warn('Tenants table not available, using mock data:', error);
-      
-      // Use mock data as fallback
+      // Use mock data since tables don't exist yet
       const mockTenants: Tenant[] = [
         {
           id: '1',
@@ -91,14 +51,33 @@ export function useTenantManagement() {
           is_active: true,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
+        },
+        {
+          id: '2',
+          name: 'ProLawh Enterprise',
+          slug: 'prolawh-enterprise',
+          domain: 'enterprise.prolawh.com',
+          settings: { advanced_security: true },
+          plan_type: 'enterprise',
+          max_users: 500,
+          is_active: true,
+          created_at: new Date(Date.now() - 86400000 * 30).toISOString(),
+          updated_at: new Date().toISOString()
         }
       ];
 
       setUserTenants(mockTenants);
       
       if (mockTenants.length > 0 && !currentTenant) {
-        setCurrentTenant(mockTenants[0]);
+        // Check for saved tenant or use first one
+        const savedTenantId = localStorage.getItem('current_tenant_id');
+        const selectedTenant = savedTenantId 
+          ? mockTenants.find(t => t.id === savedTenantId) || mockTenants[0]
+          : mockTenants[0];
+        setCurrentTenant(selectedTenant);
       }
+    } catch (error) {
+      console.warn('Using mock tenant data:', error);
     } finally {
       setIsLoading(false);
     }
@@ -121,68 +100,33 @@ export function useTenantManagement() {
     if (!user) return { error: 'Not authenticated' };
 
     try {
-      // Try to insert into the tenants table if it exists
-      const { data, error } = await supabase
-        .from('tenants')
-        .insert({
-          name: tenantData.name,
-          slug: tenantData.slug,
-          domain: tenantData.domain,
-          plan_type: tenantData.plan_type || 'standard',
-          max_users: 100,
-          is_active: true
-        })
-        .select()
-        .single();
+      // Simulate tenant creation with mock data
+      const newTenant: Tenant = {
+        id: Date.now().toString(),
+        name: tenantData.name,
+        slug: tenantData.slug,
+        domain: tenantData.domain,
+        settings: {},
+        plan_type: tenantData.plan_type || 'standard',
+        max_users: 100,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
 
-      if (!error && data) {
-        setUserTenants(prev => [...prev, data]);
-        return { data, error: null };
-      }
+      setUserTenants(prev => [...prev, newTenant]);
+      
+      return { data: newTenant, error: null };
     } catch (error) {
-      console.warn('Tenants table not available, using mock creation:', error);
+      console.warn('Tenant creation simulation:', error);
+      return { data: null, error: 'Failed to create tenant' };
     }
-
-    // Fallback to mock creation
-    const newTenant: Tenant = {
-      id: Date.now().toString(),
-      name: tenantData.name,
-      slug: tenantData.slug,
-      domain: tenantData.domain,
-      settings: {},
-      plan_type: tenantData.plan_type || 'standard',
-      max_users: 100,
-      is_active: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-
-    setUserTenants(prev => [...prev, newTenant]);
-    
-    return { data: newTenant, error: null };
   };
 
   const getUserRole = async (tenantId?: string) => {
     if (!user) return null;
     
-    try {
-      // Try to fetch from tenant_users table if it exists
-      const { data, error } = await supabase
-        .from('tenant_users')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('tenant_id', tenantId || currentTenant?.id)
-        .eq('is_active', true)
-        .single();
-
-      if (!error && data) {
-        return data.role;
-      }
-    } catch (error) {
-      console.warn('Tenant users table not available, using mock role:', error);
-    }
-    
-    // Return mock role as fallback
+    // Return mock role since tables don't exist yet
     return 'owner';
   };
 
@@ -200,12 +144,6 @@ export function useTenantManagement() {
   useEffect(() => {
     if (user) {
       fetchUserTenants();
-      
-      // Restore last selected tenant
-      const savedTenantId = localStorage.getItem('current_tenant_id');
-      if (savedTenantId) {
-        // Will be set when tenants are loaded
-      }
     } else {
       setIsLoading(false);
     }

@@ -4,7 +4,6 @@ import { useTenantManagement } from './useTenantManagement';
 import { handleAsyncError } from '@/utils/errorHandling';
 import { toast } from '@/hooks/use-toast';
 import { IPWhitelistEntry, SecurityAuditLog } from '@/types/security';
-import { supabase } from '@/integrations/supabase/client';
 
 export function useSecurityDashboard() {
   const { currentTenant, hasPermission } = useTenantManagement();
@@ -28,30 +27,7 @@ export function useSecurityDashboard() {
   const fetchIPWhitelist = async () => {
     if (!currentTenant) return;
 
-    try {
-      // Try to fetch from tenant_ip_whitelist table if it exists
-      const { data, error } = await supabase
-        .from('tenant_ip_whitelist')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
-      if (!error && data) {
-        setIpWhitelist(data.map(item => ({
-          id: item.id,
-          ip_address: item.ip_address,
-          description: item.description,
-          is_active: item.is_active,
-          created_by: item.created_by,
-          created_at: item.created_at
-        })));
-        return;
-      }
-    } catch (error) {
-      console.warn('IP whitelist table not available, using mock data:', error);
-    }
-
-    // Fall back to mock data
+    // Use mock data since tables don't exist yet
     const mockData: IPWhitelistEntry[] = [
       {
         id: '1',
@@ -60,6 +36,14 @@ export function useSecurityDashboard() {
         is_active: true,
         created_by: 'admin',
         created_at: new Date().toISOString()
+      },
+      {
+        id: '2',
+        ip_address: '10.0.0.0/8',
+        description: 'Internal Network',
+        is_active: true,
+        created_by: 'admin',
+        created_at: new Date(Date.now() - 86400000).toISOString()
       }
     ];
     
@@ -69,40 +53,34 @@ export function useSecurityDashboard() {
   const fetchSecurityLogs = async () => {
     if (!currentTenant) return;
 
-    try {
-      // Try to fetch from security_audit_logs table if it exists
-      const { data, error } = await supabase
-        .from('security_audit_logs')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      if (!error && data) {
-        setSecurityLogs(data.map(item => ({
-          id: item.id,
-          event_type: item.event_type,
-          event_details: item.event_details,
-          ip_address: item.ip_address,
-          user_agent: item.user_agent,
-          risk_score: item.risk_score || 0,
-          created_at: item.created_at
-        })));
-        return;
-      }
-    } catch (error) {
-      console.warn('Security audit logs table not available, using mock data:', error);
-    }
-
-    // Fall back to mock data
+    // Use mock data since tables don't exist yet
     const mockData: SecurityAuditLog[] = [
       {
         id: '1',
         event_type: 'login_attempt',
-        event_details: { success: true },
+        event_details: { success: true, method: 'password' },
         ip_address: '192.168.1.100',
-        user_agent: 'Mozilla/5.0',
+        user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         risk_score: 2,
         created_at: new Date().toISOString()
+      },
+      {
+        id: '2',
+        event_type: 'login_failure',
+        event_details: { success: false, reason: 'invalid_password' },
+        ip_address: '203.0.113.45',
+        user_agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+        risk_score: 7,
+        created_at: new Date(Date.now() - 3600000).toISOString()
+      },
+      {
+        id: '3',
+        event_type: 'permission_denied',
+        event_details: { resource: 'admin_panel', action: 'access' },
+        ip_address: '198.51.100.23',
+        user_agent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36',
+        risk_score: 5,
+        created_at: new Date(Date.now() - 7200000).toISOString()
       }
     ];
     
@@ -112,72 +90,36 @@ export function useSecurityDashboard() {
   const addIPToWhitelist = async (ipAddress: string, description: string) => {
     if (!currentTenant) return;
 
-    try {
-      // Try to insert into tenant_ip_whitelist table if it exists
-      const { data, error } = await supabase
-        .from('tenant_ip_whitelist')
-        .insert({
-          ip_address: ipAddress,
-          description: description,
-          is_active: true
-        })
-        .select()
-        .single();
-
-      if (!error && data) {
-        toast({
-          title: "Success",
-          description: "IP address added to whitelist"
-        });
-        
-        await fetchIPWhitelist();
-        return;
-      }
-    } catch (error) {
-      console.warn('IP whitelist table not available, using mock operation:', error);
-    }
-
-    // Simulate API call
+    // Simulate API call with mock data
     console.log('Adding IP to whitelist:', ipAddress, description);
+    
+    const newEntry: IPWhitelistEntry = {
+      id: Date.now().toString(),
+      ip_address: ipAddress,
+      description: description,
+      is_active: true,
+      created_by: 'current_user',
+      created_at: new Date().toISOString()
+    };
+
+    setIpWhitelist(prev => [...prev, newEntry]);
     
     toast({
       title: "Success",
       description: "IP address added to whitelist"
     });
-    
-    await fetchIPWhitelist();
   };
 
   const removeIPFromWhitelist = async (id: string) => {
-    try {
-      // Try to delete from tenant_ip_whitelist table if it exists
-      const { error } = await supabase
-        .from('tenant_ip_whitelist')
-        .delete()
-        .eq('id', id);
-
-      if (!error) {
-        toast({
-          title: "Success",
-          description: "IP address removed from whitelist"
-        });
-        
-        await fetchIPWhitelist();
-        return;
-      }
-    } catch (error) {
-      console.warn('IP whitelist table not available, using mock operation:', error);
-    }
-
-    // Simulate API call
+    // Simulate API call with mock data
     console.log('Removing IP from whitelist:', id);
+    
+    setIpWhitelist(prev => prev.filter(item => item.id !== id));
     
     toast({
       title: "Success",
       description: "IP address removed from whitelist"
     });
-    
-    await fetchIPWhitelist();
   };
 
   return {
