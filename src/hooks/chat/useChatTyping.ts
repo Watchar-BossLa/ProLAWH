@@ -1,42 +1,88 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { TypingIndicator } from './types';
 
 export function useChatTyping() {
   const { user } = useAuth();
   const [typingUsers, setTypingUsers] = useState<TypingIndicator[]>([]);
+  const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
   const updateTypingStatus = useCallback(async (isTyping: boolean, chatId?: string) => {
     if (!user || !chatId) return;
 
     try {
-      // Mock implementation
       if (isTyping) {
-        setTypingUsers(prev => {
-          const existing = prev.find(t => t.user_id === user.id && t.chat_id === chatId);
-          if (existing) return prev;
-          
-          return [...prev, {
+        // Upsert typing status
+        await supabase
+          .from('typing_indicators')
+          .upsert({
             chat_id: chatId,
             user_id: user.id,
             is_typing: true,
-            last_activity: new Date().toISOString(),
-            user_profile: {
-              full_name: user.user_metadata?.full_name || 'You'
-            }
-          }];
-        });
+            last_activity: new Date().toISOString()
+          }, {
+            onConflict: 'chat_id,user_id'
+          });
+
+        // Clear existing timeout
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+        }
+
+        // Set timeout to stop typing after 3 seconds
+        typingTimeoutRef.current = setTimeout(() => {
+          updateTypingStatus(false, chatId);
+        }, 3000);
       } else {
-        setTypingUsers(prev => prev.filter(t => !(t.user_id === user.id && t.chat_id === chatId)));
+        // Remove typing status
+        await supabase
+          .from('typing_indicators')
+          .delete()
+          .eq('chat_id', chatId)
+          .eq('user_id', user.id);
       }
     } catch (error) {
       console.error('Error updating typing status:', error);
     }
   }, [user]);
 
+  const subscribeToTyping = useCallback((chatId: string) => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`typing_${chatId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'typing_indicators',
+          filter: `chat_id=eq.${chatId}`
+        },
+        async (payload) => {
+          // Fetch current typing users for this chat
+          const { data } = await supabase
+            .from('typing_indicators')
+            .select('*')
+            .eq('chat_id', chatId)
+            .eq('is_typing', true)
+            .neq('user_id', user.id); // Exclude current user
+
+          setTypingUsers(data || []);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
   return {
     typingUsers,
-    updateTypingStatus
+    updateTypingStatus,
+    subscribeToTyping
   };
 }
