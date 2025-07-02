@@ -19,7 +19,7 @@ export function useSendMessage(connectionId: string) {
           message_type: params.type,
           file_url: params.file_url,
           file_name: params.file_name,
-          reply_to_id: params.reply_to
+          reply_to_id: params.reply_to_id || params.reply_to
         });
 
       if (error) throw error;

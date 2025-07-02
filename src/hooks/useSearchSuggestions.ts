@@ -1,111 +1,59 @@
-import { useMemo } from 'react';
-import { ChatMessage, SearchSuggestion } from './chat/types';
 
-export type { SearchSuggestion } from './chat/types';
+import { useState, useCallback } from 'react';
+import { SearchSuggestion } from './chat/types';
 
-export function useSearchSuggestions(messages: ChatMessage[], currentQuery: string = '') {
-  const suggestions = useMemo((): SearchSuggestion[] => {
-    if (currentQuery.length < 2) return [];
+export function useSearchSuggestions() {
+  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-    const userSuggestions = new Map<string, number>();
-    const keywordSuggestions = new Map<string, number>();
-    const fileSuggestions = new Map<string, number>();
-
-    messages.forEach(message => {
-      // User suggestions
-      if (message.sender_name && message.sender_name.toLowerCase().includes(currentQuery.toLowerCase())) {
-        userSuggestions.set(message.sender_name, (userSuggestions.get(message.sender_name) || 0) + 1);
-      }
-
-      // Content keyword suggestions
-      const words = message.content.toLowerCase().split(/\s+/);
-      words.forEach(word => {
-        if (word.length > 2 && word.includes(currentQuery.toLowerCase())) {
-          keywordSuggestions.set(word, (keywordSuggestions.get(word) || 0) + 1);
-        }
-      });
-
-      // File suggestions
-      if (message.file_name && message.file_name.toLowerCase().includes(currentQuery.toLowerCase())) {
-        fileSuggestions.set(message.file_name, (fileSuggestions.get(message.file_name) || 0) + 1);
-      }
-    });
-
-    const allSuggestions: SearchSuggestion[] = [];
-
-    // Add user suggestions
-    Array.from(userSuggestions.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .forEach(([user, count]) => {
-        allSuggestions.push({
-          id: `user-${user}`,
-          type: 'user',
-          value: `from:${user}`,
-          label: `Messages from ${user}`,
-          query: `from:${user}`,
-          description: `Messages from ${user}`,
-          count
-        });
-      });
-
-    // Add keyword suggestions
-    Array.from(keywordSuggestions.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .forEach(([keyword, count]) => {
-        allSuggestions.push({
-          id: `keyword-${keyword}`,
+  const generateSuggestions = useCallback(async (query: string, context?: string) => {
+    setIsLoading(true);
+    try {
+      // Mock suggestions based on query
+      const mockSuggestions: SearchSuggestion[] = [
+        {
+          id: '1',
+          text: `Search for "${query}"`,
           type: 'keyword',
-          value: keyword,
-          label: keyword,
-          query: keyword,
-          description: keyword,
-          count
-        });
-      });
+          query,
+          value: query,
+          count: 42
+        },
+        {
+          id: '2',
+          text: 'Recent searches',
+          type: 'recent',
+          query: 'recent',
+          value: 'recent',
+          description: 'Your recent search history'
+        },
+        {
+          id: '3',
+          text: 'Popular topics',
+          type: 'popular',
+          query: 'popular',
+          value: 'popular',
+          description: 'Trending discussions'
+        }
+      ];
 
-    // Add file suggestions
-    Array.from(fileSuggestions.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .forEach(([fileName, count]) => {
-        allSuggestions.push({
-          id: `file-${fileName}`,
-          type: 'file',
-          value: `file:${fileName}`,
-          label: `File: ${fileName}`,
-          query: `file:${fileName}`,
-          description: `File: ${fileName}`,
-          count
-        });
-      });
-
-    return allSuggestions.slice(0, 10);
-  }, [messages, currentQuery]);
-
-  const getRecentSearches = () => {
-    try {
-      const recent = localStorage.getItem('chat-recent-searches');
-      return recent ? JSON.parse(recent) : [];
-    } catch {
-      return [];
+      setSuggestions(mockSuggestions);
+    } catch (error) {
+      console.error('Error generating suggestions:', error);
+      setSuggestions([]);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, []);
 
-  const saveRecentSearch = (query: string) => {
-    try {
-      const recent = getRecentSearches();
-      const updated = [query, ...recent.filter((q: string) => q !== query)].slice(0, 5);
-      localStorage.setItem('chat-recent-searches', JSON.stringify(updated));
-    } catch {
-      // Ignore localStorage errors
-    }
-  };
+  const clearSuggestions = useCallback(() => {
+    setSuggestions([]);
+  }, []);
 
   return {
     suggestions,
-    getRecentSearches,
-    saveRecentSearch
+    isLoading,
+    generateSuggestions,
+    clearSuggestions
   };
 }

@@ -55,6 +55,10 @@ export interface ChatMessage {
   sender_name?: string;
   sender_avatar?: string;
   read_by?: ReadByUser[];
+  // Network chat compatibility
+  receiver_id?: string;
+  read?: boolean;
+  attachment_data?: any;
 }
 
 export interface ReadByUser {
@@ -126,8 +130,12 @@ export interface SearchFilters {
 export interface SearchSuggestion {
   id: string;
   text: string;
-  type: 'user' | 'keyword' | 'hashtag';
+  type: 'user' | 'keyword' | 'hashtag' | 'recent' | 'popular' | 'contextual' | 'file';
   count?: number;
+  query?: string;
+  value?: string;
+  label?: string;
+  description?: string;
 }
 
 // Message sending types
@@ -137,4 +145,27 @@ export interface SendMessageParams {
   file_url?: string;
   file_name?: string;
   reply_to_id?: string;
+  reply_to?: string;
+}
+
+// Database message compatibility
+export interface DatabaseMessage {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  content: string;
+  timestamp: string;
+  read: boolean;
+  attachment_data: any;
+  reactions: any;
+  created_at?: string;
+}
+
+// Message reactions data format
+export interface MessageReactionsData {
+  [emoji: string]: Array<{
+    emoji: string;
+    user_id: string;
+    created_at: string;
+  }>;
 }

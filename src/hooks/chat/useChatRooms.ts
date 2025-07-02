@@ -19,6 +19,7 @@ export function useChatRooms() {
         .select(`
           *,
           chat_participants!inner(
+            id,
             user_id,
             role,
             joined_at,
@@ -35,7 +36,7 @@ export function useChatRooms() {
       const transformedRooms: ChatRoom[] = (data || []).map(room => ({
         id: room.id,
         name: room.name,
-        type: room.type || 'direct',
+        type: (room.type as 'direct' | 'group' | 'channel') || 'direct',
         description: room.description,
         avatar_url: room.avatar_url,
         created_by: room.created_by,
@@ -44,7 +45,7 @@ export function useChatRooms() {
         created_at: room.created_at,
         updated_at: room.updated_at,
         chat_participants: room.chat_participants.map((p: any) => ({
-          id: `${room.id}-${p.user_id}`, // Generate composite ID
+          id: p.id || `${room.id}-${p.user_id}`,
           chat_id: room.id,
           user_id: p.user_id,
           role: p.role || 'member',

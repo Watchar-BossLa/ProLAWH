@@ -68,9 +68,18 @@ export function useChatTyping() {
             .select('*')
             .eq('chat_id', chatId)
             .eq('is_typing', true)
-            .neq('user_id', user.id); // Exclude current user
+            .neq('user_id', user.id);
 
-          setTypingUsers(data || []);
+          // Transform data to match TypingIndicator interface
+          const typingIndicators: TypingIndicator[] = (data || []).map(item => ({
+            id: item.id,
+            chat_id: item.chat_id,
+            user_id: item.user_id,
+            is_typing: item.is_typing,
+            last_activity: item.last_activity
+          }));
+
+          setTypingUsers(typingIndicators);
         }
       )
       .subscribe();
