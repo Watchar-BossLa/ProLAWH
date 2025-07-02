@@ -32,6 +32,9 @@ export function useChatMessages() {
           },
           reactions: [],
           read_receipts: [],
+          is_edited: false,
+          is_pinned: false,
+          metadata: {},
         },
         {
           id: '2',
@@ -49,6 +52,9 @@ export function useChatMessages() {
           },
           reactions: [],
           read_receipts: [],
+          is_edited: false,
+          is_pinned: false,
+          metadata: {},
         }
       ];
 
@@ -96,6 +102,9 @@ export function useChatMessages() {
         },
         reactions: [],
         read_receipts: [],
+        is_edited: false,
+        is_pinned: false,
+        metadata: {},
       };
 
       setMessages(prev => [...prev, newMessage]);

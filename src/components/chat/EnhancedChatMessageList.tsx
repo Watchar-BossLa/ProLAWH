@@ -189,8 +189,9 @@ export function EnhancedChatMessageList({
         {typingUsers.length > 0 && (
           <TypingIndicator 
             typingUsers={typingUsers.map(t => ({ 
-              id: t.user_id, 
-              name: 'Someone' // We'd need to fetch user profiles for names
+              user_id: t.user_id, 
+              user_name: 'Someone', // We'd need to fetch user profiles for names
+              last_activity: t.last_activity
             }))} 
           />
         )}

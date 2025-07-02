@@ -6,13 +6,18 @@ export function useOptimisticMessages(initialMessages: ChatMessage[] = []) {
   const [optimisticMessages, setOptimisticMessages] = useState<ChatMessage[]>([]);
 
   const addOptimisticMessage = useCallback((message: Omit<ChatMessage, 'id' | 'created_at' | 'updated_at'>) => {
+    const now = new Date().toISOString();
     const optimisticMsg: ChatMessage = {
       ...message,
       id: `optimistic-${Date.now()}`,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      timestamp: new Date().toISOString(),
+      created_at: now,
+      updated_at: now,
+      timestamp: now,
       reactions: [],
+      read_receipts: [],
+      is_edited: false,
+      is_pinned: false,
+      metadata: {},
       sender_profile: {
         full_name: message.sender_name || 'Unknown'
       }
@@ -31,7 +36,7 @@ export function useOptimisticMessages(initialMessages: ChatMessage[] = []) {
   }, []);
 
   const allMessages = [...initialMessages, ...optimisticMessages].sort(
-    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
   );
 
   return {

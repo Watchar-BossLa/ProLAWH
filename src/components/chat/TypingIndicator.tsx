@@ -1,12 +1,7 @@
 
 import React from 'react';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-
-export interface TypingUser {
-  user_id: string;
-  user_name?: string;
-  last_activity: string;
-}
+import { TypingUser } from '@/hooks/chat/types';
 
 interface TypingIndicatorProps {
   typingUsers: TypingUser[];

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,7 +19,6 @@ export function useChatRooms() {
         .select(`
           *,
           chat_participants!inner(
-            id,
             user_id,
             role,
             joined_at,
@@ -33,7 +31,30 @@ export function useChatRooms() {
 
       if (error) throw error;
 
-      setChatRooms(data || []);
+      // Transform the data to match ChatRoom interface
+      const transformedRooms: ChatRoom[] = (data || []).map(room => ({
+        id: room.id,
+        name: room.name,
+        type: room.type || 'direct',
+        description: room.description,
+        avatar_url: room.avatar_url,
+        created_by: room.created_by,
+        is_private: room.is_private ?? true,
+        max_members: room.max_members ?? 100,
+        created_at: room.created_at,
+        updated_at: room.updated_at,
+        chat_participants: room.chat_participants.map((p: any) => ({
+          id: `${room.id}-${p.user_id}`, // Generate composite ID
+          chat_id: room.id,
+          user_id: p.user_id,
+          role: p.role || 'member',
+          joined_at: p.joined_at,
+          last_read_at: p.last_read_at,
+          is_muted: p.is_muted || false
+        }))
+      }));
+
+      setChatRooms(transformedRooms);
     } catch (error) {
       console.error('Error fetching chat rooms:', error);
       toast({

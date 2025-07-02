@@ -49,6 +49,19 @@ export interface ChatMessage {
     full_name?: string;
     avatar_url?: string;
   };
+  // Legacy compatibility properties
+  timestamp: string;
+  type: 'text' | 'file' | 'image' | 'video' | 'voice' | 'system';
+  sender_name?: string;
+  sender_avatar?: string;
+  read_by?: ReadByUser[];
+}
+
+export interface ReadByUser {
+  user_id: string;
+  user_name: string;
+  user_avatar?: string;
+  read_at: string;
 }
 
 export interface MessageReaction {
@@ -74,6 +87,19 @@ export interface TypingIndicator {
   last_activity: string;
 }
 
+export interface TypingUser {
+  user_id: string;
+  user_name?: string;
+  last_activity: string;
+}
+
+export interface TypingPresence {
+  user_id: string;
+  chat_id: string;
+  is_typing: boolean;
+  last_activity: string;
+}
+
 export interface UserPresence {
   id: string;
   user_id: string;
@@ -82,4 +108,33 @@ export interface UserPresence {
   typing_in_chat?: string;
   created_at: string;
   updated_at: string;
+}
+
+// Search-related types
+export interface SearchFilters {
+  messageType?: 'text' | 'file' | 'image' | 'video' | 'voice';
+  sender?: string;
+  dateRange?: {
+    start: Date;
+    end: Date;
+  };
+  hasAttachments?: boolean;
+  hasReactions?: boolean;
+  hasReplies?: boolean;
+}
+
+export interface SearchSuggestion {
+  id: string;
+  text: string;
+  type: 'user' | 'keyword' | 'hashtag';
+  count?: number;
+}
+
+// Message sending types
+export interface SendMessageParams {
+  content: string;
+  type?: 'text' | 'file' | 'image' | 'video' | 'voice';
+  file_url?: string;
+  file_name?: string;
+  reply_to_id?: string;
 }
