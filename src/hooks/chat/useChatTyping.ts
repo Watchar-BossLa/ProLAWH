@@ -72,7 +72,7 @@ export function useChatTyping() {
 
           // Transform data to match TypingIndicator interface
           const typingIndicators: TypingIndicator[] = (data || []).map(item => ({
-            id: item.id,
+            id: item.id || `${item.chat_id}-${item.user_id}`,
             chat_id: item.chat_id,
             user_id: item.user_id,
             is_typing: item.is_typing,

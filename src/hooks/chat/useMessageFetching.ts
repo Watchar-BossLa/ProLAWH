@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { ChatMessage, DatabaseMessage, MessageReactionsData } from '@/types/chat';
+import { ChatMessage, DatabaseMessage, MessageReactionsData } from './types';
 
 export function useMessageFetching(recipientId: string | null, userId: string | null) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -28,16 +28,27 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
         if (error) throw error;
 
         // Convert database messages to ChatMessage type
-        const chatMessages = data.map(msg => ({
+        const chatMessages: ChatMessage[] = data.map(msg => ({
           id: msg.id,
+          chat_id: `${msg.sender_id}-${msg.receiver_id}`, // Generate chat_id for compatibility
           sender_id: msg.sender_id,
           receiver_id: msg.receiver_id,
           content: msg.content,
+          message_type: 'text',
           timestamp: msg.timestamp,
+          created_at: msg.timestamp,
+          updated_at: msg.timestamp,
+          type: 'text',
           read: msg.read,
           attachment_data: msg.attachment_data,
-          // Safely convert Json to MessageReactionsData
-          reactions: (msg.reactions as object || {}) as MessageReactionsData
+          reactions: Array.isArray(msg.reactions) ? msg.reactions : [],
+          read_receipts: [],
+          is_edited: false,
+          is_pinned: false,
+          metadata: {},
+          sender_profile: {
+            full_name: 'Unknown User'
+          }
         }));
 
         setMessages(chatMessages);
@@ -65,14 +76,25 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
           const newMsg = payload.new as DatabaseMessage;
           const newMessage: ChatMessage = {
             id: newMsg.id,
+            chat_id: `${newMsg.sender_id}-${newMsg.receiver_id}`,
             sender_id: newMsg.sender_id,
             receiver_id: newMsg.receiver_id,
             content: newMsg.content,
+            message_type: 'text',
             timestamp: newMsg.timestamp,
+            created_at: newMsg.timestamp,
+            updated_at: newMsg.timestamp,
+            type: 'text',
             read: newMsg.read,
             attachment_data: newMsg.attachment_data,
-            // Safely convert Json to MessageReactionsData
-            reactions: (newMsg.reactions as object || {}) as MessageReactionsData
+            reactions: Array.isArray(newMsg.reactions) ? newMsg.reactions : [],
+            read_receipts: [],
+            is_edited: false,
+            is_pinned: false,
+            metadata: {},
+            sender_profile: {
+              full_name: 'Unknown User'
+            }
           };
           
           setMessages(prev => [...prev, newMessage]);
@@ -95,14 +117,25 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
           const updatedMsg = payload.new as DatabaseMessage;
           const updatedMessage: ChatMessage = {
             id: updatedMsg.id,
+            chat_id: `${updatedMsg.sender_id}-${updatedMsg.receiver_id}`,
             sender_id: updatedMsg.sender_id,
             receiver_id: updatedMsg.receiver_id,
             content: updatedMsg.content,
+            message_type: 'text',
             timestamp: updatedMsg.timestamp,
+            created_at: updatedMsg.timestamp,
+            updated_at: updatedMsg.timestamp,
+            type: 'text',
             read: updatedMsg.read,
             attachment_data: updatedMsg.attachment_data,
-            // Safely convert Json to MessageReactionsData
-            reactions: (updatedMsg.reactions as object || {}) as MessageReactionsData
+            reactions: Array.isArray(updatedMsg.reactions) ? updatedMsg.reactions : [],
+            read_receipts: [],
+            is_edited: false,
+            is_pinned: false,
+            metadata: {},
+            sender_profile: {
+              full_name: 'Unknown User'
+            }
           };
           
           setMessages(prev => 

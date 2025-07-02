@@ -57,3 +57,6 @@ export function useSearchSuggestions() {
     clearSuggestions
   };
 }
+
+// Re-export types for backward compatibility
+export type { SearchSuggestion } from './chat/types';
