@@ -680,19 +680,28 @@ export type Database = {
       chat_participants: {
         Row: {
           chat_id: string
+          id: string | null
+          is_muted: boolean | null
           joined_at: string
+          last_read_at: string | null
           role: string | null
           user_id: string
         }
         Insert: {
           chat_id: string
+          id?: string | null
+          is_muted?: boolean | null
           joined_at?: string
+          last_read_at?: string | null
           role?: string | null
           user_id: string
         }
         Update: {
           chat_id?: string
+          id?: string | null
+          is_muted?: boolean | null
           joined_at?: string
+          last_read_at?: string | null
           role?: string | null
           user_id?: string
         }
@@ -708,25 +717,37 @@ export type Database = {
       }
       chat_rooms: {
         Row: {
+          avatar_url: string | null
           created_at: string
           created_by: string
+          description: string | null
           id: string
+          is_private: boolean | null
+          max_members: number | null
           name: string | null
           type: string | null
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           created_by: string
+          description?: string | null
           id?: string
+          is_private?: boolean | null
+          max_members?: number | null
           name?: string | null
           type?: string | null
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           created_by?: string
+          description?: string | null
           id?: string
+          is_private?: boolean | null
+          max_members?: number | null
           name?: string | null
           type?: string | null
           updated_at?: string
@@ -2389,6 +2410,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      read_receipts: {
+        Row: {
+          id: string
+          message_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          message_id: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          message_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       sdg_impact_data: {
         Row: {

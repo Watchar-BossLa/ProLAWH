@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,9 +20,11 @@ export function useChatRooms() {
         .select(`
           *,
           chat_participants!inner(
+            id,
             user_id,
             role,
             joined_at,
+            last_read_at,
             is_muted
           )
         `)
@@ -43,7 +46,7 @@ export function useChatRooms() {
         created_at: room.created_at,
         updated_at: room.updated_at,
         chat_participants: room.chat_participants.map((p: any) => ({
-          id: `${room.id}-${p.user_id}`, // Generate ID since it might not exist
+          id: p.id || `${room.id}-${p.user_id}`, // Use existing ID or generate one
           chat_id: room.id,
           user_id: p.user_id,
           role: p.role || 'member',
