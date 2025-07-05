@@ -7,18 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Paperclip } from 'lucide-react';
 import { MessageReactionPicker } from '../MessageReactionPicker';
 import { TypingIndicator } from '../TypingIndicator';
-
-interface ChatMessage {
-  id: string;
-  content: string;
-  type: 'text' | 'file' | 'image';
-  sender_name?: string;
-  sender_avatar?: string;
-  timestamp: string;
-  file_url?: string;
-  file_name?: string;
-  reply_to_id?: string;
-}
+import { ChatMessage } from '@/hooks/chat/types';
 
 interface ChatMessageListProps {
   messages: ChatMessage[];
@@ -50,7 +39,7 @@ export function ChatMessageList({
           <div key={msg.id} className="group">
             {msg.reply_to_id && (
               <div className="text-xs text-muted-foreground mb-1 ml-12 pl-3 border-l-2 border-muted">
-                Replying to: {messages.find(m => m.id === msg.reply_to_id)?.content.substring(0, 50)}...
+                Replying to: {messages.find(m => m.id === msg.reply_to_id)?.content?.substring(0, 50)}...
               </div>
             )}
             
@@ -64,7 +53,7 @@ export function ChatMessageList({
               
               <div className="flex-1 space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">{msg.sender_name}</span>
+                  <span className="text-sm font-medium">{msg.sender_name || 'Unknown User'}</span>
                   <span className="text-xs text-muted-foreground">
                     {new Date(msg.timestamp).toLocaleTimeString()}
                   </span>
@@ -76,11 +65,11 @@ export function ChatMessageList({
                 </div>
                 
                 <div className="bg-muted rounded-lg p-3">
-                  {msg.type === 'text' && (
+                  {(msg.message_type === 'text' || msg.type === 'text') && (
                     <p className="text-sm">{msg.content}</p>
                   )}
                   
-                  {msg.type === 'file' && (
+                  {(msg.message_type === 'file' || msg.type === 'file') && (
                     <div className="flex items-center gap-2">
                       <Paperclip className="h-4 w-4" />
                       <a 
@@ -93,7 +82,7 @@ export function ChatMessageList({
                     </div>
                   )}
                   
-                  {msg.type === 'image' && (
+                  {(msg.message_type === 'image' || msg.type === 'image') && (
                     <img 
                       src={msg.file_url} 
                       alt={msg.file_name}

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,7 +22,6 @@ export function useChatRooms() {
             user_id,
             role,
             joined_at,
-            last_read_at,
             is_muted
           )
         `)
@@ -50,7 +48,7 @@ export function useChatRooms() {
           user_id: p.user_id,
           role: p.role || 'member',
           joined_at: p.joined_at,
-          last_read_at: p.last_read_at,
+          last_read_at: p.last_read_at || null,
           is_muted: p.is_muted || false
         }))
       }));
