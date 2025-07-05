@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Brain, Target, Users, MapPin } from 'lucide-react';
 import { useAIMatching } from '@/hooks/ai/useAIMatching';
+import type { BehaviorProfile } from '@/types/ai-matching';
 
 const workStyles = ['Independent', 'Collaborative', 'Leadership', 'Supportive', 'Analytical', 'Creative'];
 const projectDurations = ['Short-term (< 1 month)', 'Medium-term (1-6 months)', 'Long-term (6+ months)', 'Ongoing'];
@@ -43,7 +44,7 @@ export function BehaviorProfileForm({ onComplete }: BehaviorProfileFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const profileData = {
+    const profileData: Partial<BehaviorProfile> = {
       ...formData,
       work_style_preferences: {
         ...formData.work_style_preferences,

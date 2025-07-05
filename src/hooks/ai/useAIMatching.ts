@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import type { BehaviorProfile, UserSkillEnhanced, OpportunityMatch } from '@/types/ai-matching';
 
 interface MatchingCriteria {
   skillWeights?: Record<string, number>;
@@ -10,18 +11,6 @@ interface MatchingCriteria {
   compensationWeight?: number;
   culturalFitWeight?: number;
   locationFlexibility?: number;
-}
-
-interface OpportunityMatch {
-  id: string;
-  opportunity_id: string;
-  match_score: number;
-  skill_compatibility: Record<string, any>;
-  experience_fit: number;
-  cultural_fit: number;
-  compensation_alignment: number;
-  success_prediction: number;
-  reasoning: Record<string, any>;
 }
 
 export function useAIMatching() {
@@ -32,17 +21,17 @@ export function useAIMatching() {
   // Fetch user's behavioral profile
   const { data: behaviorProfile } = useQuery({
     queryKey: ['behavior-profile', user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<BehaviorProfile | null> => {
       if (!user) return null;
       
       const { data, error } = await supabase
-        .from('user_behavior_profiles')
+        .from('user_behavior_profiles' as any)
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
       
       if (error) throw error;
-      return data;
+      return data as BehaviorProfile | null;
     },
     enabled: !!user,
   });
@@ -50,11 +39,11 @@ export function useAIMatching() {
   // Fetch user's enhanced skills
   const { data: userSkills } = useQuery({
     queryKey: ['user-skills-enhanced', user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<UserSkillEnhanced[]> => {
       if (!user) return [];
       
       const { data, error } = await supabase
-        .from('user_skills_enhanced')
+        .from('user_skills_enhanced' as any)
         .select(`
           *,
           skill:skills_taxonomy(*)
@@ -62,7 +51,7 @@ export function useAIMatching() {
         .eq('user_id', user.id);
       
       if (error) throw error;
-      return data || [];
+      return (data || []) as UserSkillEnhanced[];
     },
     enabled: !!user,
   });
@@ -70,26 +59,26 @@ export function useAIMatching() {
   // Fetch AI-generated opportunity matches
   const { data: opportunityMatches, isLoading: matchesLoading } = useQuery({
     queryKey: ['opportunity-matches', user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<OpportunityMatch[]> => {
       if (!user) return [];
       
       const { data, error } = await supabase
-        .from('opportunity_matches')
+        .from('opportunity_matches' as any)
         .select('*')
         .eq('user_id', user.id)
         .order('match_score', { ascending: false });
       
       if (error) throw error;
-      return data || [];
+      return (data || []) as OpportunityMatch[];
     },
     enabled: !!user,
   });
 
   // Calculate skill compatibility score
-  const calculateSkillMatch = useCallback((userSkills: any[], opportunitySkills: string[]) => {
+  const calculateSkillMatch = useCallback((userSkills: UserSkillEnhanced[], opportunitySkills: string[]) => {
     if (!userSkills.length || !opportunitySkills.length) return 0;
     
-    const userSkillNames = userSkills.map(s => s.skill?.name.toLowerCase());
+    const userSkillNames = userSkills.map(s => s.skill?.name.toLowerCase()).filter(Boolean);
     const matchedSkills = opportunitySkills.filter(skill => 
       userSkillNames.includes(skill.toLowerCase())
     );
@@ -146,6 +135,7 @@ export function useAIMatching() {
         
         const match: OpportunityMatch = {
           id: crypto.randomUUID(),
+          user_id: user.id,
           opportunity_id: opportunity.id,
           match_score: Math.round(matchScore * 100) / 100,
           skill_compatibility: {
@@ -155,7 +145,8 @@ export function useAIMatching() {
             missing_skills: opportunity.skills_required?.filter((skill: string) =>
               !userSkills.some(us => us.skill?.name.toLowerCase() === skill.toLowerCase())
             ) || [],
-            proficiency_scores: {}
+            proficiency_scores: {},
+            score: skillMatch
           },
           experience_fit: Math.round(experienceFit * 100) / 100,
           cultural_fit: Math.round(culturalFit * 100) / 100,
@@ -165,7 +156,9 @@ export function useAIMatching() {
             primary_strengths: skillMatch > 0.7 ? ['Strong skill alignment'] : [],
             concerns: skillMatch < 0.5 ? ['Skill gap identified'] : [],
             recommendations: experienceFit < 0.5 ? ['Consider gaining more experience'] : []
-          }
+          },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         };
         
         matches.push(match);
@@ -174,7 +167,7 @@ export function useAIMatching() {
       // Store matches in database
       if (matches.length > 0) {
         const { error } = await supabase
-          .from('opportunity_matches')
+          .from('opportunity_matches' as any)
           .upsert(
             matches.map(match => ({
               user_id: user.id,
@@ -203,11 +196,11 @@ export function useAIMatching() {
 
   // Update user behavioral profile
   const updateBehaviorProfile = useMutation({
-    mutationFn: async (profileData: Partial<any>) => {
+    mutationFn: async (profileData: Partial<BehaviorProfile>) => {
       if (!user) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
-        .from('user_behavior_profiles')
+        .from('user_behavior_profiles' as any)
         .upsert({
           user_id: user.id,
           ...profileData,

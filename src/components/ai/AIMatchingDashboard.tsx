@@ -3,12 +3,14 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { Brain, TrendingUp, Users, Target, Zap, BarChart3 } from 'lucide-react';
 import { useAIMatching } from '@/hooks/ai/useAIMatching';
 import { BehaviorProfileForm } from './BehaviorProfileForm';
 import { SmartOpportunityCard } from './SmartOpportunityCard';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { MarketIntelligence } from '@/types/ai-matching';
 
 // Mock opportunities for demo
 const mockOpportunities = [
@@ -52,9 +54,9 @@ export function AIMatchingDashboard() {
   // Fetch market intelligence
   const { data: marketData } = useQuery({
     queryKey: ['market-intelligence'],
-    queryFn: async () => {
+    queryFn: async (): Promise<MarketIntelligence[]> => {
       const { data, error } = await supabase
-        .from('market_intelligence')
+        .from('market_intelligence' as any)
         .select(`
           *,
           skill:skills_taxonomy(*)
@@ -62,7 +64,7 @@ export function AIMatchingDashboard() {
         .limit(10);
       
       if (error) throw error;
-      return data || [];
+      return (data || []) as MarketIntelligence[];
     },
   });
 
@@ -110,7 +112,7 @@ export function AIMatchingDashboard() {
               <p className="text-sm font-medium text-muted-foreground">Avg Success Rate</p>
               <p className="text-2xl font-bold">
                 {opportunityMatches?.length 
-                  ? Math.round(opportunityMatches.reduce((acc, m) => acc + m.success_prediction, 0) / opportunityMatches.length * 100)
+                  ? Math.round(opportunityMatches.reduce((acc, m) => acc + (m.success_prediction || 0), 0) / opportunityMatches.length * 100)
                   : 0}%
               </p>
             </div>

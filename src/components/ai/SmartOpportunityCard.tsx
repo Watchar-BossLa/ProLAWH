@@ -6,18 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Shield, Leaf, Brain, TrendingUp, Users, DollarSign } from 'lucide-react';
 import type { Opportunity } from "@/types/marketplace";
+import type { OpportunityMatch } from "@/types/ai-matching";
 
 interface SmartOpportunityCardProps {
   opportunity: Opportunity;
-  matchData?: {
-    match_score: number;
-    skill_compatibility: any;
-    experience_fit: number;
-    cultural_fit: number;
-    compensation_alignment: number;
-    success_prediction: number;
-    reasoning: any;
-  };
+  matchData?: OpportunityMatch;
 }
 
 export function SmartOpportunityCard({ opportunity, matchData }: SmartOpportunityCardProps) {
@@ -34,7 +27,7 @@ export function SmartOpportunityCard({ opportunity, matchData }: SmartOpportunit
     if (score >= 80) return 'default';
     if (score >= 60) return 'secondary';
     return 'outline';
-  };
+  } as const;
 
   return (
     <Card className="glass-card hover-card gradient-border relative overflow-hidden">
@@ -82,7 +75,7 @@ export function SmartOpportunityCard({ opportunity, matchData }: SmartOpportunit
               <div className="space-y-1">
                 <div className="flex justify-between">
                   <span>Skill Match</span>
-                  <span className={getMatchColor(matchData.skill_compatibility?.score * 100 || 0)}>
+                  <span className={getMatchColor((matchData.skill_compatibility?.score || 0) * 100)}>
                     {Math.round((matchData.skill_compatibility?.score || 0) * 100)}%
                   </span>
                 </div>
