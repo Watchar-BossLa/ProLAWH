@@ -1,4 +1,3 @@
-
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -50,7 +49,11 @@ export function useWebRTC() {
           type: 'broadcast',
           event: 'ice-candidate',
           payload: {
-            candidate: event.candidate,
+            candidate: {
+              candidate: event.candidate.candidate,
+              sdpMLineIndex: event.candidate.sdpMLineIndex,
+              sdpMid: event.candidate.sdpMid
+            },
             senderId: user.id
           }
         });
@@ -151,13 +154,17 @@ export function useWebRTC() {
       await peerConnection.current.setLocalDescription(offer);
 
       // Send offer through Supabase call_signals table
+      // Convert RTCSessionDescriptionInit to JSON-serializable format
       const { error } = await supabase
         .from('call_signals')
         .insert({
           caller_id: user.id,
           recipient_id: recipientId,
           signal_type: 'offer',
-          signal_data: offer,
+          signal_data: {
+            type: offer.type,
+            sdp: offer.sdp
+          },
           status: 'calling'
         });
 
@@ -183,13 +190,17 @@ export function useWebRTC() {
       await peerConnection.current.setLocalDescription(answer);
 
       // Send answer through Supabase call_signals table
+      // Convert RTCSessionDescriptionInit to JSON-serializable format
       const { error } = await supabase
         .from('call_signals')
         .insert({
           caller_id: callerId,
           recipient_id: user.id,
           signal_type: 'answer',
-          signal_data: answer,
+          signal_data: {
+            type: answer.type,
+            sdp: answer.sdp
+          },
           status: 'connected'
         });
 
