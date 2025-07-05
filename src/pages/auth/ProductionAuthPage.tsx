@@ -17,7 +17,7 @@ interface LocationState {
 
 export default function ProductionAuthPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState("test@example.com"); // Pre-fill for testing
+  const [email, setEmail] = useState("kelvin.w.antoine@gmail.com"); // Updated to match existing user
   const [password, setPassword] = useState("password123"); // Pre-fill for testing
   const [fullName, setFullName] = useState("Test User");
   const [isSignUp, setIsSignUp] = useState(false);
@@ -148,7 +148,7 @@ export default function ProductionAuthPage() {
           )}
           {!ENV.isProduction && (
             <div className="py-2 px-3 bg-blue-100 dark:bg-blue-900/30 rounded-md text-sm text-blue-800 dark:text-blue-300">
-              Debug: Form pre-filled for testing
+              Debug: Use kelvin.w.antoine@gmail.com / password123 to sign in
             </div>
           )}
         </CardHeader>
@@ -221,7 +221,16 @@ export default function ProductionAuthPage() {
                 onClick={() => {
                   setIsSignUp(!isSignUp);
                   setError(null);
-                  setPassword(isSignUp ? "password123" : ""); // Reset password for testing
+                  // Reset to appropriate email/password for each mode
+                  if (!isSignUp) {
+                    // Switching to sign up mode
+                    setEmail("test@example.com");
+                    setPassword("");
+                  } else {
+                    // Switching back to sign in mode
+                    setEmail("kelvin.w.antoine@gmail.com");
+                    setPassword("password123");
+                  }
                 }}
               >
                 {isSignUp
