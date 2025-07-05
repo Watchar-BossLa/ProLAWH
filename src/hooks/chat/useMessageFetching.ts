@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { ChatMessage, DatabaseMessage, MessageReactionsData } from './types';
+import { ChatMessage, DatabaseMessage } from './types';
 
 export function useMessageFetching(recipientId: string | null, userId: string | null) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -33,7 +33,7 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
           chat_id: `${msg.sender_id}-${msg.receiver_id}`, // Generate chat_id for compatibility
           sender_id: msg.sender_id,
           receiver_id: msg.receiver_id,
-          content: msg.content,
+          content: msg.content || '', // Ensure content is never undefined
           message_type: 'text',
           timestamp: msg.timestamp,
           created_at: msg.timestamp,
@@ -41,7 +41,7 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
           type: 'text',
           read: msg.read,
           attachment_data: msg.attachment_data,
-          reactions: Array.isArray(msg.reactions) ? msg.reactions : [],
+          reactions: [], // Convert to proper MessageReaction[] format
           read_receipts: [],
           is_edited: false,
           is_pinned: false,
@@ -79,7 +79,7 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
             chat_id: `${newMsg.sender_id}-${newMsg.receiver_id}`,
             sender_id: newMsg.sender_id,
             receiver_id: newMsg.receiver_id,
-            content: newMsg.content,
+            content: newMsg.content || '', // Ensure content is never undefined
             message_type: 'text',
             timestamp: newMsg.timestamp,
             created_at: newMsg.timestamp,
@@ -87,7 +87,7 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
             type: 'text',
             read: newMsg.read,
             attachment_data: newMsg.attachment_data,
-            reactions: Array.isArray(newMsg.reactions) ? newMsg.reactions : [],
+            reactions: [], // Convert to proper MessageReaction[] format
             read_receipts: [],
             is_edited: false,
             is_pinned: false,
@@ -120,7 +120,7 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
             chat_id: `${updatedMsg.sender_id}-${updatedMsg.receiver_id}`,
             sender_id: updatedMsg.sender_id,
             receiver_id: updatedMsg.receiver_id,
-            content: updatedMsg.content,
+            content: updatedMsg.content || '', // Ensure content is never undefined
             message_type: 'text',
             timestamp: updatedMsg.timestamp,
             created_at: updatedMsg.timestamp,
@@ -128,7 +128,7 @@ export function useMessageFetching(recipientId: string | null, userId: string | 
             type: 'text',
             read: updatedMsg.read,
             attachment_data: updatedMsg.attachment_data,
-            reactions: Array.isArray(updatedMsg.reactions) ? updatedMsg.reactions : [],
+            reactions: [], // Convert to proper MessageReaction[] format
             read_receipts: [],
             is_edited: false,
             is_pinned: false,

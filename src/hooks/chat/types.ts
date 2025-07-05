@@ -29,7 +29,7 @@ export interface ChatMessage {
   id: string;
   chat_id: string;
   sender_id: string;
-  content?: string;
+  content: string; // Make content required to fix the type conflict
   message_type: 'text' | 'file' | 'image' | 'video' | 'voice' | 'system';
   file_url?: string;
   file_name?: string;
@@ -136,6 +136,12 @@ export interface SearchSuggestion {
   value?: string;
   label?: string;
   description?: string;
+}
+
+export interface SearchResult {
+  message: ChatMessage;
+  score: number;
+  matches: any[];
 }
 
 // Message sending types
