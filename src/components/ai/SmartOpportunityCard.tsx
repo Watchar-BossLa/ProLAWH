@@ -27,7 +27,7 @@ export function SmartOpportunityCard({ opportunity, matchData }: SmartOpportunit
     if (score >= 80) return 'default';
     if (score >= 60) return 'secondary';
     return 'outline';
-  } as const;
+  };
 
   return (
     <Card className="glass-card hover-card gradient-border relative overflow-hidden">

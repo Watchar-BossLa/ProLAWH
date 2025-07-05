@@ -1,8 +1,10 @@
+
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ProductionAuthProvider } from "@/components/auth/ProductionAuthProvider";
+import { NavigationProvider } from "@/components/navigation/NavigationProvider";
 import { SessionMonitor } from "@/components/security/session/SessionMonitor";
 import Index from "./pages/Index";
 import ProductionAuthPage from "./pages/auth/ProductionAuthPage";
@@ -52,53 +54,55 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<ProductionAuthPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              
-              {/* Dashboard Routes */}
-              <Route path="/dashboard" element={<DashboardLayout />}>
-                <Route index element={<DashboardHome />} />
-                <Route path="home" element={<DashboardPage />} />
-                <Route path="learning" element={<LearningDashboard />} />
-                <Route path="green-skills" element={<GreenSkillsPage />} />
-                <Route path="skills" element={<SkillsAndBadgesPage />} />
-                <Route path="network" element={<NetworkDashboard />} />
-                <Route path="network/:id" element={<NetworkConnectionProfile />} />
-                <Route path="mentorship" element={<MentorshipDashboard />} />
-                <Route path="mentorship/:id" element={<MentorshipDetailPage />} />
-                <Route path="opportunities" element={<OpportunityMarketplace />} />
-                <Route path="career-twin" element={<CareerTwinPage />} />
-                <Route path="arcade" element={<ArcadePage />} />
-                <Route path="challenge/:id" element={<ChallengePage />} />
-                <Route path="course/:id" element={<CourseDetailsPage />} />
-                <Route path="learning-path/:id" element={<LearningPathPage />} />
-                <Route path="staking" element={<SkillStakingPage />} />
-                <Route path="study-bee" element={<StudyBeePage />} />
-                <Route path="veriskill" element={<VeriSkillNetworkPage />} />
-                <Route path="quantum-matching" element={<QuantumMatchingPage />} />
-                <Route path="quorumforge" element={<QuorumForgeDashboard />} />
-                <Route path="enhanced-ai" element={<EnhancedAIDashboard />} />
-                <Route path="collaboration" element={<CollaborationPage />} />
-                <Route path="community" element={<CommunityPage />} />
-                <Route path="study-groups" element={<StudyGroupsPage />} />
-                <Route path="chat" element={<RealTimeChatPage />} />
-              </Route>
+            <NavigationProvider>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<ProductionAuthPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                
+                {/* Dashboard Routes */}
+                <Route path="/dashboard" element={<DashboardLayout />}>
+                  <Route index element={<DashboardHome />} />
+                  <Route path="home" element={<DashboardPage />} />
+                  <Route path="learning" element={<LearningDashboard />} />
+                  <Route path="green-skills" element={<GreenSkillsPage />} />
+                  <Route path="skills" element={<SkillsAndBadgesPage />} />
+                  <Route path="network" element={<NetworkDashboard />} />
+                  <Route path="network/:id" element={<NetworkConnectionProfile />} />
+                  <Route path="mentorship" element={<MentorshipDashboard />} />
+                  <Route path="mentorship/:id" element={<MentorshipDetailPage />} />
+                  <Route path="opportunities" element={<OpportunityMarketplace />} />
+                  <Route path="career-twin" element={<CareerTwinPage />} />
+                  <Route path="arcade" element={<ArcadePage />} />
+                  <Route path="challenge/:id" element={<ChallengePage />} />
+                  <Route path="course/:id" element={<CourseDetailsPage />} />
+                  <Route path="learning-path/:id" element={<LearningPathPage />} />
+                  <Route path="staking" element={<SkillStakingPage />} />
+                  <Route path="study-bee" element={<StudyBeePage />} />
+                  <Route path="veriskill" element={<VeriSkillNetworkPage />} />
+                  <Route path="quantum-matching" element={<QuantumMatchingPage />} />
+                  <Route path="quorumforge" element={<QuorumForgeDashboard />} />
+                  <Route path="enhanced-ai" element={<EnhancedAIDashboard />} />
+                  <Route path="collaboration" element={<CollaborationPage />} />
+                  <Route path="community" element={<CommunityPage />} />
+                  <Route path="study-groups" element={<StudyGroupsPage />} />
+                  <Route path="chat" element={<RealTimeChatPage />} />
+                </Route>
 
-              {/* Admin Routes */}
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<AdminDashboard />} />
-                <Route path="users" element={<UsersPage />} />
-                <Route path="analytics" element={<AnalyticsPage />} />
-                <Route path="payments" element={<PaymentsPage />} />
-                <Route path="settings" element={<SettingsPage />} />
-                <Route path="enterprise-security" element={<EnterpriseSecurityPage />} />
-              </Route>
+                {/* Admin Routes */}
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="users" element={<UsersPage />} />
+                  <Route path="analytics" element={<AnalyticsPage />} />
+                  <Route path="payments" element={<PaymentsPage />} />
+                  <Route path="settings" element={<SettingsPage />} />
+                  <Route path="enterprise-security" element={<EnterpriseSecurityPage />} />
+                </Route>
 
-              <Route path="/404" element={<NotFound />} />
-              <Route path="*" element={<Navigate to="/404" replace />} />
-            </Routes>
+                <Route path="/404" element={<NotFound />} />
+                <Route path="*" element={<Navigate to="/404" replace />} />
+              </Routes>
+            </NavigationProvider>
           </BrowserRouter>
         </TooltipProvider>
       </ProductionAuthProvider>
