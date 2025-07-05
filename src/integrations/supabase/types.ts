@@ -513,6 +513,39 @@ export type Database = {
         }
         Relationships: []
       }
+      call_signals: {
+        Row: {
+          caller_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          recipient_id: string
+          signal_data: Json
+          signal_type: string
+          status: string
+        }
+        Insert: {
+          caller_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          recipient_id: string
+          signal_data: Json
+          signal_type: string
+          status?: string
+        }
+        Update: {
+          caller_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          recipient_id?: string
+          signal_data?: Json
+          signal_type?: string
+          status?: string
+        }
+        Relationships: []
+      }
       carbon_footprint_data: {
         Row: {
           activities: Json
@@ -3538,6 +3571,10 @@ export type Database = {
         Returns: undefined
       }
       clean_old_application_logs: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_expired_call_signals: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
