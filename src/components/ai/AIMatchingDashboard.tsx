@@ -3,14 +3,14 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Brain, TrendingUp, Users, Target, Zap, BarChart3 } from 'lucide-react';
-import { useAIMatching } from '@/hooks/ai/useAIMatching';
+import { Brain, Zap } from 'lucide-react';
 import { BehaviorProfileForm } from './BehaviorProfileForm';
-import { SmartOpportunityCard } from './SmartOpportunityCard';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import type { MarketIntelligence } from '@/types/ai-matching';
+import { AIMatchingStats } from './matching/AIMatchingStats';
+import { OpportunityMatchGrid } from './matching/OpportunityMatchGrid';
+import { MarketInsightsPanel } from './matching/MarketInsightsPanel';
+import { useBehaviorProfile } from '@/hooks/ai/useBehaviorProfile';
+import { useOpportunityMatching } from '@/hooks/ai/useOpportunityMatching';
+import { useMarketIntelligence } from '@/hooks/ai/useMarketIntelligence';
 
 // Mock opportunities for demo
 const mockOpportunities = [
@@ -41,36 +41,16 @@ const mockOpportunities = [
 ];
 
 export function AIMatchingDashboard() {
-  const { 
-    behaviorProfile, 
-    opportunityMatches, 
-    generateMatches, 
-    isAnalyzing,
-    matchesLoading 
-  } = useAIMatching();
-  
+  const { behaviorProfile } = useBehaviorProfile();
+  const { opportunityMatches, generateMatches, isAnalyzing, matchesLoading } = useOpportunityMatching();
+  const { marketData } = useMarketIntelligence();
   const [showProfileForm, setShowProfileForm] = useState(!behaviorProfile);
-
-  // Fetch market intelligence
-  const { data: marketData } = useQuery({
-    queryKey: ['market-intelligence'],
-    queryFn: async (): Promise<MarketIntelligence[]> => {
-      const { data, error } = await supabase
-        .from('market_intelligence' as any)
-        .select(`
-          *,
-          skill:skills_taxonomy(*)
-        `)
-        .limit(10);
-      
-      if (error) throw error;
-      return (data || []) as MarketIntelligence[];
-    },
-  });
 
   const handleGenerateMatches = () => {
     generateMatches(mockOpportunities);
   };
+
+  const profileCompleteness = behaviorProfile ? 85 : 20;
 
   if (showProfileForm) {
     return (
@@ -94,51 +74,10 @@ export function AIMatchingDashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="flex items-center p-6">
-            <Target className="h-8 w-8 text-blue-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-muted-foreground">Smart Matches</p>
-              <p className="text-2xl font-bold">{opportunityMatches?.length || 0}</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="flex items-center p-6">
-            <TrendingUp className="h-8 w-8 text-green-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-muted-foreground">Avg Success Rate</p>
-              <p className="text-2xl font-bold">
-                {opportunityMatches?.length 
-                  ? Math.round(opportunityMatches.reduce((acc, m) => acc + (m.success_prediction || 0), 0) / opportunityMatches.length * 100)
-                  : 0}%
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="flex items-center p-6">
-            <Users className="h-8 w-8 text-purple-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-muted-foreground">Profile Completeness</p>
-              <p className="text-2xl font-bold">{behaviorProfile ? '85%' : '20%'}</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="flex items-center p-6">
-            <BarChart3 className="h-8 w-8 text-orange-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-muted-foreground">Market Position</p>
-              <p className="text-2xl font-bold">Top 15%</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <AIMatchingStats 
+        opportunityMatches={opportunityMatches} 
+        profileCompleteness={profileCompleteness}
+      />
 
       {/* Main Content */}
       <Tabs defaultValue="matches" className="w-full">
@@ -161,64 +100,16 @@ export function AIMatchingDashboard() {
             </Button>
           </div>
           
-          {matchesLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Array(4).fill(0).map((_, i) => (
-                <div key={i} className="animate-pulse">
-                  <div className="h-[400px] bg-muted rounded-lg" />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {mockOpportunities.map(opportunity => {
-                const matchData = opportunityMatches?.find(m => m.opportunity_id === opportunity.id);
-                return (
-                  <SmartOpportunityCard 
-                    key={opportunity.id}
-                    opportunity={opportunity}
-                    matchData={matchData}
-                  />
-                );
-              })}
-            </div>
-          )}
+          <OpportunityMatchGrid 
+            opportunities={mockOpportunities}
+            opportunityMatches={opportunityMatches}
+            isLoading={matchesLoading}
+          />
         </TabsContent>
         
         <TabsContent value="insights" className="space-y-6">
           <h2 className="text-2xl font-semibold">Real-Time Market Intelligence</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {marketData?.map(item => (
-              <Card key={item.id}>
-                <CardHeader>
-                  <CardTitle className="text-lg">{item.skill?.name}</CardTitle>
-                  <CardDescription>{item.region}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span>Demand Score</span>
-                      <span className="font-semibold">{(item.demand_score * 100).toFixed(0)}%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Average Rate</span>
-                      <span className="font-semibold">${item.avg_rate_usd}/hr</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Trend</span>
-                      <Badge variant={
-                        item.trend_direction === 'rising' ? 'default' : 
-                        item.trend_direction === 'stable' ? 'secondary' : 'destructive'
-                      }>
-                        {item.trend_direction}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <MarketInsightsPanel marketData={marketData} />
         </TabsContent>
         
         <TabsContent value="profile" className="space-y-6">

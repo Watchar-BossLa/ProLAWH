@@ -1,17 +1,18 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Brain, Target, Users, MapPin } from 'lucide-react';
-import { useAIMatching } from '@/hooks/ai/useAIMatching';
+import { Target, MapPin } from 'lucide-react';
+import { useBehaviorProfile } from '@/hooks/ai/useBehaviorProfile';
+import { BehaviorProfileHeader } from './forms/BehaviorProfileHeader';
+import { WorkStyleSelector } from './forms/WorkStyleSelector';
 import type { BehaviorProfile } from '@/types/ai-matching';
 
-const workStyles = ['Independent', 'Collaborative', 'Leadership', 'Supportive', 'Analytical', 'Creative'];
 const projectDurations = ['Short-term (< 1 month)', 'Medium-term (1-6 months)', 'Long-term (6+ months)', 'Ongoing'];
 const communicationStyles = ['Direct', 'Diplomatic', 'Analytical', 'Enthusiastic', 'Supportive'];
 
@@ -20,7 +21,7 @@ interface BehaviorProfileFormProps {
 }
 
 export function BehaviorProfileForm({ onComplete }: BehaviorProfileFormProps) {
-  const { behaviorProfile, updateBehaviorProfile } = useAIMatching();
+  const { behaviorProfile, updateBehaviorProfile } = useBehaviorProfile();
   const [formData, setFormData] = useState({
     work_style_preferences: behaviorProfile?.work_style_preferences || {},
     collaboration_preferences: behaviorProfile?.collaboration_preferences || {},
@@ -76,36 +77,14 @@ export function BehaviorProfileForm({ onComplete }: BehaviorProfileFormProps) {
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Brain className="h-5 w-5 text-blue-600" />
-          AI Behavior Profile
-        </CardTitle>
-        <CardDescription>
-          Help our AI understand your work preferences for better opportunity matching
-        </CardDescription>
-      </CardHeader>
+      <BehaviorProfileHeader />
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Work Style Preferences */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-blue-600" />
-              <Label className="text-base font-semibold">Work Style Preferences</Label>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {workStyles.map(style => (
-                <Badge
-                  key={style}
-                  variant={selectedWorkStyles.includes(style) ? "default" : "outline"}
-                  className="cursor-pointer"
-                  onClick={() => toggleWorkStyle(style)}
-                >
-                  {style}
-                </Badge>
-              ))}
-            </div>
-          </div>
+          <WorkStyleSelector 
+            selectedWorkStyles={selectedWorkStyles}
+            onToggle={toggleWorkStyle}
+          />
 
           {/* Risk Tolerance */}
           <div className="space-y-4">
