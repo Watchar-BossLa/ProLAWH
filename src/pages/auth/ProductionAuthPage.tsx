@@ -17,34 +17,47 @@ interface LocationState {
 
 export default function ProductionAuthPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("test@example.com"); // Pre-fill for testing
+  const [password, setPassword] = useState("password123"); // Pre-fill for testing
+  const [fullName, setFullName] = useState("Test User");
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, signUp, user } = useProductionAuth();
+  const { signIn, signUp, user, isLoading: authLoading } = useProductionAuth();
   
   const state = location.state as LocationState;
   const returnUrl = state?.returnUrl || "/dashboard";
 
+  // Debug logging
+  useEffect(() => {
+    console.log('ProductionAuthPage mounted');
+    console.log('Auth loading:', authLoading);
+    console.log('Current user:', user);
+  }, [authLoading, user]);
+
   // Redirect if already authenticated
   useEffect(() => {
-    if (user) {
+    if (!authLoading && user) {
+      console.log('User is authenticated, redirecting to:', returnUrl);
       navigate(returnUrl);
     }
-  }, [user, navigate, returnUrl]);
+  }, [user, authLoading, navigate, returnUrl]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted:', { isSignUp, email, password, fullName });
+    
     setIsLoading(true);
     setError(null);
 
     try {
       if (isSignUp) {
+        console.log('Attempting sign up...');
         const userData = fullName ? { full_name: fullName } : undefined;
         const result = await signUp(email, password, userData);
+        
+        console.log('Sign up result:', result);
         
         if (result?.error) {
           throw new Error(result.error.message);
@@ -62,7 +75,10 @@ export default function ProductionAuthPage() {
           setPassword("");
         }
       } else {
+        console.log('Attempting sign in...');
         const result = await signIn(email, password);
+        
+        console.log('Sign in result:', result);
         
         if (result?.error) {
           throw new Error(result.error.message);
@@ -75,6 +91,8 @@ export default function ProductionAuthPage() {
         });
       }
     } catch (error: any) {
+      console.error('Authentication error:', error);
+      
       const errorMessage = error.message || "An error occurred during authentication";
       
       // Provide helpful error messages
@@ -87,6 +105,8 @@ export default function ProductionAuthPage() {
         friendlyMessage = "Invalid email or password. Please check your credentials and try again.";
       } else if (errorMessage.includes("Email not confirmed")) {
         friendlyMessage = "Please check your email and click the verification link before signing in.";
+      } else if (errorMessage.includes("User already registered")) {
+        friendlyMessage = "An account with this email already exists. Try signing in instead.";
       }
       
       setError(friendlyMessage);
@@ -99,6 +119,15 @@ export default function ProductionAuthPage() {
       setIsLoading(false);
     }
   };
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/50 to-background py-12 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-500">
@@ -115,6 +144,11 @@ export default function ProductionAuthPage() {
           {returnUrl !== "/dashboard" && (
             <div className="py-2 px-3 bg-muted/50 rounded-md text-sm">
               You'll be redirected to {returnUrl.replace("/dashboard/", "")} after login
+            </div>
+          )}
+          {!ENV.isProduction && (
+            <div className="py-2 px-3 bg-blue-100 dark:bg-blue-900/30 rounded-md text-sm text-blue-800 dark:text-blue-300">
+              Debug: Form pre-filled for testing
             </div>
           )}
         </CardHeader>
@@ -187,7 +221,7 @@ export default function ProductionAuthPage() {
                 onClick={() => {
                   setIsSignUp(!isSignUp);
                   setError(null);
-                  setPassword("");
+                  setPassword(isSignUp ? "password123" : ""); // Reset password for testing
                 }}
               >
                 {isSignUp
