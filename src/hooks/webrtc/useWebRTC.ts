@@ -43,7 +43,7 @@ export function useWebRTC() {
     peerConnection.current = new RTCPeerConnection(rtcConfig);
 
     peerConnection.current.onicecandidate = async (event) => {
-      if (event.candidate) {
+      if (event.candidate && user) {
         // Send ICE candidate through Supabase realtime
         const channel = supabase.channel('webrtc-signaling');
         await channel.send({
@@ -51,7 +51,7 @@ export function useWebRTC() {
           event: 'ice-candidate',
           payload: {
             candidate: event.candidate,
-            senderId: user?.id
+            senderId: user.id
           }
         });
       }
@@ -150,23 +150,16 @@ export function useWebRTC() {
       const offer = await peerConnection.current.createOffer();
       await peerConnection.current.setLocalDescription(offer);
 
-      // Send offer through Supabase using raw SQL to bypass type issues
-      const { error } = await supabase.rpc('exec_sql', {
-        sql: `INSERT INTO call_signals (caller_id, recipient_id, signal_type, signal_data, status) 
-              VALUES ($1, $2, $3, $4, $5)`,
-        args: [user.id, recipientId, 'offer', JSON.stringify(offer), 'calling']
-      }).catch(async () => {
-        // Fallback: use direct insert with any type assertion
-        return await (supabase as any)
-          .from('call_signals')
-          .insert({
-            caller_id: user.id,
-            recipient_id: recipientId,
-            signal_type: 'offer',
-            signal_data: offer,
-            status: 'calling'
-          });
-      });
+      // Send offer through Supabase call_signals table
+      const { error } = await supabase
+        .from('call_signals')
+        .insert({
+          caller_id: user.id,
+          recipient_id: recipientId,
+          signal_type: 'offer',
+          signal_data: offer,
+          status: 'calling'
+        });
 
       if (error) {
         console.error('Error sending offer:', error);
@@ -189,8 +182,8 @@ export function useWebRTC() {
       const answer = await peerConnection.current.createAnswer();
       await peerConnection.current.setLocalDescription(answer);
 
-      // Send answer through Supabase using fallback method
-      const { error } = await (supabase as any)
+      // Send answer through Supabase call_signals table
+      const { error } = await supabase
         .from('call_signals')
         .insert({
           caller_id: callerId,
