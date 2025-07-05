@@ -1,18 +1,20 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, Shield, Brain, Zap } from "lucide-react";
-import { FilterSidebar } from "@/components/marketplace/FilterSidebar";
+import { Badge } from "@/components/ui/badge";
+import { Briefcase, Shield, Brain, Zap, TrendingUp } from "lucide-react";
 import { OpportunityList } from "@/components/marketplace/OpportunityList";
 import { PageWrapper } from "@/components/ui/page-wrapper";
 import { AIMatchingDashboard } from "@/components/ai/AIMatchingDashboard";
 import { SmartOpportunityCard } from "@/components/ai/SmartOpportunityCard";
+import { AdvancedSearchBar } from "@/components/search/AdvancedSearchBar";
+import { AdvancedFilters } from "@/components/search/AdvancedFilters";
+import { useAdvancedSearch } from "@/hooks/useAdvancedSearch";
 import { useAIMatching } from "@/hooks/ai/useAIMatching";
-import type { Opportunity, FilterState } from "@/types/marketplace";
+import type { Opportunity } from "@/types/marketplace";
 
 const mockOpportunities: Opportunity[] = [
   {
@@ -77,19 +79,27 @@ const mockOpportunities: Opportunity[] = [
   }
 ];
 
-const commonSkills = [
-  "Data Analysis", "Renewable Energy", "ESG", "Sustainability",
-  "Project Management", "Machine Learning", "Environmental Compliance",
-  "Green Architecture", "Circular Economy"
-];
-
 export default function OpportunityMarketplace() {
-  const [filter, setFilter] = useState<FilterState>({
-    query: "",
-    remote: false,
-    insured: false,
-    minGreenScore: 0,
-    skillFilter: []
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  
+  const {
+    searchQuery,
+    filters,
+    searchResults,
+    savedFilters,
+    availableSkills,
+    searchStats,
+    handleSearch,
+    handleFiltersChange,
+    resetFilters,
+    saveCurrentFilters,
+    loadSavedFilter,
+    setSearchQuery
+  } = useAdvancedSearch({
+    data: mockOpportunities,
+    initialFilters: {
+      sortBy: 'relevance'
+    }
   });
   
   const { 
@@ -100,21 +110,12 @@ export default function OpportunityMarketplace() {
   } = useAIMatching();
   
   const { data: opportunities, isLoading } = useQuery({
-    queryKey: ['opportunities', filter],
+    queryKey: ['opportunities', 'advanced-search'],
     queryFn: async () => {
-      return mockOpportunities.filter(opp => {
-        if (filter.remote && !opp.is_remote) return false;
-        if (filter.insured && !opp.has_insurance) return false;
-        if (filter.minGreenScore > 0 && opp.green_score < filter.minGreenScore) return false;
-        if (filter.query && !opp.title.toLowerCase().includes(filter.query.toLowerCase())) return false;
-        return true;
-      });
+      // Return the search results
+      return searchResults.map(result => result.item);
     }
   });
-
-  const updateFilter = (key: string, value: any) => {
-    setFilter(prev => ({ ...prev, [key]: value }));
-  };
 
   const handleGenerateAIMatches = () => {
     generateMatches(mockOpportunities);
@@ -138,138 +139,182 @@ export default function OpportunityMarketplace() {
       title="Green Career Opportunities"
       description="Discover sustainable and impactful projects aligned with your green skills"
     >
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <FilterSidebar 
-          filter={filter}
-          onFilterChange={updateFilter}
-          commonSkills={commonSkills}
-        />
+      <div className="space-y-6">
+        {/* Advanced Search Header */}
+        <div className="space-y-4">
+          <AdvancedSearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            onSearch={handleSearch}
+            onFiltersClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            placeholder="Search green opportunities, companies, skills..."
+            className="w-full"
+          />
 
-        <div className="lg:col-span-3 space-y-6">
-          <Tabs defaultValue="all" className="w-full">
-            <div className="flex items-center justify-between mb-4">
-              <TabsList>
-                <TabsTrigger value="all">All Opportunities</TabsTrigger>
-                <TabsTrigger value="ai-matched" className="flex items-center gap-2">
-                  <Brain className="h-4 w-4" />
-                  AI Matched ({opportunityMatches?.length || 0})
-                </TabsTrigger>
-                <TabsTrigger value="ai-dashboard">AI Dashboard</TabsTrigger>
-                <TabsTrigger value="applied">Applied</TabsTrigger>
-              </TabsList>
-              
-              {behaviorProfile && (
-                <Button 
-                  onClick={handleGenerateAIMatches}
-                  disabled={isAnalyzing}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  <Zap className="h-4 w-4" />
-                  {isAnalyzing ? 'Analyzing...' : 'Generate AI Matches'}
-                </Button>
+          {/* Search Stats */}
+          {searchStats.hasActiveFilters && (
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <span>
+                Showing {searchStats.filtered} of {searchStats.total} opportunities
+              </span>
+              {searchStats.filterReduction > 0 && (
+                <Badge variant="outline" className="text-xs">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  {searchStats.filterReduction}% filtered
+                </Badge>
               )}
             </div>
-            
-            <TabsContent value="all" className="mt-6">
-              <OpportunityList opportunities={opportunities} isLoading={isLoading} />
-            </TabsContent>
-            
-            <TabsContent value="ai-matched" className="mt-6">
-              <div className="space-y-4">
-                {!opportunityMatches?.length ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <Brain className="h-12 w-12 text-primary/70 mb-4" />
-                    <h3 className="text-lg font-semibold">AI Matching Available</h3>
-                    <p className="text-muted-foreground max-w-md mx-auto mt-2">
-                      {!behaviorProfile 
-                        ? "Complete your AI behavior profile to get personalized opportunity matches."
-                        : "Generate your first AI-powered matches to see opportunities tailored to your skills and preferences."
-                      }
-                    </p>
-                    {!behaviorProfile ? (
-                      <Button className="mt-6" onClick={() => window.location.hash = '#ai-dashboard'}>
-                        Complete AI Profile
-                      </Button>
-                    ) : (
-                      <Button className="mt-6" onClick={handleGenerateAIMatches} disabled={isAnalyzing}>
-                        <Brain className="h-4 w-4 mr-2" />
-                        {isAnalyzing ? 'Analyzing...' : 'Generate AI Matches'}
-                      </Button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {getMatchedOpportunities().map(opportunity => {
-                      const matchData = opportunityMatches.find(m => m.opportunity_id === opportunity.id);
-                      return (
-                        <SmartOpportunityCard 
-                          key={opportunity.id}
-                          opportunity={opportunity}
-                          matchData={matchData}
-                        />
-                      );
-                    })}
-                  </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Advanced Filters Sidebar */}
+          {showAdvancedFilters && (
+            <div className="lg:col-span-1">
+              <AdvancedFilters
+                filters={filters}
+                onFiltersChange={handleFiltersChange}
+                availableSkills={availableSkills}
+                onReset={resetFilters}
+                onSave={saveCurrentFilters}
+                savedFilters={savedFilters}
+                onLoadSavedFilter={loadSavedFilter}
+              />
+            </div>
+          )}
+
+          {/* Main Content */}
+          <div className={`${showAdvancedFilters ? 'lg:col-span-3' : 'lg:col-span-4'} space-y-6`}>
+            <Tabs defaultValue="all" className="w-full">
+              <div className="flex items-center justify-between mb-4">
+                <TabsList>
+                  <TabsTrigger value="all">
+                    All Opportunities 
+                    <Badge variant="secondary" className="ml-2">
+                      {searchResults.length}
+                    </Badge>
+                  </TabsTrigger>
+                  <TabsTrigger value="ai-matched" className="flex items-center gap-2">
+                    <Brain className="h-4 w-4" />
+                    AI Matched ({opportunityMatches?.length || 0})
+                  </TabsTrigger>
+                  <TabsTrigger value="ai-dashboard">AI Dashboard</TabsTrigger>
+                  <TabsTrigger value="applied">Applied</TabsTrigger>
+                </TabsList>
+                
+                {behaviorProfile && (
+                  <Button 
+                    onClick={handleGenerateAIMatches}
+                    disabled={isAnalyzing}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <Zap className="h-4 w-4" />
+                    {isAnalyzing ? 'Analyzing...' : 'Generate AI Matches'}
+                  </Button>
                 )}
               </div>
-            </TabsContent>
+              
+              <TabsContent value="all" className="mt-6">
+                <OpportunityList opportunities={opportunities} isLoading={isLoading} />
+              </TabsContent>
+              
+              <TabsContent value="ai-matched" className="mt-6">
+                <div className="space-y-4">
+                  {!opportunityMatches?.length ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <Brain className="h-12 w-12 text-primary/70 mb-4" />
+                      <h3 className="text-lg font-semibold">AI Matching Available</h3>
+                      <p className="text-muted-foreground max-w-md mx-auto mt-2">
+                        {!behaviorProfile 
+                          ? "Complete your AI behavior profile to get personalized opportunity matches."
+                          : "Generate your first AI-powered matches to see opportunities tailored to your skills and preferences."
+                        }
+                      </p>
+                      {!behaviorProfile ? (
+                        <Button className="mt-6" onClick={() => window.location.hash = '#ai-dashboard'}>
+                          Complete AI Profile
+                        </Button>
+                      ) : (
+                        <Button className="mt-6" onClick={handleGenerateAIMatches} disabled={isAnalyzing}>
+                          <Brain className="h-4 w-4 mr-2" />
+                          {isAnalyzing ? 'Analyzing...' : 'Generate AI Matches'}
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {getMatchedOpportunities().map(opportunity => {
+                        const matchData = opportunityMatches.find(m => m.opportunity_id === opportunity.id);
+                        return (
+                          <SmartOpportunityCard 
+                            key={opportunity.id}
+                            opportunity={opportunity}
+                            matchData={matchData}
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
 
-            <TabsContent value="ai-dashboard" className="mt-6">
-              <AIMatchingDashboard />
-            </TabsContent>
+              <TabsContent value="ai-dashboard" className="mt-6">
+                <AIMatchingDashboard />
+              </TabsContent>
+              
+              <TabsContent value="applied">
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <Briefcase className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold">No Applications Yet</h3>
+                  <p className="text-muted-foreground max-w-md mx-auto mt-2">
+                    You haven't applied to any opportunities yet. Browse the marketplace to find gigs that match your skills.
+                  </p>
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <Separator />
             
-            <TabsContent value="applied">
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Briefcase className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold">No Applications Yet</h3>
-                <p className="text-muted-foreground max-w-md mx-auto mt-2">
-                  You haven't applied to any opportunities yet. Browse the marketplace to find gigs that match your skills.
-                </p>
+            <div className="bg-muted p-6 rounded-lg">
+              <h3 className="text-lg font-semibold mb-4">ProLawh AI Advantage</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Brain className="h-4 w-4" />
+                      AI Matching
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-xs text-muted-foreground">
+                      Advanced algorithms analyze your behavior, skills, and success patterns for perfect opportunity matches.
+                    </p>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Skill Verification</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-xs text-muted-foreground">
+                      Blockchain-verified credentials and peer-reviewed skill assessments ensure authentic talent matching.
+                    </p>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Success Prediction</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-xs text-muted-foreground">
+                      AI predicts your success rate for each opportunity based on historical data and compatibility analysis.
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
-            </TabsContent>
-          </Tabs>
-
-          <Separator />
-          
-          <div className="bg-muted p-6 rounded-lg">
-            <h3 className="text-lg font-semibold mb-4">ProLawh AI Advantage</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Brain className="h-4 w-4" />
-                    AI Matching
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-muted-foreground">
-                    Advanced algorithms analyze your behavior, skills, and success patterns for perfect opportunity matches.
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Skill Verification</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-muted-foreground">
-                    Blockchain-verified credentials and peer-reviewed skill assessments ensure authentic talent matching.
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Success Prediction</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-muted-foreground">
-                    AI predicts your success rate for each opportunity based on historical data and compatibility analysis.
-                  </p>
-                </CardContent>
-              </Card>
             </div>
           </div>
         </div>
