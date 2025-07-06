@@ -1,10 +1,11 @@
+
 import Fuse from 'fuse.js';
 import type { Opportunity } from '@/types/marketplace';
 
 export interface SearchResult<T> {
   item: T;
   score?: number;
-  matches?: Fuse.FuseResultMatch[];
+  matches?: readonly Fuse.FuseResultMatch[];
 }
 
 export interface SearchOptions {
