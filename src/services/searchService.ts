@@ -4,11 +4,7 @@ import type { Opportunity } from '@/types/marketplace';
 export interface SearchResult<T> {
   item: T;
   score?: number;
-  matches?: Array<{
-    indices: number[][];
-    key?: string;
-    value?: string;
-  }>;
+  matches?: Fuse.FuseResultMatch[];
 }
 
 export interface SearchOptions {
