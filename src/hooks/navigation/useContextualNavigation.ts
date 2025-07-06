@@ -134,7 +134,7 @@ export function useContextualNavigation(): ContextualNavigation {
       quickActions,
       workflowHints
     };
-  }, [currentPath, journeyInsights]);
+  }, [location.pathname, journeyInsights]);
 
   return contextualData;
 }
