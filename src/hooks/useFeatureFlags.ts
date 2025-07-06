@@ -14,7 +14,7 @@ const defaultFlags: FeatureFlags = {
   enhancedUI: true,
   glassEffects: true,
   advancedAnimations: true,
-  smartNavigation: false, // Gradual rollout
+  smartNavigation: true, // Now enabled by default
   aiEnhancedSearch: false, // Gradual rollout
   modernLayoutEngine: false // Gradual rollout
 };

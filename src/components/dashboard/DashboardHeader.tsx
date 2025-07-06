@@ -9,13 +9,16 @@ import { useDashboardLayoutContext } from "./layout/DashboardLayoutProvider";
 import { TenantSwitcher } from "@/components/enterprise/TenantSwitcher";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { SmartBreadcrumbNavigation } from "@/components/navigation/SmartBreadcrumbNavigation";
 import { BreadcrumbNavigation } from "@/components/navigation/BreadcrumbNavigation";
 import { BackForwardButtons } from "@/components/navigation/BackForwardButtons";
 import { QuickNavigationPanel } from "@/components/navigation/QuickNavigationPanel";
+import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 
 export function DashboardHeader() {
   const { signOut } = useProductionAuth();
   const { user } = useDashboardLayoutContext();
+  const { isEnabled } = useFeatureFlags();
   const navigate = useNavigate();
   const [quickNavOpen, setQuickNavOpen] = useState(false);
 
@@ -53,9 +56,13 @@ export function DashboardHeader() {
             <div className="h-6 w-px bg-border mx-2" />
           </div>
 
-          {/* Breadcrumbs */}
+          {/* Smart or Basic Breadcrumbs */}
           <div className="flex-1 max-w-md">
-            <BreadcrumbNavigation />
+            {isEnabled('smartNavigation') ? (
+              <SmartBreadcrumbNavigation />
+            ) : (
+              <BreadcrumbNavigation />
+            )}
           </div>
 
           {/* Search & Quick Nav */}
