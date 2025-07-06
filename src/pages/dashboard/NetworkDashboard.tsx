@@ -18,6 +18,7 @@ import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 import { Users, Network, Brain, BarChart, Zap, Rocket } from "lucide-react";
 import { toast } from "sonner";
 import { mockConnections, mockStats, mockUserSkills, mockIndustries, mockActiveChatConnection } from "@/data/mockNetworkData";
+import { NetworkConnection } from "@/types/network";
 
 export default function NetworkDashboard() {
   const { state, actions } = useNetworkState();
@@ -38,11 +39,47 @@ export default function NetworkDashboard() {
     state.selectedIndustry
   );
 
-  // Mock data for Phase 3 features
-  const [availableConnections] = useState([
-    { id: 'avail-1', name: 'Sarah Chen', role: 'AI Researcher', company: 'TechCorp', skills: ['Machine Learning', 'Python'], industry: 'Technology' },
-    { id: 'avail-2', name: 'Mike Johnson', role: 'Product Manager', company: 'InnovateLabs', skills: ['Product Strategy', 'Analytics'], industry: 'Technology' },
-    { id: 'avail-3', name: 'Lisa Wang', role: 'UX Designer', company: 'DesignStudio', skills: ['UI/UX', 'Figma'], industry: 'Design' }
+  // Mock data for Phase 3 features with proper NetworkConnection structure
+  const [availableConnections] = useState<NetworkConnection[]>([
+    { 
+      id: 'avail-1', 
+      userId: 'user-1',
+      name: 'Sarah Chen', 
+      role: 'AI Researcher', 
+      company: 'TechCorp', 
+      connectionType: 'peer',
+      connectionStrength: 85,
+      lastInteraction: '2024-01-15',
+      status: 'connected',
+      skills: ['Machine Learning', 'Python'], 
+      industry: 'Technology' 
+    },
+    { 
+      id: 'avail-2', 
+      userId: 'user-2',
+      name: 'Mike Johnson', 
+      role: 'Product Manager', 
+      company: 'InnovateLabs', 
+      connectionType: 'colleague',
+      connectionStrength: 72,
+      lastInteraction: '2024-01-12',
+      status: 'connected',
+      skills: ['Product Strategy', 'Analytics'], 
+      industry: 'Technology' 
+    },
+    { 
+      id: 'avail-3', 
+      userId: 'user-3',
+      name: 'Lisa Wang', 
+      role: 'UX Designer', 
+      company: 'DesignStudio', 
+      connectionType: 'peer',
+      connectionStrength: 68,
+      lastInteraction: '2024-01-10',
+      status: 'connected',
+      skills: ['UI/UX', 'Figma'], 
+      industry: 'Design' 
+    }
   ]);
 
   const [availableProjects] = useState([

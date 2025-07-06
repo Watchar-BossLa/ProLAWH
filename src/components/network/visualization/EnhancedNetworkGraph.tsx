@@ -9,6 +9,22 @@ import { NetworkConnection } from '@/types/network';
 import { Network, Filter, ZoomIn, ZoomOut, RotateCcw, Users } from 'lucide-react';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
+interface D3Node extends NetworkConnection {
+  x?: number;
+  y?: number;
+  vx?: number;
+  vy?: number;
+  fx?: number | null;
+  fy?: number | null;
+  connectionCount?: number;
+}
+
+interface D3Link {
+  source: string | D3Node;
+  target: string | D3Node;
+  value: number;
+}
+
 interface EnhancedNetworkGraphProps {
   connections: NetworkConnection[];
   onConnectionSelect: (connectionId: string) => void;
@@ -63,7 +79,7 @@ export function EnhancedNetworkGraph({
     });
 
     // Create force simulation with clustering
-    const simulation = d3.forceSimulation(nodes)
+    const simulation = d3.forceSimulation(nodes as D3Node[])
       .force('link', d3.forceLink(links).id((d: any) => d.id).distance(100))
       .force('charge', d3.forceManyBody().strength(-300))
       .force('center', d3.forceCenter(width / 2, height / 2))
@@ -111,7 +127,7 @@ export function EnhancedNetworkGraph({
       .enter().append('g')
       .attr('class', 'node')
       .style('cursor', 'pointer')
-      .call(d3.drag<SVGGElement, any>()
+      .call(d3.drag<SVGGElement, D3Node>()
         .on('start', dragstarted)
         .on('drag', dragged)
         .on('end', dragended));
@@ -139,28 +155,28 @@ export function EnhancedNetworkGraph({
     // Update positions on simulation tick
     simulation.on('tick', () => {
       link
-        .attr('x1', d => d.source.x)
-        .attr('y1', d => d.source.y)
-        .attr('x2', d => d.target.x)
-        .attr('y2', d => d.target.y);
+        .attr('x1', d => (d.source as D3Node).x || 0)
+        .attr('y1', d => (d.source as D3Node).y || 0)
+        .attr('x2', d => (d.target as D3Node).x || 0)
+        .attr('y2', d => (d.target as D3Node).y || 0);
 
-      node.attr('transform', d => `translate(${d.x},${d.y})`);
+      node.attr('transform', d => `translate(${d.x || 0},${d.y || 0})`);
       
       clusterGroups.attr('transform', d => `translate(${d[1].x},${d[1].y})`);
     });
 
-    function dragstarted(event: any, d: any) {
+    function dragstarted(event: any, d: D3Node) {
       if (!event.active) simulation.alphaTarget(0.3).restart();
       d.fx = d.x;
       d.fy = d.y;
     }
 
-    function dragged(event: any, d: any) {
+    function dragged(event: any, d: D3Node) {
       d.fx = event.x;
       d.fy = event.y;
     }
 
-    function dragended(event: any, d: any) {
+    function dragended(event: any, d: D3Node) {
       if (!event.active) simulation.alphaTarget(0);
       d.fx = null;
       d.fy = null;
@@ -168,30 +184,24 @@ export function EnhancedNetworkGraph({
   };
 
   const createClusteredNetwork = (connections: NetworkConnection[]) => {
-    const nodes = connections.map(conn => ({
-      id: conn.id,
-      name: conn.name,
-      role: conn.role,
-      company: conn.company,
-      type: conn.connectionType,
-      skills: conn.skills || [],
-      industry: conn.industry || 'Other',
+    const nodes: D3Node[] = connections.map(conn => ({
+      ...conn,
       connectionCount: 0
     }));
 
     // Create clusters based on selected criteria
-    const clusters: { [key: string]: any[] } = {};
+    const clusters: { [key: string]: D3Node[] } = {};
     nodes.forEach(node => {
       let clusterKey = '';
       switch (clusterBy) {
         case 'skill':
-          clusterKey = node.skills[0] || 'General';
+          clusterKey = node.skills?.[0] || 'General';
           break;
         case 'industry':
-          clusterKey = node.industry;
+          clusterKey = node.industry || 'Other';
           break;
         case 'type':
-          clusterKey = node.type;
+          clusterKey = node.connectionType;
           break;
       }
       
@@ -210,15 +220,15 @@ export function EnhancedNetworkGraph({
     });
 
     // Create links based on shared attributes
-    const links: any[] = [];
+    const links: D3Link[] = [];
     for (let i = 0; i < nodes.length; i++) {
       for (let j = i + 1; j < nodes.length; j++) {
-        const sharedSkills = nodes[i].skills.filter(skill => 
-          nodes[j].skills.includes(skill)
+        const sharedSkills = (nodes[i].skills || []).filter(skill => 
+          (nodes[j].skills || []).includes(skill)
         ).length;
         
         const sameIndustry = nodes[i].industry === nodes[j].industry ? 1 : 0;
-        const sameType = nodes[i].type === nodes[j].type ? 1 : 0;
+        const sameType = nodes[i].connectionType === nodes[j].connectionType ? 1 : 0;
         
         const linkStrength = sharedSkills + sameIndustry + sameType;
         
@@ -228,8 +238,8 @@ export function EnhancedNetworkGraph({
             target: nodes[j].id,
             value: linkStrength
           });
-          nodes[i].connectionCount++;
-          nodes[j].connectionCount++;
+          nodes[i].connectionCount = (nodes[i].connectionCount || 0) + 1;
+          nodes[j].connectionCount = (nodes[j].connectionCount || 0) + 1;
         }
       }
     }
@@ -239,7 +249,7 @@ export function EnhancedNetworkGraph({
 
   const forceCluster = (clusterCenters: { [key: string]: { x: number; y: number } }) => {
     return (alpha: number) => {
-      connections.forEach(node => {
+      connections.forEach((node: any) => {
         let clusterKey = '';
         switch (clusterBy) {
           case 'skill':
@@ -254,7 +264,7 @@ export function EnhancedNetworkGraph({
         }
         
         const cluster = clusterCenters[clusterKey];
-        if (cluster) {
+        if (cluster && node.vx !== undefined && node.vy !== undefined) {
           const k = alpha * 0.1;
           node.vx -= (node.x - cluster.x) * k;
           node.vy -= (node.y - cluster.y) * k;
@@ -263,8 +273,8 @@ export function EnhancedNetworkGraph({
     };
   };
 
-  const getNodeColor = (node: any) => {
-    switch (node.type) {
+  const getNodeColor = (node: D3Node) => {
+    switch (node.connectionType) {
       case 'mentor': return '#3b82f6';
       case 'peer': return '#10b981';
       case 'colleague': return '#f59e0b';
