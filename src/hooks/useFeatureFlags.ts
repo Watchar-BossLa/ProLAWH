@@ -8,6 +8,9 @@ interface FeatureFlags {
   smartNavigation: boolean;
   aiEnhancedSearch: boolean;
   modernLayoutEngine: boolean;
+  advancedNetworking: boolean;
+  aiConnectionSuggestions: boolean;
+  collaborativeProjects: boolean;
 }
 
 const defaultFlags: FeatureFlags = {
@@ -15,8 +18,11 @@ const defaultFlags: FeatureFlags = {
   glassEffects: true,
   advancedAnimations: true,
   smartNavigation: true,
-  aiEnhancedSearch: true, // Now enabled for Phase 2
-  modernLayoutEngine: false
+  aiEnhancedSearch: true,
+  modernLayoutEngine: false,
+  advancedNetworking: true, // Phase 3 feature
+  aiConnectionSuggestions: true, // Phase 3 feature
+  collaborativeProjects: true // Phase 3 feature
 };
 
 export function useFeatureFlags() {
