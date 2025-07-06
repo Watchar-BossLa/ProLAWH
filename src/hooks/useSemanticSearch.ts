@@ -76,8 +76,9 @@ export function useSemanticSearch() {
       }
 
       // Enhance results with semantic scoring
-      const enhancedResults = traditionalResults.map(result => ({
-        ...result,
+      const enhancedResults: SemanticSearchResult[] = traditionalResults.map(result => ({
+        item: result.item,
+        relevanceScore: result.score || 0.8, // Use existing score or default
         semanticMatch: true,
         reasoning: `Matches "${options.query}" based on content analysis`,
         categories: ['relevant', 'semantic-match']
