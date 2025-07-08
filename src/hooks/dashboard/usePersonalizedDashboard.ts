@@ -17,14 +17,16 @@ export interface AvailableWidget {
 export function usePersonalizedDashboard() {
   const [widgets, setWidgets] = useState<WidgetConfig[]>([
     { id: 'quick-actions', type: 'quick-actions', enabled: true, position: 0 },
-    { id: 'skill-progress', type: 'skill-progress', enabled: true, position: 1 },
-    { id: 'recent-activity', type: 'recent-activity', enabled: true, position: 2 }
+    { id: 'ai-recommendations', type: 'ai-recommendations', enabled: true, position: 1 },
+    { id: 'skill-progress', type: 'skill-progress', enabled: true, position: 2 },
+    { id: 'recent-activity', type: 'recent-activity', enabled: true, position: 3 }
   ]);
 
   const availableWidgets: AvailableWidget[] = [
     { id: 'quick-actions', type: 'quick-actions', name: 'Quick Actions' },
     { id: 'skill-progress', type: 'skill-progress', name: 'Skill Progress' },
     { id: 'recent-activity', type: 'recent-activity', name: 'Recent Activity' },
+    { id: 'ai-recommendations', type: 'ai-recommendations', name: 'AI Recommendations' },
     { id: 'career-insights', type: 'career-insights', name: 'Career Insights' },
     { id: 'upcoming-events', type: 'upcoming-events', name: 'Upcoming Events' }
   ];

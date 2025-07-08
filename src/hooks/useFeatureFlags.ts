@@ -18,7 +18,7 @@ const defaultFlags: FeatureFlags = {
   glassEffects: true,
   advancedAnimations: true,
   smartNavigation: true,
-  aiEnhancedSearch: true,
+  aiEnhancedSearch: true, // Enabled by default for main dashboard
   modernLayoutEngine: false,
   advancedNetworking: true, // Phase 3 feature
   aiConnectionSuggestions: true, // Phase 3 feature

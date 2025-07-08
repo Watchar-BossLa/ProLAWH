@@ -8,9 +8,12 @@ import { DashboardContainer } from "./layout/DashboardContainer";
 import { DashboardMain } from "./layout/DashboardMain";
 import { useProductionAuth } from "@/components/auth/ProductionAuthProvider";
 import { CONFIG, ENV } from "@/config";
+import { ContextualAIAssistant } from "@/components/ai/ContextualAIAssistant";
+import { useState } from "react";
 
 function DashboardLayoutContent() {
   const { user, isLoading } = useProductionAuth();
+  const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -36,6 +39,13 @@ function DashboardLayoutContent() {
           <Outlet />
         </DashboardMain>
       </DashboardContainer>
+      
+      {/* Global AI Assistant */}
+      <ContextualAIAssistant
+        isOpen={aiAssistantOpen}
+        onToggle={() => setAiAssistantOpen(!aiAssistantOpen)}
+        userContext={user}
+      />
     </div>
   );
 }

@@ -14,6 +14,7 @@ import { BreadcrumbNavigation } from "@/components/navigation/BreadcrumbNavigati
 import { BackForwardButtons } from "@/components/navigation/BackForwardButtons";
 import { QuickNavigationPanel } from "@/components/navigation/QuickNavigationPanel";
 import { useFeatureFlags } from "@/hooks/useFeatureFlags";
+import { SemanticSearchBar } from "@/components/search/SemanticSearchBar";
 
 export function DashboardHeader() {
   const { signOut } = useProductionAuth();
@@ -21,6 +22,7 @@ export function DashboardHeader() {
   const { isEnabled } = useFeatureFlags();
   const navigate = useNavigate();
   const [quickNavOpen, setQuickNavOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleSignOut = async () => {
     await signOut();
@@ -65,19 +67,29 @@ export function DashboardHeader() {
             )}
           </div>
 
-          {/* Search & Quick Nav */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setQuickNavOpen(true)}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-            >
-              <Search className="h-4 w-4" />
-              <span className="hidden sm:inline">Search or jump to...</span>
-              <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                <span className="text-xs">⌘</span>K
-              </kbd>
-            </Button>
+          {/* AI-Enhanced Search */}
+          <div className="flex items-center gap-2 flex-1 max-w-lg">
+            {isEnabled('aiEnhancedSearch') ? (
+              <SemanticSearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                onSearch={(query) => console.log('Global search:', query)}
+                placeholder="Search anything with AI..."
+                className="flex-1"
+              />
+            ) : (
+              <Button
+                variant="outline"
+                onClick={() => setQuickNavOpen(true)}
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+              >
+                <Search className="h-4 w-4" />
+                <span className="hidden sm:inline">Search or jump to...</span>
+                <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                  <span className="text-xs">⌘</span>K
+                </kbd>
+              </Button>
+            )}
             
             <Button
               variant="ghost"

@@ -4,6 +4,7 @@ import { WidgetConfig } from '@/hooks/dashboard/usePersonalizedDashboard';
 import { QuickActionsWidget } from './QuickActionsWidget';
 import { SkillProgressWidget } from './SkillProgressWidget';
 import { RecentActivityWidget } from './RecentActivityWidget';
+import { IntelligentRecommendations } from '@/components/ai/IntelligentRecommendations';
 
 interface WidgetRendererProps {
   widget: WidgetConfig;
@@ -36,6 +37,12 @@ export function WidgetRenderer({ widget, onRemove }: WidgetRendererProps) {
           key={widget.id}
           id={widget.id}
           onRemove={onRemove}
+        />
+      );
+    case 'ai-recommendations':
+      return (
+        <IntelligentRecommendations
+          key={widget.id}
         />
       );
     default:
