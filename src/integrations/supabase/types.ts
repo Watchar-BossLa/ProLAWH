@@ -683,8 +683,10 @@ export type Database = {
           id: string
           message_type: string | null
           reactions: Json | null
+          read_by: Json | null
           reply_to_id: string | null
           sender_id: string
+          status: string | null
           updated_at: string
         }
         Insert: {
@@ -696,8 +698,10 @@ export type Database = {
           id?: string
           message_type?: string | null
           reactions?: Json | null
+          read_by?: Json | null
           reply_to_id?: string | null
           sender_id: string
+          status?: string | null
           updated_at?: string
         }
         Update: {
@@ -709,8 +713,10 @@ export type Database = {
           id?: string
           message_type?: string | null
           reactions?: Json | null
+          read_by?: Json | null
           reply_to_id?: string | null
           sender_id?: string
+          status?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -789,6 +795,33 @@ export type Database = {
           name?: string | null
           type?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      chat_typing_indicators: {
+        Row: {
+          chat_id: string
+          expires_at: string | null
+          id: string
+          is_typing: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          chat_id: string
+          expires_at?: string | null
+          id?: string
+          is_typing?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          chat_id?: string
+          expires_at?: string | null
+          id?: string
+          is_typing?: boolean | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }

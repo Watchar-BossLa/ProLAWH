@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { useRealTimeChat } from "@/hooks/useRealTimeChat";
+import { useEnhancedRealTimeChat } from "@/hooks/chat/useEnhancedRealTimeChat";
 import { ChatRoomList } from "@/components/chat/ChatRoomList";
 import { EnhancedChatMessageList } from "@/components/chat/EnhancedChatMessageList";
 import { MessageInput } from "@/components/network/chat/MessageInput";
