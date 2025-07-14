@@ -1,58 +1,30 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { useEnhancedRealTimeChat } from "@/hooks/chat/useEnhancedRealTimeChat";
-import { ChatRoomList } from "@/components/chat/ChatRoomList";
-import { EnhancedChatMessageList } from "@/components/chat/EnhancedChatMessageList";
-import { MessageInput } from "@/components/network/chat/MessageInput";
-import { AttachmentType } from "@/components/network/chat/MessageAttachment";
+import { EnhancedMessageList } from "@/components/chat/EnhancedMessageList";
+import { EnhancedMessageInput } from "@/components/chat/EnhancedMessageInput";
 import { useAuth } from "@/hooks/useAuth";
-import { MessageCircle } from "lucide-react";
-
-interface AttachmentData {
-  id: string;
-  type: AttachmentType;
-  url: string;
-  name: string;
-  size?: number;
-}
+import { MessageCircle, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function RealTimeChatPage() {
   const { user } = useAuth();
-  const [selectedChatId, setSelectedChatId] = useState<string>();
-  const [replyToMessage, setReplyToMessage] = useState<any>(null);
+  const [selectedChatId, setSelectedChatId] = useState<string>("demo-chat");
 
   const {
-    chatRooms,
     messages,
     typingUsers,
-    currentChat,
     isLoading,
+    connectionStatus,
     sendMessage,
     addReaction,
     removeReaction,
-    markAsRead,
     updateTypingStatus
-  } = useRealTimeChat(selectedChatId);
+  } = useEnhancedRealTimeChat({ chatId: selectedChatId });
 
-  const handleSendMessage = async (content: string, attachments: AttachmentData[], replyToId?: string) => {
-    if (!content.trim() && attachments.length === 0) return;
-
-    // Handle file attachments (first one for now)
-    const fileData = attachments.length > 0 ? {
-      url: attachments[0].url,
-      name: attachments[0].name,
-      size: attachments[0].size || 0
-    } : undefined;
-
-    const messageType = attachments.length > 0 
-      ? (attachments[0].type === 'image' ? 'image' : 'file')
-      : 'text';
-
-    await sendMessage(content || `Shared ${attachments[0]?.name}`, messageType, fileData, replyToId);
-    
-    // Clear reply context
-    setReplyToMessage(null);
+  const handleSendMessage = async (content: string) => {
+    if (!content.trim()) return;
+    await sendMessage({ content, type: 'text' });
   };
 
   const handleTyping = (isTyping: boolean) => {
@@ -62,21 +34,13 @@ export default function RealTimeChatPage() {
   const handleReactToMessage = (messageId: string, emoji: string) => {
     // Check if user already reacted with this emoji
     const message = messages.find(m => m.id === messageId);
-    const existingReaction = message?.reactions.find(r => r.user_id === user?.id && r.reaction === emoji);
+    const existingReaction = message?.reactions?.find(r => r.user_id === user?.id && r.emoji === emoji);
     
     if (existingReaction) {
       removeReaction(messageId, emoji);
     } else {
       addReaction(messageId, emoji);
     }
-  };
-
-  const handleReplyToMessage = (message: any) => {
-    setReplyToMessage(message);
-  };
-
-  const handleCancelReply = () => {
-    setReplyToMessage(null);
   };
 
   if (!user) {
@@ -93,21 +57,41 @@ export default function RealTimeChatPage() {
 
   return (
     <div className="container mx-auto p-6 h-screen">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
         {/* Chat Rooms List */}
         <div className="lg:col-span-1">
-          <ChatRoomList
-            chatRooms={chatRooms}
-            selectedChatId={selectedChatId}
-            onSelectChat={setSelectedChatId}
-            isLoading={isLoading}
-          />
+          <Card className="h-full">
+            <div className="p-4 border-b">
+              <h2 className="font-semibold flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Chat Rooms
+              </h2>
+            </div>
+            <div className="p-4">
+              <Button
+                variant={selectedChatId === "demo-chat" ? "default" : "ghost"}
+                className="w-full justify-start mb-2"
+                onClick={() => setSelectedChatId("demo-chat")}
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Demo Chat
+              </Button>
+              <Button
+                variant={selectedChatId === "general" ? "default" : "ghost"}
+                className="w-full justify-start"
+                onClick={() => setSelectedChatId("general")}
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                General
+              </Button>
+            </div>
+          </Card>
         </div>
 
         {/* Chat Interface */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-3">
           <Card className="h-full flex flex-col">
-            {selectedChatId && currentChat ? (
+            {selectedChatId ? (
               <>
                 {/* Chat Header */}
                 <div className="border-b p-4">
@@ -116,36 +100,30 @@ export default function RealTimeChatPage() {
                       <MessageCircle className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold">{currentChat.name}</h3>
+                      <h3 className="font-semibold">{selectedChatId === "demo-chat" ? "Demo Chat" : "General"}</h3>
                       <p className="text-sm text-muted-foreground">
-                        {currentChat.type === 'group' ? 'Group Chat' : 'Direct Chat'}
+                        Enhanced Real-time Chat
                       </p>
                     </div>
                   </div>
                 </div>
 
                 {/* Messages */}
-                <EnhancedChatMessageList
+                <EnhancedMessageList
                   messages={messages}
                   typingUsers={typingUsers}
                   currentUserId={user.id}
+                  connectionStatus={connectionStatus}
                   onReactToMessage={handleReactToMessage}
-                  onReplyToMessage={handleReplyToMessage}
-                  onMarkAsRead={markAsRead}
-                  isLoading={isLoading}
+                  onReplyToMessage={() => {}}
+                  onMarkAsRead={() => {}}
                 />
 
                 {/* Message Input */}
-                <MessageInput
+                <EnhancedMessageInput
                   onSendMessage={handleSendMessage}
                   onTyping={handleTyping}
                   isLoading={isLoading}
-                  replyContext={replyToMessage ? {
-                    messageId: replyToMessage.id,
-                    content: replyToMessage.content || '📎 File',
-                    senderName: replyToMessage.sender_profile?.full_name || 'Unknown User'
-                  } : undefined}
-                  onCancelReply={handleCancelReply}
                 />
               </>
             ) : (
