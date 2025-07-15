@@ -3,11 +3,11 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { ProductionAuthProvider } from "@/components/auth/ProductionAuthProvider";
+import { EnterpriseAuthProvider } from "@/components/auth/EnterpriseAuthProvider";
 import { NavigationProvider } from "@/components/navigation/NavigationProvider";
 import { SessionMonitor } from "@/components/security/session/SessionMonitor";
 import Index from "./pages/Index";
-import ProductionAuthPage from "./pages/auth/ProductionAuthPage";
+import EnterpriseAuthPage from "./pages/auth/EnterpriseAuthPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import { DashboardLayout } from "./components/dashboard/DashboardLayout";
 import { DashboardHome } from "./components/dashboard/DashboardHome";
@@ -49,7 +49,7 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ProductionAuthProvider>
+      <EnterpriseAuthProvider>
         <SessionMonitor />
         <TooltipProvider>
           <Toaster />
@@ -57,7 +57,7 @@ function App() {
             <NavigationProvider>
               <Routes>
                 <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<ProductionAuthPage />} />
+                <Route path="/auth" element={<EnterpriseAuthPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 
                 {/* Dashboard Routes */}
@@ -105,7 +105,7 @@ function App() {
             </NavigationProvider>
           </BrowserRouter>
         </TooltipProvider>
-      </ProductionAuthProvider>
+      </EnterpriseAuthProvider>
     </QueryClientProvider>
   );
 }
