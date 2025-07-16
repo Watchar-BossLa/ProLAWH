@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, BookOpen, Users, Trophy, Brain, Shield, Zap } from "lucide-react";
-import { useProductionAuth } from "@/components/auth/ProductionAuthProvider";
+import { useEnterpriseAuth } from "@/components/auth/EnterpriseAuthProvider";
 import { CONFIG, ENV } from "@/config";
 
 export default function Index() {
   const navigate = useNavigate();
-  const { user, isLoading } = useProductionAuth();
+  const { user, isLoading } = useEnterpriseAuth();
 
   // Auto-redirect authenticated users to dashboard
   useEffect(() => {

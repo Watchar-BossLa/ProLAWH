@@ -6,13 +6,13 @@ import { DashboardSidebar } from "./DashboardSidebar";
 import { DashboardHeader } from "./DashboardHeader";
 import { DashboardContainer } from "./layout/DashboardContainer";
 import { DashboardMain } from "./layout/DashboardMain";
-import { useProductionAuth } from "@/components/auth/ProductionAuthProvider";
+import { useEnterpriseAuth } from "@/components/auth/EnterpriseAuthProvider";
 import { CONFIG, ENV } from "@/config";
 import { ContextualAIAssistant } from "@/components/ai/ContextualAIAssistant";
 import { useState } from "react";
 
 function DashboardLayoutContent() {
-  const { user, isLoading } = useProductionAuth();
+  const { user, isLoading } = useEnterpriseAuth();
   const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
 
   if (isLoading) {

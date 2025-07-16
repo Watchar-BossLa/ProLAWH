@@ -1,3 +1,3 @@
 
-// Re-export the production-ready auth components and hooks
-export { ProductionAuthProvider as AuthProvider, useProductionAuth as useAuth } from '@/components/auth/ProductionAuthProvider';
+// Re-export the enterprise auth components and hooks
+export { EnterpriseAuthProvider as AuthProvider, useEnterpriseAuth as useAuth } from '@/components/auth/EnterpriseAuthProvider';
