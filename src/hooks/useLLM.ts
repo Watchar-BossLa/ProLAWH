@@ -21,10 +21,19 @@ export function useLLM() {
         body: { task, inputs, model }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('LLM inference error:', error);
+        throw new Error(error.message || 'LLM service unavailable');
+      }
+      
+      if (!data) {
+        throw new Error('No data returned from LLM service');
+      }
+      
       return data;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'An error occurred';
+      const message = err instanceof Error ? err.message : 'LLM service failed';
+      console.error('LLM generation failed:', err);
       setError(message);
       throw err;
     } finally {

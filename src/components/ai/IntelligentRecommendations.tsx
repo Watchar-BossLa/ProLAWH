@@ -36,7 +36,67 @@ export function IntelligentRecommendations({
   const [activeTab, setActiveTab] = useState('all');
   const { generate } = useLLM();
 
+  // Fallback recommendations to always show something
+  const fallbackRecommendations: Recommendation[] = [
+    {
+      id: '1',
+      type: 'course',
+      title: 'Advanced Sustainable Development',
+      description: 'Master the principles of sustainable development and green technology implementation.',
+      reason: 'Based on your interest in environmental impact',
+      priority: 'high',
+      confidence: 90,
+      actions: [
+        { label: 'Enroll Now', href: '/dashboard/learning' },
+        { label: 'Preview', action: () => {} }
+      ]
+    },
+    {
+      id: '2',
+      type: 'connection',
+      title: 'Sarah Chen - ESG Analyst',
+      description: 'Senior ESG analyst with 8+ years experience in sustainable finance.',
+      reason: 'Complementary expertise in your field',
+      priority: 'high',
+      confidence: 85,
+      actions: [
+        { label: 'Connect', href: '/dashboard/network' },
+        { label: 'View Profile', action: () => {} }
+      ]
+    },
+    {
+      id: '3',
+      type: 'opportunity',
+      title: 'Green Tech Consultant',
+      description: 'Help startups implement sustainable technology solutions.',
+      reason: 'Matches your verified skills and interests',
+      priority: 'medium',
+      confidence: 80,
+      actions: [
+        { label: 'Apply', href: '/dashboard/opportunities' },
+        { label: 'Save', action: () => {} }
+      ]
+    },
+    {
+      id: '4',
+      type: 'skill',
+      title: 'Carbon Footprint Analysis',
+      description: 'Learn to measure and reduce organizational carbon footprints.',
+      reason: 'High demand skill in sustainability sector',
+      priority: 'medium',
+      confidence: 75,
+      actions: [
+        { label: 'Start Learning', href: '/dashboard/learning' },
+        { label: 'Assessment', action: () => {} }
+      ]
+    }
+  ];
+
   const generateRecommendations = async () => {
+    if (!isEnabled('aiEnhancedSearch')) {
+      return;
+    }
+    
     setIsGenerating(true);
     
     try {
@@ -68,62 +128,26 @@ export function IntelligentRecommendations({
         inputs: prompt
       });
 
-      const generated = JSON.parse(response.generated_text || '[]');
-      
-      // Fallback recommendations if AI generation fails
-      const fallbackRecommendations: Recommendation[] = [
-        {
-          id: '1',
-          type: 'course',
-          title: 'Advanced Sustainable Development',
-          description: 'Master the principles of sustainable development and green technology implementation.',
-          reason: 'Based on your interest in environmental impact',
-          priority: 'high',
-          confidence: 90,
-          actions: [
-            { label: 'Enroll Now', href: '/dashboard/learning' },
-            { label: 'Preview', action: () => {} }
-          ]
-        },
-        {
-          id: '2',
-          type: 'connection',
-          title: 'Sarah Chen - ESG Analyst',
-          description: 'Senior ESG analyst with 8+ years experience in sustainable finance.',
-          reason: 'Complementary expertise in your field',
-          priority: 'high',
-          confidence: 85,
-          actions: [
-            { label: 'Connect', href: '/dashboard/network' },
-            { label: 'View Profile', action: () => {} }
-          ]
-        },
-        {
-          id: '3',
-          type: 'opportunity',
-          title: 'Green Tech Consultant',
-          description: 'Help startups implement sustainable technology solutions.',
-          reason: 'Matches your verified skills and interests',
-          priority: 'medium',
-          confidence: 80,
-          actions: [
-            { label: 'Apply', href: '/dashboard/opportunities' },
-            { label: 'Save', action: () => {} }
-          ]
+      if (response?.generated_text) {
+        const generated = JSON.parse(response.generated_text);
+        if (Array.isArray(generated) && generated.length > 0) {
+          setRecommendations(generated);
+          return;
         }
-      ];
-
-      setRecommendations(generated.length > 0 ? generated : fallbackRecommendations);
+      }
       
     } catch (error) {
-      console.error('Failed to generate recommendations:', error);
-      setRecommendations([]);
+      console.error('Failed to generate AI recommendations:', error);
     } finally {
       setIsGenerating(false);
     }
   };
 
   useEffect(() => {
+    // Always set fallback recommendations first
+    setRecommendations(fallbackRecommendations);
+    
+    // Then try to generate AI recommendations if enabled
     if (isEnabled('aiEnhancedSearch')) {
       generateRecommendations();
     }
@@ -152,9 +176,7 @@ export function IntelligentRecommendations({
     }
   };
 
-  if (!isEnabled('aiEnhancedSearch')) {
-    return null;
-  }
+  // Always render the component, regardless of feature flag
 
   return (
     <Card className="glass-card">
