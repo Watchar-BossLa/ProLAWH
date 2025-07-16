@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useProductionAuth } from '@/components/auth/ProductionAuthProvider';
+import { useEnterpriseAuth } from '@/components/auth/EnterpriseAuthProvider';
 import { useRoles, UserRole } from '@/hooks/useRoles';
 import { Loading } from '@/components/ui/loading';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -21,7 +21,7 @@ export function AuthGuard({
   requireAuth = true,
   fallback 
 }: AuthGuardProps) {
-  const { user, isLoading: authLoading } = useProductionAuth();
+  const { user, isLoading: authLoading } = useEnterpriseAuth();
   const { hasAnyRole, loading: rolesLoading, error: rolesError } = useRoles();
   const location = useLocation();
 

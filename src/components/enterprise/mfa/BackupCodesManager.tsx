@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Key, Download, Check, X } from 'lucide-react';
-import { useProductionAuth } from '@/components/auth/ProductionAuthProvider';
+import { useEnterpriseAuth } from '@/components/auth/EnterpriseAuthProvider';
 import { BackupCode } from '@/types/enterprise';
 import { toast } from '@/hooks/use-toast';
 
@@ -14,7 +14,7 @@ interface BackupCodesManagerProps {
 }
 
 export function BackupCodesManager({ onCodesGenerated }: BackupCodesManagerProps) {
-  const { user } = useProductionAuth();
+  const { user } = useEnterpriseAuth();
   const [backupCodes, setBackupCodes] = useState<BackupCode[]>([]);
   const [newBackupCode, setNewBackupCode] = useState('');
   const [isGeneratingCodes, setIsGeneratingCodes] = useState(false);

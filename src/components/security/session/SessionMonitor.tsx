@@ -1,12 +1,12 @@
 
 import { useEffect } from 'react';
-import { useProductionAuth } from '@/components/auth/ProductionAuthProvider';
+import { useEnterpriseAuth } from '@/components/auth/EnterpriseAuthProvider';
 import { useSessionManager } from '@/components/security/session/hooks/useSessionManager';
 import { CONFIG } from '@/config';
 import { toast } from '@/hooks/use-toast';
 
 export function SessionMonitor() {
-  const { user, session } = useProductionAuth();
+  const { user, session } = useEnterpriseAuth();
   const { sessions, revokeSession } = useSessionManager();
 
   // Monitor for concurrent sessions

@@ -8,7 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { Loader2, LogIn, UserPlus, AlertCircle } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useProductionAuth } from "@/components/auth/ProductionAuthProvider";
+import { useEnterpriseAuth } from "@/components/auth/EnterpriseAuthProvider";
 import { ENV } from "@/config";
 
 interface LocationState {
@@ -24,7 +24,7 @@ export default function ProductionAuthPage() {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, signUp, user, isLoading: authLoading } = useProductionAuth();
+  const { signIn, signUp, user, isLoading: authLoading } = useEnterpriseAuth();
   
   const state = location.state as LocationState;
   const returnUrl = state?.returnUrl || "/dashboard";
@@ -54,8 +54,13 @@ export default function ProductionAuthPage() {
     try {
       if (isSignUp) {
         console.log('Attempting sign up...');
-        const userData = fullName ? { full_name: fullName } : undefined;
-        const result = await signUp(email, password, userData);
+        const result = await signUp({ 
+          email, 
+          password, 
+          confirmPassword: password, 
+          fullName, 
+          acceptTerms: true 
+        });
         
         console.log('Sign up result:', result);
         
@@ -76,7 +81,7 @@ export default function ProductionAuthPage() {
         }
       } else {
         console.log('Attempting sign in...');
-        const result = await signIn(email, password);
+        const result = await signIn({ email, password });
         
         console.log('Sign in result:', result);
         

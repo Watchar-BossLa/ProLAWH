@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useProductionAuth } from '@/components/auth/ProductionAuthProvider';
+import { useEnterpriseAuth } from '@/components/auth/EnterpriseAuthProvider';
 import { handleAsyncError } from '@/utils/errorHandling';
 
 export interface Tenant {
@@ -27,7 +27,7 @@ export interface TenantUser {
 }
 
 export function useTenantManagement() {
-  const { user } = useProductionAuth();
+  const { user } = useEnterpriseAuth();
   const [currentTenant, setCurrentTenant] = useState<Tenant | null>(null);
   const [userTenants, setUserTenants] = useState<Tenant[]>([]);
   const [isLoading, setIsLoading] = useState(true);

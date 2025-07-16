@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useProductionAuth } from "@/components/auth/ProductionAuthProvider";
+import { useEnterpriseAuth } from "@/components/auth/EnterpriseAuthProvider";
 import { useDashboardLayoutContext } from "./layout/DashboardLayoutProvider";
 import { TenantSwitcher } from "@/components/enterprise/TenantSwitcher";
 import { useNavigate } from "react-router-dom";
@@ -17,7 +17,7 @@ import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 import { SemanticSearchBar } from "@/components/search/SemanticSearchBar";
 
 export function DashboardHeader() {
-  const { signOut } = useProductionAuth();
+  const { signOut } = useEnterpriseAuth();
   const { user } = useDashboardLayoutContext();
   const { isEnabled } = useFeatureFlags();
   const navigate = useNavigate();
