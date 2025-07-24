@@ -275,6 +275,29 @@ export class DSPyMonitoringService {
   }
 
   /**
+   * Create a new alert
+   */
+  async createAlert(alertData: {
+    severity: string;
+    message: string;
+    source?: string;
+    timestamp?: Date;
+  }): Promise<void> {
+    const alert: DSPyAlert = {
+      id: `custom_${Date.now()}`,
+      module_name: alertData.source || 'system',
+      alert_type: 'performance_degradation',
+      severity: alertData.severity as any,
+      message: alertData.message,
+      created_at: alertData.timestamp || new Date(),
+      resolved: false
+    };
+    
+    this.alerts.push(alert);
+    console.log(`Alert created: [${alert.severity}] ${alert.message}`);
+  }
+
+  /**
    * Mark an alert as resolved
    */
   async resolveAlert(alertId: string): Promise<void> {
