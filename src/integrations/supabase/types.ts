@@ -1160,6 +1160,114 @@ export type Database = {
           },
         ]
       }
+      dspy_optimization_history: {
+        Row: {
+          best_prompt: string
+          created_at: string
+          id: string
+          module_name: string
+          optimization_duration_ms: number
+          optimization_metrics: Json
+          optimization_run_id: string
+          performance_score: number
+          prompt_variations: Json
+          training_examples_count: number
+          updated_at: string
+        }
+        Insert: {
+          best_prompt: string
+          created_at?: string
+          id?: string
+          module_name: string
+          optimization_duration_ms?: number
+          optimization_metrics?: Json
+          optimization_run_id?: string
+          performance_score: number
+          prompt_variations?: Json
+          training_examples_count?: number
+          updated_at?: string
+        }
+        Update: {
+          best_prompt?: string
+          created_at?: string
+          id?: string
+          module_name?: string
+          optimization_duration_ms?: number
+          optimization_metrics?: Json
+          optimization_run_id?: string
+          performance_score?: number
+          prompt_variations?: Json
+          training_examples_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      dspy_performance_metrics: {
+        Row: {
+          context: Json | null
+          created_at: string
+          id: string
+          measurement_timestamp: string
+          metric_name: string
+          metric_value: number
+          module_name: string
+        }
+        Insert: {
+          context?: Json | null
+          created_at?: string
+          id?: string
+          measurement_timestamp?: string
+          metric_name: string
+          metric_value: number
+          module_name: string
+        }
+        Update: {
+          context?: Json | null
+          created_at?: string
+          id?: string
+          measurement_timestamp?: string
+          metric_name?: string
+          metric_value?: number
+          module_name?: string
+        }
+        Relationships: []
+      }
+      dspy_training_examples: {
+        Row: {
+          actual_outputs: Json | null
+          created_at: string
+          expected_outputs: Json
+          id: string
+          inputs: Json
+          metadata: Json | null
+          module_name: string
+          quality_score: number | null
+          updated_at: string
+        }
+        Insert: {
+          actual_outputs?: Json | null
+          created_at?: string
+          expected_outputs: Json
+          id?: string
+          inputs: Json
+          metadata?: Json | null
+          module_name: string
+          quality_score?: number | null
+          updated_at?: string
+        }
+        Update: {
+          actual_outputs?: Json | null
+          created_at?: string
+          expected_outputs?: Json
+          id?: string
+          inputs?: Json
+          metadata?: Json | null
+          module_name?: string
+          quality_score?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       environmental_achievements: {
         Row: {
           badge_image_url: string | null
