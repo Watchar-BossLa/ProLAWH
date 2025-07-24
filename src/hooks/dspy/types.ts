@@ -27,7 +27,8 @@ export interface DSPyOptimizationResult {
 
 export interface DSPyTrainingExample {
   inputs: Record<string, any>;
-  outputs: Record<string, any>;
+  outputs?: Record<string, any>;
+  expected_outputs?: Record<string, any>;
   metadata?: Record<string, any>;
 }
 

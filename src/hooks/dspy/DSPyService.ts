@@ -1,8 +1,13 @@
 import { useLLM } from '../useLLM';
 import { DSPyLLMAdapter } from './core/DSPyLLMAdapter';
+import { DSPyErrorHandler } from './core/DSPyErrorHandler';
 import { EnhancedReasoningChain } from './modules/EnhancedReasoningChain';
 import { CareerAdviceModule } from './modules/CareerAdviceModule';
 import { SwarmIntelligenceModule } from './modules/SwarmIntelligenceModule';
+import { ReActPatternModule } from './modules/ReActPatternModule';
+import { RAGModule } from './modules/RAGModule';
+import { ABTestingFramework } from './testing/ABTestingFramework';
+import { PerformanceBenchmark } from './performance/PerformanceBenchmark';
 import { DSPyOptimizationResult, DSPyTrainingExample } from './types';
 
 /**
@@ -11,15 +16,23 @@ import { DSPyOptimizationResult, DSPyTrainingExample } from './types';
  */
 export class DSPyService {
   private llmAdapter: DSPyLLMAdapter;
+  private errorHandler: DSPyErrorHandler;
   private reasoningChainModule: EnhancedReasoningChain;
   private careerAdviceModule: CareerAdviceModule;
   private swarmIntelligenceModule: SwarmIntelligenceModule;
+  private reactPattern: ReActPatternModule | null = null;
+  private ragModule: RAGModule | null = null;
+  private abTesting: ABTestingFramework;
+  private benchmark: PerformanceBenchmark;
   
   private optimizationHistory: Map<string, DSPyOptimizationResult[]> = new Map();
   private isInitialized = false;
 
   constructor(llm: ReturnType<typeof useLLM>) {
     this.llmAdapter = new DSPyLLMAdapter(llm);
+    this.errorHandler = DSPyErrorHandler.getInstance();
+    this.abTesting = new ABTestingFramework();
+    this.benchmark = new PerformanceBenchmark();
     this.initializeModules();
   }
 
