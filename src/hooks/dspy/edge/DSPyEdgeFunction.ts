@@ -297,7 +297,9 @@ export class DSPyEdgeFunction {
 export async function dspyEdgeHandler(request: Request): Promise<Response> {
   try {
     const body = await request.json() as EdgeRequest | EdgeRequest[];
-    const llmAdapter = new DSPyLLMAdapter();
+    // Create a mock LLM for edge function (replace with actual implementation)
+    const mockLLM = { generate: async () => ({ content: 'Edge function response' }) };
+    const llmAdapter = new DSPyLLMAdapter(mockLLM as any);
     const edgeFunction = new DSPyEdgeFunction(llmAdapter);
 
     let result;

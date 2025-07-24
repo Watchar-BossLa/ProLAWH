@@ -159,6 +159,53 @@ Observation: [Results of your action - will be filled automatically]`
     };
   }
 
+  // SECURITY FIX: Safe expression calculator
+  private safeCalculate(expression: string): number {
+    // Sanitize input to only allow numbers, operators, parentheses, and spaces
+    const sanitized = expression.replace(/[^0-9+\-*/().\s]/g, '');
+    
+    // Simple recursive descent parser for basic math
+    const tokens = sanitized.match(/\d+\.?\d*|[+\-*/()]/g) || [];
+    let index = 0;
+    
+    const parseExpression = (): number => {
+      let left = parseTerm();
+      
+      while (index < tokens.length && (tokens[index] === '+' || tokens[index] === '-')) {
+        const operator = tokens[index++];
+        const right = parseTerm();
+        left = operator === '+' ? left + right : left - right;
+      }
+      
+      return left;
+    };
+    
+    const parseTerm = (): number => {
+      let left = parseFactor();
+      
+      while (index < tokens.length && (tokens[index] === '*' || tokens[index] === '/')) {
+        const operator = tokens[index++];
+        const right = parseFactor();
+        left = operator === '*' ? left * right : left / right;
+      }
+      
+      return left;
+    };
+    
+    const parseFactor = (): number => {
+      if (tokens[index] === '(') {
+        index++; // skip '('
+        const result = parseExpression();
+        index++; // skip ')'
+        return result;
+      }
+      
+      return parseFloat(tokens[index++]);
+    };
+    
+    return parseExpression();
+  }
+
   private setupDefaultTools(): void {
     this.tools.set('search_knowledge', async (query: string) => {
       // Mock knowledge search - integrate with your knowledge base
@@ -167,8 +214,8 @@ Observation: [Results of your action - will be filled automatically]`
 
     this.tools.set('calculate', async (expression: string) => {
       try {
-        // Simple calculator - enhance with more advanced math
-        const result = eval(expression.replace(/[^0-9+\-*/().\s]/g, ''));
+        // SECURITY FIX: Replace eval() with safe expression parser
+        const result = this.safeCalculate(expression);
         return `Calculation result: ${result}`;
       } catch (error) {
         return `Calculation error: ${error.message}`;
