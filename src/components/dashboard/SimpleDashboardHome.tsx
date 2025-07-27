@@ -92,6 +92,34 @@ export function SimpleDashboardHome() {
 
       {/* Stats and Progress */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* AI Recommendations */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bot className="h-5 w-5" />
+              AI Recommendations
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm">Generating personalized recommendations...</span>
+              </div>
+              <div className="space-y-2 mt-4">
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <p className="font-medium text-sm">React Advanced Patterns</p>
+                  <p className="text-xs text-muted-foreground">Based on your JavaScript progress</p>
+                </div>
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <p className="font-medium text-sm">Senior Developer Network</p>
+                  <p className="text-xs text-muted-foreground">Connect with mentors</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Learning Progress */}
         <Card>
           <CardHeader>
@@ -103,20 +131,20 @@ export function SimpleDashboardHome() {
           <CardContent className="space-y-3">
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>JavaScript Mastery</span>
-                <span>85%</span>
+                <span>React</span>
+                <span>7/9 - 78%</span>
               </div>
               <div className="w-full bg-secondary h-2 rounded">
-                <div className="bg-blue-500 h-2 rounded" style={{ width: '85%' }}></div>
+                <div className="bg-blue-500 h-2 rounded" style={{ width: '78%' }}></div>
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>React Development</span>
-                <span>72%</span>
+                <span>JavaScript Mastery</span>
+                <span>85%</span>
               </div>
               <div className="w-full bg-secondary h-2 rounded">
-                <div className="bg-green-500 h-2 rounded" style={{ width: '72%' }}></div>
+                <div className="bg-green-500 h-2 rounded" style={{ width: '85%' }}></div>
               </div>
             </div>
             <div className="space-y-2">
