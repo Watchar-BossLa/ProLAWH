@@ -6,6 +6,7 @@ from typing import List, Optional
 import uvicorn
 from jose import JWTError, jwt
 import os
+from datetime import datetime
 
 # Import models and services (lazy loading)
 from models.user import UserCreate, UserLogin, UserResponse, UserUpdate
