@@ -206,6 +206,7 @@ async def get_popular_courses(limit: int = 10):
 @app.get("/api/courses/{course_id}", response_model=CourseResponse)
 async def get_course(course_id: str):
     """Get course by ID."""
+    from services.course_service import course_service
     course = await course_service.get_course(course_id)
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
