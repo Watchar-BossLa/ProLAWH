@@ -56,6 +56,7 @@ class CourseService:
 
     async def search_courses(self, query: str, category: Optional[str] = None) -> List[CourseResponse]:
         """Search courses by title, description, or tags."""
+        courses_collection, _ = self._get_collections()
         filter_query = {
             "$and": [
                 {"status": "published"},
@@ -72,7 +73,7 @@ class CourseService:
         if category:
             filter_query["$and"].append({"category": category})
         
-        cursor = self.courses_collection.find(filter_query)
+        cursor = courses_collection.find(filter_query)
         courses = []
         async for course_doc in cursor:
             courses.append(CourseResponse(**course_doc))
