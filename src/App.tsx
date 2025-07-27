@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import SimpleAuthPage from "./pages/auth/SimpleAuthPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import { DashboardLayout } from "./components/dashboard/DashboardLayout";
+import { SimpleDashboardLayout } from "./components/dashboard/SimpleDashboardLayout";
 import { DashboardHome } from "./components/dashboard/DashboardHome";
 import LearningDashboard from "./pages/dashboard/LearningDashboard";
 import GreenSkillsPage from "./pages/dashboard/GreenSkillsPage";
