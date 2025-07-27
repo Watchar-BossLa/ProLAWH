@@ -165,6 +165,7 @@ async def search_users(
 @app.get("/api/users/{user_id}", response_model=UserResponse)
 async def get_user(user_id: str):
     """Get user by ID."""
+    from services.user_service import user_service
     user = await user_service.get_user(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
