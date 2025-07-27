@@ -4,7 +4,7 @@
  */
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { authService } from '@/utils/auth/AuthService';
+import { supabase } from '@/integrations/supabase/client';
 import { enterpriseLogger } from '@/utils/logging/enterpriseLogger';
 import { ENV } from '@/config/environment';
 import type { 
@@ -45,6 +45,14 @@ export function EnterpriseAuthProvider({ children }: EnterpriseAuthProviderProps
     initializeAuth();
   }, []);
 
+  // Helper function to convert Supabase errors to our AuthError type
+  const convertError = (error: any): AuthError => ({
+    message: error?.message || 'An error occurred',
+    code: error?.code,
+    type: 'auth' as const,
+    timestamp: new Date()
+  });
+
   const initializeAuth = useCallback(async () => {
     try {
       await enterpriseLogger.log({
@@ -54,13 +62,13 @@ export function EnterpriseAuthProvider({ children }: EnterpriseAuthProviderProps
         metadata: {}
       });
       
-      const { session, error } = await authService.getCurrentSession();
+      const { data: { session }, error } = await supabase.auth.getSession();
       
       if (error) {
         setAuthState(prev => ({
           ...prev,
           isLoading: false,
-          error
+          error: convertError(error)
         }));
         return;
       }
@@ -110,19 +118,21 @@ export function EnterpriseAuthProvider({ children }: EnterpriseAuthProviderProps
   const signIn = useCallback(async (credentials: SignInCredentials) => {
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
 
-    const { data, error } = await authService.signIn(credentials);
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: credentials.email,
+      password: credentials.password
+    });
 
     if (error) {
       setAuthState(prev => ({
         ...prev,
         isLoading: false,
-        error
+        error: convertError(error)
       }));
-      return { error };
+      return { error: convertError(error) };
     }
 
-    if (data) {
-      // Store session info for logging context
+    if (data && data.user && data.session) {
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('session_id', data.session.access_token.slice(-10));
         sessionStorage.setItem('user_id', data.user.id);
@@ -143,15 +153,23 @@ export function EnterpriseAuthProvider({ children }: EnterpriseAuthProviderProps
   const signUp = useCallback(async (credentials: SignUpCredentials) => {
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
 
-    const { data, error } = await authService.signUp(credentials);
+    const { data, error } = await supabase.auth.signUp({
+      email: credentials.email,
+      password: credentials.password,
+      options: {
+        data: {
+          full_name: credentials.fullName || ''
+        }
+      }
+    });
 
     if (error) {
       setAuthState(prev => ({
         ...prev,
         isLoading: false,
-        error
+        error: convertError(error)
       }));
-      return { error };
+      return { error: convertError(error) };
     }
 
     if (data) {
@@ -176,7 +194,7 @@ export function EnterpriseAuthProvider({ children }: EnterpriseAuthProviderProps
   const signOut = useCallback(async () => {
     setAuthState(prev => ({ ...prev, isLoading: true }));
 
-    const { error } = await authService.signOut();
+    const { error } = await supabase.auth.signOut();
 
     // Clear session info regardless of error
     if (typeof window !== 'undefined') {
@@ -189,10 +207,10 @@ export function EnterpriseAuthProvider({ children }: EnterpriseAuthProviderProps
       session: null,
       isLoading: false,
       isAuthenticated: false,
-      error
+      error: error ? convertError(error) : null
     });
 
-    return { error };
+    return { error: error ? convertError(error) : null };
   }, []);
 
   const resetPassword = useCallback(async (request: { email: string }) => {
@@ -216,11 +234,11 @@ export function EnterpriseAuthProvider({ children }: EnterpriseAuthProviderProps
   }, []);
 
   const refreshSession = useCallback(async () => {
-    const { session, error } = await authService.refreshSession();
+    const { data: { session }, error } = await supabase.auth.refreshSession();
 
     if (error) {
-      setAuthState(prev => ({ ...prev, error }));
-      return { error };
+      setAuthState(prev => ({ ...prev, error: convertError(error) }));
+      return { error: convertError(error) };
     }
 
     if (session) {

@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { logger } from '@/utils/logger/Logger';
+import { enterpriseLogger } from '@/utils/logging/enterpriseLogger';
 import { ENV, SECURITY_CONFIG } from '@/config/environment';
 import type { 
   AuthUser, 
@@ -58,11 +58,16 @@ class AuthenticationService {
         ...event
       };
 
-      await logger.info('Security event logged', {
-        eventType: event.eventType,
-        riskLevel: event.riskLevel,
-        userId: event.userId
-      }, 'AuthService');
+      await enterpriseLogger.log({
+        level: 'info',
+        message: 'Security event logged',
+        component: 'AuthService',
+        metadata: {
+          eventType: event.eventType,
+          riskLevel: event.riskLevel,
+          userId: event.userId
+        }
+      });
 
       // Store in database for audit trail
       await supabase.from('application_logs').insert({
@@ -81,7 +86,12 @@ class AuthenticationService {
         component: 'AuthService'
       });
     } catch (error) {
-      await logger.error('Failed to log security event', { error }, 'AuthService');
+      await enterpriseLogger.log({
+        level: 'error',
+        message: 'Failed to log security event',
+        component: 'AuthService',
+        metadata: { error: error instanceof Error ? error.message : 'Unknown error' }
+      });
     }
   }
 
@@ -120,7 +130,12 @@ class AuthenticationService {
     const { ipAddress, userAgent } = this.getClientInfo();
 
     try {
-      await logger.info('Sign in attempt started', { email: credentials.email }, 'AuthService');
+      await enterpriseLogger.log({
+        level: 'info',
+        message: 'Sign in attempt started',
+        component: 'AuthService',
+        metadata: { email: credentials.email }
+      });
 
       // Check if account is locked
       if (this.isAccountLocked(credentials.email)) {
@@ -169,11 +184,16 @@ class AuthenticationService {
           }
         });
 
-        await logger.warn('Sign in failed', { 
-          email: credentials.email, 
-          error: supabaseError.message,
-          duration: `${(performance.now() - startTime).toFixed(2)}ms`
-        }, 'AuthService');
+        await enterpriseLogger.log({
+          level: 'warn',
+          message: 'Sign in failed',
+          component: 'AuthService',
+          metadata: {
+            email: credentials.email, 
+            error: supabaseError.message,
+            duration: `${(performance.now() - startTime).toFixed(2)}ms`
+          }
+        });
 
         return { error };
       }
