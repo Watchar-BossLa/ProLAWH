@@ -6,14 +6,12 @@ import { DashboardSidebar } from "./DashboardSidebar";
 import { DashboardHeader } from "./DashboardHeader";
 import { DashboardContainer } from "./layout/DashboardContainer";
 import { DashboardMain } from "./layout/DashboardMain";
-import { useEnterpriseAuth } from "@/components/auth/EnterpriseAuthProvider";
+import { useAuth } from "@/components/auth/SimpleAuthProvider";
 import { CONFIG, ENV } from "@/config";
-import { ContextualAIAssistant } from "@/components/ai/ContextualAIAssistant";
 import { useState } from "react";
 
 function DashboardLayoutContent() {
-  const { user, isLoading } = useEnterpriseAuth();
-  const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
+  const { user, isLoading, isAuthenticated } = useAuth();
 
   if (isLoading) {
     return (
@@ -26,7 +24,7 @@ function DashboardLayoutContent() {
   // Skip auth check in development mode if bypass is enabled
   if (!ENV.isProduction && CONFIG.BYPASS_AUTH) {
     // Allow access in development bypass mode
-  } else if (!user) {
+  } else if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
   }
 
@@ -39,13 +37,6 @@ function DashboardLayoutContent() {
           <Outlet />
         </DashboardMain>
       </DashboardContainer>
-      
-      {/* Global AI Assistant */}
-      <ContextualAIAssistant
-        isOpen={aiAssistantOpen}
-        onToggle={() => setAiAssistantOpen(!aiAssistantOpen)}
-        userContext={user}
-      />
     </div>
   );
 }
