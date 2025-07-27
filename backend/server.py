@@ -284,6 +284,7 @@ async def book_session(
     current_user: UserResponse = Depends(get_current_user)
 ):
     """Book a mentorship session."""
+    from services.mentorship_service import mentorship_service
     try:
         session = await mentorship_service.book_session(booking)
         return {"message": "Session booked", "session": session.dict()}
