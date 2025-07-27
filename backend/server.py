@@ -408,37 +408,53 @@ async def get_dashboard_stats(current_user: UserResponse = Depends(get_current_u
 @app.get("/api/dashboard/recommendations")
 async def get_recommendations(current_user: UserResponse = Depends(get_current_user)):
     """Get AI-powered recommendations for the user."""
-    # Mock recommendations - would use AI service in production
+    from services.ai_service import ai_service
+    
+    # Get AI recommendations
+    course_recommendations = await ai_service.generate_course_recommendations(current_user)
+    mentor_recommendations = await ai_service.generate_mentor_recommendations(current_user)
+    job_recommendations = await ai_service.generate_job_recommendations(current_user)
+    
     return {
-        "courses": [
-            {
-                "title": "React Advanced Patterns",
-                "reason": "Based on your JavaScript progress",
-                "match_score": 0.92
-            },
-            {
-                "title": "System Design Fundamentals",
-                "reason": "Popular among senior developers",
-                "match_score": 0.87
-            }
-        ],
-        "mentors": [
-            {
-                "name": "Sarah Johnson",
-                "specialty": "React Development",
-                "reason": "Expert in your learning areas",
-                "match_score": 0.95
-            }
-        ],
-        "opportunities": [
-            {
-                "title": "Senior React Developer",
-                "company": "Tech Corp",
-                "reason": "Matches your skill set",
-                "match_score": 0.89
-            }
-        ]
+        "courses": course_recommendations,
+        "mentors": mentor_recommendations,
+        "opportunities": job_recommendations,
+        "generated_at": datetime.now().isoformat()
     }
+
+@app.get("/api/ai/skill-path")
+async def get_skill_development_path(
+    target_role: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get AI-generated skill development path."""
+    from services.ai_service import ai_service
+    path = await ai_service.generate_skill_development_path(current_user, target_role)
+    return path
+
+@app.get("/api/analytics/learning")
+async def get_learning_analytics(current_user: UserResponse = Depends(get_current_user)):
+    """Get detailed learning analytics."""
+    from services.ai_service import ai_service
+    from services.analytics_service import analytics_service
+    
+    learning_patterns = await ai_service.analyze_learning_patterns(current_user)
+    user_analytics = await analytics_service.get_user_learning_analytics(current_user.user_id)
+    
+    return {
+        "patterns": learning_patterns,
+        "analytics": user_analytics
+    }
+
+@app.get("/api/analytics/progress-report")
+async def get_progress_report(
+    period: str = "monthly",
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get comprehensive progress report."""
+    from services.analytics_service import analytics_service
+    report = await analytics_service.generate_progress_report(current_user.user_id, period)
+    return report
 
 # ==================== REAL-TIME CHAT ENDPOINTS ====================
 
