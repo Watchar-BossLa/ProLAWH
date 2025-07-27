@@ -95,7 +95,8 @@ class CourseService:
 
     async def get_user_progress(self, user_id: str, course_id: str) -> Optional[CourseProgress]:
         """Get user's progress in a course."""
-        progress_doc = await self.progress_collection.find_one({"_id": f"{user_id}_{course_id}"})
+        _, progress_collection = self._get_collections()
+        progress_doc = await progress_collection.find_one({"_id": f"{user_id}_{course_id}"})
         if not progress_doc:
             return None
         return CourseProgress(**progress_doc)
