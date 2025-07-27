@@ -148,6 +148,7 @@ async def get_users(
     current_user: UserResponse = Depends(get_current_user)
 ):
     """Get all users."""
+    from services.user_service import user_service
     return await user_service.get_all_users(skip, limit)
 
 @app.get("/api/users/search", response_model=List[UserResponse])
