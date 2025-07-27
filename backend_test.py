@@ -263,6 +263,11 @@ class ProLAWHBackendTester:
             if "message" in data and "connection" in data:
                 self.log_test("Mentorship Request", True, "Mentorship request sent successfully")
                 return True
+        elif response.status_code == 422:
+            # Log validation error details
+            error_details = response.json().get("detail", "Validation error")
+            self.log_test("Mentorship Request", False, f"Validation error: {error_details}")
+            return False
                 
         self.log_test("Mentorship Request", False, f"Status: {response.status_code}")
         return False
