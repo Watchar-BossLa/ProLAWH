@@ -234,20 +234,26 @@ export function SimpleDashboardHome() {
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-sm">Courses Completed</span>
-              <Badge variant="secondary">12</Badge>
+              <Badge variant="secondary">{stats?.courses_completed || 0}</Badge>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm">Skills Verified</span>
-              <Badge variant="secondary">8</Badge>
+              <Badge variant="secondary">{stats?.skills_verified || 0}</Badge>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm">Network Connections</span>
-              <Badge variant="secondary">156</Badge>
+              <Badge variant="secondary">{stats?.network_connections || 0}</Badge>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm">Learning Streak</span>
-              <Badge variant="secondary">7 days</Badge>
+              <Badge variant="secondary">{stats?.learning_streak || 0} days</Badge>
             </div>
+            {stats?.total_learning_hours && (
+              <div className="flex justify-between items-center">
+                <span className="text-sm">Learning Hours</span>
+                <Badge variant="secondary">{Math.round(stats.total_learning_hours)}h</Badge>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
