@@ -2648,6 +2648,7 @@ export type Database = {
           id: string
           ip_address: string | null
           metadata: Json | null
+          resolved: boolean | null
           risk_level: string
           session_id: string | null
           timestamp: string
@@ -2660,6 +2661,7 @@ export type Database = {
           id?: string
           ip_address?: string | null
           metadata?: Json | null
+          resolved?: boolean | null
           risk_level: string
           session_id?: string | null
           timestamp?: string
@@ -2672,6 +2674,7 @@ export type Database = {
           id?: string
           ip_address?: string | null
           metadata?: Json | null
+          resolved?: boolean | null
           risk_level?: string
           session_id?: string | null
           timestamp?: string

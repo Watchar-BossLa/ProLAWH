@@ -9,12 +9,7 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // If development bypass is enabled, use mock user
-    if (DEVELOPMENT_CONFIG.BYPASS_AUTH) {
-      setUser(DEVELOPMENT_CONFIG.MOCK_USER as User);
-      setLoading(false);
-      return;
-    }
+    // SECURITY: Authentication bypass permanently removed for security
 
     // Get initial session
     const getSession = async () => {
@@ -37,11 +32,7 @@ export function useAuth() {
   }, []);
 
   const signOut = async () => {
-    // Skip actual sign out in development mode
-    if (DEVELOPMENT_CONFIG.BYPASS_AUTH) {
-      return;
-    }
-    
+    // SECURITY: All authentication bypass logic removed
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Error signing out:', error);

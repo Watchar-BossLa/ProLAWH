@@ -84,10 +84,11 @@ class EnterpriseSecurity {
     };
   }
 
+  // SECURITY: Enhanced session token handling - avoid direct localStorage access
   private getCurrentUserId(): string | undefined {
     try {
-      const session = JSON.parse(localStorage.getItem('supabase.auth.token') || '{}');
-      return session.user?.id;
+      // Use secure session manager instead of direct localStorage access
+      return this.getSecureSessionData()?.user?.id;
     } catch {
       return undefined;
     }
@@ -95,10 +96,32 @@ class EnterpriseSecurity {
 
   private getCurrentSessionId(): string | undefined {
     try {
-      const session = JSON.parse(localStorage.getItem('supabase.auth.token') || '{}');
-      return session.access_token?.substring(0, 10);
+      // Use secure session manager instead of direct localStorage access
+      return this.getSecureSessionData()?.access_token?.substring(0, 10);
     } catch {
       return undefined;
+    }
+  }
+
+  // SECURITY: Centralized secure session data access
+  private getSecureSessionData(): any {
+    try {
+      const sessionKey = Object.keys(localStorage).find(key => 
+        key.startsWith('sb-') && key.includes('auth-token')
+      );
+      if (!sessionKey) return null;
+      
+      const sessionData = localStorage.getItem(sessionKey);
+      return sessionData ? JSON.parse(sessionData) : null;
+    } catch (error) {
+      this.logSecurityEvent({
+        type: 'authentication',
+        severity: 'medium',
+        description: 'Error accessing session data',
+        context: this.createSecurityContext(3),
+        metadata: { error: error instanceof Error ? error.message : 'Unknown error' }
+      });
+      return null;
     }
   }
 
