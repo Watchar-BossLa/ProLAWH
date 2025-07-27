@@ -5,24 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, BookOpen, Users, Trophy, Brain, Shield, Zap } from "lucide-react";
-import { useEnterpriseAuth } from "@/components/auth/EnterpriseAuthProvider";
+import { useAuth } from "@/components/auth/SimpleAuthProvider";
 import { CONFIG, ENV } from "@/config";
 
 export default function Index() {
   const navigate = useNavigate();
-  const { user, isLoading } = useEnterpriseAuth();
+  const { isLoading, isAuthenticated } = useAuth();
 
   // Auto-redirect authenticated users to dashboard
   useEffect(() => {
     if (!isLoading) {
       // Check if user is authenticated (either real user or development bypass)
-      const isAuthenticated = user || (!ENV.isProduction && CONFIG.BYPASS_AUTH);
+      const shouldRedirect = isAuthenticated || (!ENV.isProduction && CONFIG.BYPASS_AUTH);
       
-      if (isAuthenticated) {
+      if (shouldRedirect) {
         navigate("/dashboard");
       }
     }
-  }, [user, isLoading, navigate]);
+  }, [isAuthenticated, isLoading, navigate]);
 
   // Show loading while checking authentication
   if (isLoading) {
