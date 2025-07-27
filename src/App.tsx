@@ -60,7 +60,7 @@ function App() {
                 <Route path="/profile" element={<ProfilePage />} />
                 
                 {/* Dashboard Routes */}
-                <Route path="/dashboard" element={<DashboardLayout />}>
+                <Route path="/dashboard" element={<SimpleDashboardLayout />}>
                   <Route index element={<DashboardHome />} />
                   <Route path="home" element={<DashboardPage />} />
                   <Route path="learning" element={<LearningDashboard />} />
