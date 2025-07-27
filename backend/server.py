@@ -194,6 +194,7 @@ async def get_courses(skip: int = 0, limit: int = 20):
 @app.get("/api/courses/search", response_model=List[CourseResponse])
 async def search_courses(q: str, category: Optional[str] = None):
     """Search courses."""
+    from services.course_service import course_service
     return await course_service.search_courses(q, category)
 
 @app.get("/api/courses/popular", response_model=List[CourseResponse])
