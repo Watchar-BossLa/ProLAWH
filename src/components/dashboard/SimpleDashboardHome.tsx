@@ -120,27 +120,41 @@ export function SimpleDashboardHome() {
         {/* AI Recommendations */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bot className="h-5 w-5" />
-              AI Recommendations
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Bot className="h-5 w-5" />
+                AI Recommendations
+              </div>
+              <Button variant="ghost" size="sm" onClick={refetchRecommendations}>
+                <RefreshCw className={`h-4 w-4 ${recommendationsLoading ? 'animate-spin' : ''}`} />
+              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex items-center space-x-2 text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-sm">Generating personalized recommendations...</span>
-              </div>
-              <div className="space-y-2 mt-4">
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <p className="font-medium text-sm">React Advanced Patterns</p>
-                  <p className="text-xs text-muted-foreground">Based on your JavaScript progress</p>
+              {recommendationsLoading ? (
+                <div className="flex items-center space-x-2 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="text-sm">Generating personalized recommendations...</span>
                 </div>
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <p className="font-medium text-sm">Senior Developer Network</p>
-                  <p className="text-xs text-muted-foreground">Connect with mentors</p>
-                </div>
-              </div>
+              ) : (
+                recommendations?.courses?.slice(0, 2).map((course: any, index: number) => (
+                  <div key={index} className="p-3 bg-muted/50 rounded-lg">
+                    <p className="font-medium text-sm">{course.title}</p>
+                    <p className="text-xs text-muted-foreground">{course.reason}</p>
+                    {course.match_score && (
+                      <Badge variant="secondary" className="mt-1 text-xs">
+                        {Math.round(course.match_score * 100)}% match
+                      </Badge>
+                    )}
+                  </div>
+                )) || (
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <p className="font-medium text-sm">No recommendations available</p>
+                    <p className="text-xs text-muted-foreground">Complete your profile for better suggestions</p>
+                  </div>
+                )
+              )}
             </div>
           </CardContent>
         </Card>
