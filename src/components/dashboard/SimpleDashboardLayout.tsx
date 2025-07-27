@@ -29,12 +29,42 @@ import { cn } from "@/lib/utils";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const navigationItems = [
-  { icon: Home, label: "Dashboard", href: "/dashboard" },
-  { icon: BookOpen, label: "Learning", href: "/dashboard/learning" },
-  { icon: Users, label: "Network", href: "/dashboard/network" },
-  { icon: Trophy, label: "Skills", href: "/dashboard/skills" },
-  { icon: Brain, label: "Career Twin", href: "/dashboard/career-twin" },
-  { icon: Zap, label: "Arcade", href: "/dashboard/arcade" },
+  { icon: Home, label: "Dashboard", href: "/dashboard", type: "simple" },
+  { icon: BookOpen, label: "Learning", href: "/dashboard/learning", type: "simple" },
+  { icon: Trophy, label: "Skills & Badges", href: "/dashboard/skills", type: "simple" },
+  { icon: UserCheck, label: "Mentorship", href: "/dashboard/mentorship", type: "simple" },
+  { icon: Briefcase, label: "Opportunities", href: "/dashboard/opportunities", type: "simple" },
+  { icon: Users, label: "Network", href: "/dashboard/network", type: "simple" },
+  { icon: MessageSquare, label: "Social & Collaboration", href: "/dashboard/collaboration", type: "simple" },
+  { 
+    icon: Bot, 
+    label: "AI & Quantum", 
+    type: "expandable",
+    children: [
+      { icon: Brain, label: "Enhanced AI Dashboard", href: "/dashboard/ai-enhanced" },
+      { icon: Atom, label: "Quantum Matching", href: "/dashboard/quantum-matching" },
+      { icon: Brain, label: "Career Twin", href: "/dashboard/career-twin" },
+    ]
+  },
+  { 
+    icon: Leaf, 
+    label: "Green Economy", 
+    type: "expandable",
+    children: [
+      { icon: Leaf, label: "Green Skills", href: "/dashboard/green-skills" },
+      { icon: Leaf, label: "Sustainability", href: "/dashboard/sustainability" },
+    ]
+  },
+  { 
+    icon: Grid3X3, 
+    label: "Platforms", 
+    type: "expandable",
+    children: [
+      { icon: Zap, label: "Arcade", href: "/dashboard/arcade" },
+      { icon: Grid3X3, label: "Learning Platforms", href: "/dashboard/platforms" },
+    ]
+  },
+  { icon: MessageCircle, label: "Real-Time Chat", href: "/dashboard/chat", type: "simple" },
 ];
 
 function Sidebar({ className, onItemClick }: { className?: string; onItemClick?: () => void }) {
