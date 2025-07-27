@@ -78,7 +78,7 @@ class ProLAWHBackendTester:
             "email": "sarah.johnson@prolawh.com",
             "password": "SecurePass123!",
             "full_name": "Sarah Johnson",
-            "role": "student"
+            "role": "learner"
         }
         
         success, response = self.make_request("POST", "/auth/register", user_data, auth=False)
