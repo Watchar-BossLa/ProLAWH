@@ -586,5 +586,139 @@ async def get_user_permissions(
     permissions = await security_service.get_user_permissions(user_id)
     return {"user_id": user_id, "permissions": permissions}
 
+# ==================== ADVANCED AI ENDPOINTS ====================
+
+@app.post("/api/ai/initialize")
+async def initialize_ai_service(
+    ai_config: dict,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Initialize AI service with API key."""
+    from services.advanced_ai_service import advanced_ai_service
+    
+    api_key = ai_config.get("api_key")
+    provider = ai_config.get("provider", "openai")
+    model = ai_config.get("model", "gpt-4o")
+    
+    if not api_key:
+        raise HTTPException(status_code=400, detail="API key required")
+    
+    await advanced_ai_service.initialize_llm(api_key, provider, model)
+    return {"message": "AI service initialized successfully", "provider": provider, "model": model}
+
+@app.get("/api/ai/career-trajectory")
+async def get_career_trajectory_prediction(
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get advanced career trajectory prediction."""
+    from services.advanced_ai_service import advanced_ai_service
+    prediction = await advanced_ai_service.predict_career_trajectory(current_user)
+    return prediction
+
+@app.post("/api/ai/skill-gaps")
+async def analyze_skill_gaps(
+    analysis_request: dict,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get real-time skill gap analysis."""
+    from services.advanced_ai_service import advanced_ai_service
+    
+    target_role = analysis_request.get("target_role")
+    if not target_role:
+        raise HTTPException(status_code=400, detail="Target role required")
+    
+    analysis = await advanced_ai_service.analyze_skill_gaps_realtime(current_user, target_role)
+    return analysis
+
+@app.get("/api/ai/networking-strategy")
+async def get_networking_strategy(
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get strategic networking recommendations."""
+    from services.advanced_ai_service import advanced_ai_service
+    strategy = await advanced_ai_service.identify_strategic_network_connections(current_user)
+    return strategy
+
+@app.get("/api/ai/market-trends")
+async def get_market_trends(
+    industry: str,
+    skills: str,  # Comma-separated skills
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get advanced market trend predictions."""
+    from services.advanced_ai_service import advanced_ai_service
+    
+    skills_list = [skill.strip() for skill in skills.split(",")]
+    trends = await advanced_ai_service.predict_market_trends(industry, skills_list)
+    return trends
+
+@app.post("/api/ai/team-compatibility")
+async def analyze_team_compatibility(
+    compatibility_request: dict,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Analyze team compatibility and cultural fit."""
+    from services.advanced_ai_service import advanced_ai_service
+    
+    team_data = compatibility_request.get("team_data", {})
+    analysis = await advanced_ai_service.analyze_team_compatibility(current_user, team_data)
+    return analysis
+
+# ==================== COMPETITIVE INTELLIGENCE ENDPOINTS ====================
+
+@app.post("/api/competitive/initialize")
+async def initialize_competitive_intelligence(
+    ai_config: dict,
+    admin_user: UserResponse = Depends(get_admin_user)
+):
+    """Initialize competitive intelligence service."""
+    from services.competitive_intelligence import competitive_intelligence_service
+    
+    api_key = ai_config.get("api_key")
+    provider = ai_config.get("provider", "openai")
+    model = ai_config.get("model", "gpt-4o")
+    
+    if not api_key:
+        raise HTTPException(status_code=400, detail="API key required")
+    
+    await competitive_intelligence_service.initialize_llm(api_key, provider, model)
+    return {"message": "Competitive intelligence initialized", "provider": provider, "model": model}
+
+@app.get("/api/competitive/linkedin-analysis")
+async def get_linkedin_competitive_analysis(
+    admin_user: UserResponse = Depends(get_admin_user)
+):
+    """Get LinkedIn competitive analysis."""
+    from services.competitive_intelligence import competitive_intelligence_service
+    analysis = await competitive_intelligence_service.analyze_linkedin_gaps()
+    return analysis
+
+@app.get("/api/competitive/upwork-analysis")
+async def get_upwork_competitive_analysis(
+    admin_user: UserResponse = Depends(get_admin_user)
+):
+    """Get Upwork competitive analysis."""
+    from services.competitive_intelligence import competitive_intelligence_service
+    analysis = await competitive_intelligence_service.analyze_upwork_weaknesses()
+    return analysis
+
+@app.get("/api/competitive/coursera-analysis")
+async def get_coursera_competitive_analysis(
+    admin_user: UserResponse = Depends(get_admin_user)
+):
+    """Get Coursera competitive analysis."""
+    from services.competitive_intelligence import competitive_intelligence_service
+    analysis = await competitive_intelligence_service.analyze_coursera_problems()
+    return analysis
+
+@app.get("/api/competitive/master-strategy")
+async def get_competitive_master_strategy(
+    admin_user: UserResponse = Depends(get_admin_user)
+):
+    """Get comprehensive competitive strategy."""
+    from services.competitive_intelligence import competitive_intelligence_service
+    strategy = await competitive_intelligence_service.generate_competitive_strategy()
+    return strategy
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8001)
