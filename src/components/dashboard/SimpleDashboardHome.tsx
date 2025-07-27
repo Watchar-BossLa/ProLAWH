@@ -12,7 +12,10 @@ import {
   Activity,
   TrendingUp,
   MessageSquare,
-  Calendar
+  Calendar,
+  Briefcase,
+  Bot,
+  Loader2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/SimpleAuthProvider";
