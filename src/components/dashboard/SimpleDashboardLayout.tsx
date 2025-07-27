@@ -71,10 +71,67 @@ function Sidebar({ className, onItemClick }: { className?: string; onItemClick?:
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut } = useAuth();
+  const [expandedSections, setExpandedSections] = useState<string[]>(['AI & Quantum']);
 
   const handleNavigation = (href: string) => {
     navigate(href);
     onItemClick?.();
+  };
+
+  const toggleSection = (sectionLabel: string) => {
+    setExpandedSections(prev => 
+      prev.includes(sectionLabel)
+        ? prev.filter(s => s !== sectionLabel)
+        : [...prev, sectionLabel]
+    );
+  };
+
+  const renderNavigationItem = (item: any) => {
+    if (item.type === "expandable") {
+      const isExpanded = expandedSections.includes(item.label);
+      return (
+        <div key={item.label} className="space-y-1">
+          <Button
+            variant="ghost"
+            className="w-full justify-between text-left"
+            onClick={() => toggleSection(item.label)}
+          >
+            <div className="flex items-center">
+              <item.icon className="mr-2 h-4 w-4" />
+              {item.label}
+            </div>
+            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </Button>
+          {isExpanded && (
+            <div className="ml-6 space-y-1">
+              {item.children.map((child: any) => (
+                <Button
+                  key={child.href}
+                  variant={location.pathname === child.href ? "default" : "ghost"}
+                  className="w-full justify-start text-sm"
+                  onClick={() => handleNavigation(child.href)}
+                >
+                  <child.icon className="mr-2 h-4 w-4" />
+                  {child.label}
+                </Button>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    } else {
+      return (
+        <Button
+          key={item.href}
+          variant={location.pathname === item.href ? "default" : "ghost"}
+          className="w-full justify-start"
+          onClick={() => handleNavigation(item.href)}
+        >
+          <item.icon className="mr-2 h-4 w-4" />
+          {item.label}
+        </Button>
+      );
+    }
   };
 
   return (
@@ -84,18 +141,8 @@ function Sidebar({ className, onItemClick }: { className?: string; onItemClick?:
         <p className="text-sm text-muted-foreground">Learning & Workforce Hub</p>
       </div>
       
-      <nav className="flex-1 p-4 space-y-2">
-        {navigationItems.map((item) => (
-          <Button
-            key={item.href}
-            variant={location.pathname === item.href ? "default" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => handleNavigation(item.href)}
-          >
-            <item.icon className="mr-2 h-4 w-4" />
-            {item.label}
-          </Button>
-        ))}
+      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+        {navigationItems.map(renderNavigationItem)}
       </nav>
 
       <div className="p-4 border-t space-y-2">
