@@ -188,6 +188,7 @@ async def update_profile(
 @app.get("/api/courses", response_model=List[CourseResponse])
 async def get_courses(skip: int = 0, limit: int = 20):
     """Get all published courses."""
+    from services.course_service import course_service
     return await course_service.get_all_courses(skip, limit)
 
 @app.get("/api/courses/search", response_model=List[CourseResponse])
