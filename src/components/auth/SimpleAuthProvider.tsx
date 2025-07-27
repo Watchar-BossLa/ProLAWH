@@ -46,15 +46,27 @@ export function SimpleAuthProvider({ children }: { children: React.ReactNode }) 
           return;
         }
 
-        // Check for existing session from localStorage
-        const savedUser = localStorage.getItem('prolawh_user');
-        if (savedUser) {
-          setUser(JSON.parse(savedUser));
+        // Check for existing token
+        const savedToken = localStorage.getItem('prolawh_token');
+        if (savedToken) {
+          // Verify token with backend
+          apiClient.setToken(savedToken);
+          const response = await apiClient.getCurrentUser();
+          
+          if (response.data) {
+            setUser(response.data);
+            // Initialize WebSocket connection
+            wsManager.updateToken(savedToken);
+          } else {
+            // Token invalid, clear it
+            apiClient.removeToken();
+          }
         }
         
         setIsLoading(false);
       } catch (error) {
         console.error('Auth initialization error:', error);
+        apiClient.removeToken();
         setIsLoading(false);
       }
     };
