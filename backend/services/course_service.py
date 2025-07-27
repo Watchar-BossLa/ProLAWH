@@ -103,7 +103,8 @@ class CourseService:
 
     async def update_progress(self, user_id: str, course_id: str, lesson_id: str, time_spent: int):
         """Update user's course progress."""
-        await self.progress_collection.update_one(
+        _, progress_collection = self._get_collections()
+        await progress_collection.update_one(
             {"_id": f"{user_id}_{course_id}"},
             {
                 "$addToSet": {"completed_lessons": lesson_id},
