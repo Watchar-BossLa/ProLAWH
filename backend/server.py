@@ -49,6 +49,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Security middleware
+app.add_middleware(SecurityMiddleware)
+
 # Include WebSocket router
 app.include_router(websocket_router)
 
