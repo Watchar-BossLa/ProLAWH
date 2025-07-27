@@ -7,15 +7,11 @@ import uvicorn
 from jose import JWTError, jwt
 import os
 
-# Import models and services
+# Import models and services (lazy loading)
 from models.user import UserCreate, UserLogin, UserResponse, UserUpdate
 from models.course import CourseCreate, CourseResponse, CourseProgress
 from models.mentorship import MentorshipRequest, SessionBooking, MentorResponse
 from models.opportunity import JobCreate, JobResponse, ApplicationCreate
-
-from services.user_service import user_service
-from services.course_service import course_service
-from services.mentorship_service import mentorship_service
 from database.connection import connect_to_mongo, close_mongo_connection
 
 # JWT settings
