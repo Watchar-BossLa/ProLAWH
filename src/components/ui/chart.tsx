@@ -92,13 +92,30 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     .filter(Boolean)
     .join('\n')
 
-  return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: cssContent
-      }}
-    />
-  )
+  // Create a unique style element for this chart
+  React.useEffect(() => {
+    const styleId = `chart-style-${id}`
+    let styleElement = document.getElementById(styleId) as HTMLStyleElement
+    
+    if (!styleElement) {
+      styleElement = document.createElement('style')
+      styleElement.id = styleId
+      document.head.appendChild(styleElement)
+    }
+    
+    // Safely set CSS content without dangerouslySetInnerHTML
+    styleElement.textContent = cssContent
+    
+    return () => {
+      // Cleanup on unmount
+      const element = document.getElementById(styleId)
+      if (element) {
+        element.remove()
+      }
+    }
+  }, [id, cssContent])
+
+  return null
 }
 
 const ChartTooltip = RechartsPrimitive.Tooltip
