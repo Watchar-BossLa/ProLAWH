@@ -252,6 +252,7 @@ async def get_mentors(
     limit: int = 20
 ):
     """Get available mentors."""
+    from services.mentorship_service import mentorship_service
     return await mentorship_service.get_all_mentors(specialties, skip, limit)
 
 @app.post("/api/mentorship/request")
