@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SimpleAuthProvider } from "@/components/auth/SimpleAuthProvider";
 import { NavigationProvider } from "@/components/navigation/NavigationProvider";
 import Index from "./pages/Index";
-import EnterpriseAuthPage from "./pages/auth/EnterpriseAuthPage";
+import SimpleAuthPage from "./pages/auth/SimpleAuthPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import { DashboardLayout } from "./components/dashboard/DashboardLayout";
 import { DashboardHome } from "./components/dashboard/DashboardHome";
