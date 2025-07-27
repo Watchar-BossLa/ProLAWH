@@ -33,7 +33,7 @@ class CourseService:
         course_doc = course.dict()
         course_doc["_id"] = course_id
         
-        await self.courses_collection.insert_one(course_doc)
+        await courses_collection.insert_one(course_doc)
         
         return CourseResponse(**course.dict())
 
