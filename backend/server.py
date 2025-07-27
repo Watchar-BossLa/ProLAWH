@@ -218,6 +218,7 @@ async def enroll_in_course(
     current_user: UserResponse = Depends(get_current_user)
 ):
     """Enroll in a course."""
+    from services.course_service import course_service
     try:
         progress = await course_service.enroll_user(current_user.user_id, course_id)
         return {"message": "Successfully enrolled", "progress": progress.dict()}
