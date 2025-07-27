@@ -85,6 +85,9 @@ function App() {
                   <Route path="quantum-matching" element={<QuantumMatchingPage />} />
                   <Route path="quorumforge" element={<QuorumForgeDashboard />} />
                   <Route path="enhanced-ai" element={<EnhancedAIDashboard />} />
+                  <Route path="ai-enhanced" element={<EnhancedAIDashboard />} />
+                  <Route path="sustainability" element={<GreenEconomyPage />} />
+                  <Route path="platforms" element={<LearningDashboard />} />
                   <Route path="collaboration" element={<CollaborationPage />} />
                   <Route path="community" element={<CommunityPage />} />
                   <Route path="study-groups" element={<StudyGroupsPage />} />
