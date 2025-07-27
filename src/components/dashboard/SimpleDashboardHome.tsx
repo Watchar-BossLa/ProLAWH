@@ -75,6 +75,18 @@ export function SimpleDashboardHome() {
     { icon: <MessageSquare className="h-4 w-4" />, text: "New mentorship message", time: "3 days ago" },
   ];
 
+  // Loading states
+  if (statsLoading && recommendationsLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Loading dashboard...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 p-6">
       {/* Welcome Section */}
