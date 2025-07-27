@@ -73,7 +73,7 @@ function App() {
                   <Route path="network/:id" element={<NetworkConnectionProfile />} />
                   <Route path="mentorship" element={<MentorshipPage />} />
                   <Route path="mentorship/:id" element={<MentorshipDetailPage />} />
-                  <Route path="opportunities" element={<OpportunityMarketplace />} />
+                  <Route path="opportunities" element={<OpportunitiesPage />} />
                   <Route path="career-twin" element={<CareerTwinPage />} />
                   <Route path="arcade" element={<ArcadePage />} />
                   <Route path="challenge/:id" element={<ChallengePage />} />
