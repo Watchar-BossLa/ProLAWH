@@ -231,6 +231,7 @@ async def get_course_progress(
     current_user: UserResponse = Depends(get_current_user)
 ):
     """Get user's progress in a course."""
+    from services.course_service import course_service
     progress = await course_service.get_user_progress(current_user.user_id, course_id)
     if not progress:
         raise HTTPException(status_code=404, detail="Not enrolled in course")
