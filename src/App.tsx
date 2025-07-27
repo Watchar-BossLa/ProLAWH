@@ -71,7 +71,7 @@ function App() {
                   <Route path="skills" element={<SkillsAndBadgesPage />} />
                   <Route path="network" element={<NetworkDashboard />} />
                   <Route path="network/:id" element={<NetworkConnectionProfile />} />
-                  <Route path="mentorship" element={<MentorshipDashboard />} />
+                  <Route path="mentorship" element={<MentorshipPage />} />
                   <Route path="mentorship/:id" element={<MentorshipDetailPage />} />
                   <Route path="opportunities" element={<OpportunityMarketplace />} />
                   <Route path="career-twin" element={<CareerTwinPage />} />
