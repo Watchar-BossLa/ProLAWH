@@ -12,7 +12,9 @@ from models.user import UserCreate, UserLogin, UserResponse, UserUpdate
 from models.course import CourseCreate, CourseResponse, CourseProgress
 from models.mentorship import MentorshipRequest, SessionBooking, MentorResponse
 from models.opportunity import JobCreate, JobResponse, ApplicationCreate
+from models.chat import ChatCreate, MessageCreate, ChatRoom, ChatMessage
 from database.connection import connect_to_mongo, close_mongo_connection
+from routers.websocket_router import websocket_router
 
 # JWT settings
 SECRET_KEY = "prolawh-secret-key-2025"
