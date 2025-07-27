@@ -1,58 +1,42 @@
-
 import type { NavigationSuggestion } from '@/types/navigation';
 
 export function generateNavigationSuggestions(currentPath: string): NavigationSuggestion[] {
   const suggestions: NavigationSuggestion[] = [];
 
-  // Context-aware suggestions based on current page
-  switch (currentPath) {
-    case '/dashboard/opportunities':
-      suggestions.push(
-        {
-          id: 'skills-check',
-          title: 'Review Your Skills',
-          description: 'Update your skills to get better opportunity matches',
-          path: '/dashboard/skills',
-          reason: 'Better matches with updated skills',
-          priority: 1
-        },
-        {
-          id: 'ai-matching',
-          title: 'AI Career Intelligence',
-          description: 'Get AI-powered career recommendations',
-          path: '/dashboard/enhanced-ai',
-          reason: 'AI can help optimize your career path',
-          priority: 2
-        }
-      );
-      break;
-    
-    case '/dashboard/learning':
-      suggestions.push(
-        {
-          id: 'career-twin',
-          title: 'Career Twin Analysis',
-          description: 'See how your learning aligns with career goals',
-          path: '/dashboard/career-twin',
-          reason: 'Optimize learning for career growth',
-          priority: 1
-        }
-      );
-      break;
-
-    case '/dashboard/skills':
-      suggestions.push(
-        {
-          id: 'skill-staking',
-          title: 'Stake Your Skills',
-          description: 'Earn rewards by staking verified skills',
-          path: '/dashboard/staking',
-          reason: 'Monetize your expertise',
-          priority: 1
-        }
-      );
-      break;
+  // Context-based suggestions
+  if (currentPath === '/dashboard') {
+    suggestions.push(
+      {
+        id: 'start-learning',
+        title: 'Start Learning',
+        description: 'Explore courses and learning paths',
+        path: '/dashboard/learning',
+        reason: 'Popular action from dashboard',
+        priority: 1,
+      },
+      {
+        id: 'view-skills',
+        title: 'View Skills',
+        description: 'Check your skill progress and badges',
+        path: '/dashboard/skills',
+        reason: 'Track your progress',
+        priority: 2,
+      }
+    );
   }
 
-  return suggestions;
+  if (currentPath.includes('/learning')) {
+    suggestions.push(
+      {
+        id: 'skills-assessment',
+        title: 'Skills Assessment',
+        description: 'Test your knowledge and earn badges',
+        path: '/dashboard/skills',
+        reason: 'Related to learning',
+        priority: 1,
+      }
+    );
+  }
+
+  return suggestions.sort((a, b) => a.priority - b.priority);
 }
