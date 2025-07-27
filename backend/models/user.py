@@ -1,6 +1,3 @@
-<file>
-      <absolute_file_name>/app/backend/models/user.py</absolute_file_name>
-      <content">
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional, List
 from datetime import datetime
@@ -88,5 +85,3 @@ class UserResponse(BaseModel):
     stats: UserStats
     is_active: bool
     created_at: datetime
-</content>
-    </file>
