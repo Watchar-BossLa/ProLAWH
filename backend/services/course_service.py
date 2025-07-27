@@ -81,6 +81,7 @@ class CourseService:
 
     async def enroll_user(self, user_id: str, course_id: str) -> CourseProgress:
         """Enroll user in a course."""
+        _, progress_collection = self._get_collections()
         progress = CourseProgress(
             user_id=user_id,
             course_id=course_id
@@ -89,7 +90,7 @@ class CourseService:
         progress_doc = progress.dict()
         progress_doc["_id"] = f"{user_id}_{course_id}"
         
-        await self.progress_collection.insert_one(progress_doc)
+        await progress_collection.insert_one(progress_doc)
         return progress
 
     async def get_user_progress(self, user_id: str, course_id: str) -> Optional[CourseProgress]:
