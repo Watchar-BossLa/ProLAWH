@@ -65,17 +65,24 @@ export function SimpleAuthProvider({ children }: { children: React.ReactNode }) 
   const signIn = async (credentials: { email: string; password: string }) => {
     setIsLoading(true);
     try {
-      // For development/demo purposes
-      const mockUser: AuthUser = {
-        id: 'user-' + Date.now(),
-        email: credentials.email,
-        user_metadata: {
-          full_name: 'Demo User'
-        }
-      };
+      const response = await apiClient.login(credentials.email, credentials.password);
       
-      setUser(mockUser);
-      localStorage.setItem('prolawh_user', JSON.stringify(mockUser));
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      if (response.data?.access_token && response.data?.user) {
+        // Set token in API client
+        apiClient.setToken(response.data.access_token);
+        
+        // Update WebSocket with new token
+        wsManager.updateToken(response.data.access_token);
+        
+        // Set user
+        setUser(response.data.user);
+        localStorage.setItem('prolawh_user', JSON.stringify(response.data.user));
+      }
+      
       setIsLoading(false);
     } catch (error) {
       console.error('Sign in error:', error);
@@ -87,17 +94,28 @@ export function SimpleAuthProvider({ children }: { children: React.ReactNode }) 
   const signUp = async (credentials: { email: string; password: string; fullName?: string }) => {
     setIsLoading(true);
     try {
-      // For development/demo purposes
-      const mockUser: AuthUser = {
-        id: 'user-' + Date.now(),
-        email: credentials.email,
-        user_metadata: {
-          full_name: credentials.fullName || 'Demo User'
-        }
-      };
+      const response = await apiClient.register(
+        credentials.email, 
+        credentials.password, 
+        credentials.fullName || 'Demo User'
+      );
       
-      setUser(mockUser);
-      localStorage.setItem('prolawh_user', JSON.stringify(mockUser));
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      if (response.data?.access_token && response.data?.user) {
+        // Set token in API client
+        apiClient.setToken(response.data.access_token);
+        
+        // Update WebSocket with new token
+        wsManager.updateToken(response.data.access_token);
+        
+        // Set user
+        setUser(response.data.user);
+        localStorage.setItem('prolawh_user', JSON.stringify(response.data.user));
+      }
+      
       setIsLoading(false);
     } catch (error) {
       console.error('Sign up error:', error);
@@ -107,8 +125,16 @@ export function SimpleAuthProvider({ children }: { children: React.ReactNode }) 
   };
 
   const signOut = async () => {
+    // Clear API client token
+    apiClient.removeToken();
+    
+    // Disconnect WebSocket
+    wsManager.disconnect();
+    
+    // Clear user state
     setUser(null);
     localStorage.removeItem('prolawh_user');
+    localStorage.removeItem('prolawh_token');
   };
 
   const value: AuthContextType = {
