@@ -47,6 +47,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include WebSocket router
+app.include_router(websocket_router)
+
 # Authentication dependency
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> UserResponse:
     """Get current authenticated user."""
