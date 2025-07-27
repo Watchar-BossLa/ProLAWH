@@ -24,30 +24,30 @@ export function SimpleDashboardHome() {
   const quickActions = [
     {
       icon: <BookOpen className="h-6 w-6" />,
-      title: "Continue Learning",
-      description: "Resume your learning path",
+      title: "Start Learning",
+      description: "Begin or continue your courses",
       action: () => navigate("/dashboard/learning"),
       color: "bg-blue-500"
     },
     {
       icon: <Users className="h-6 w-6" />,
-      title: "Network",
-      description: "Connect with peers",
-      action: () => navigate("/dashboard/network"),
+      title: "Find Mentor", 
+      description: "Connect with experienced professionals",
+      action: () => navigate("/dashboard/mentorship"),
+      color: "bg-purple-500"
+    },
+    {
+      icon: <Briefcase className="h-6 w-6" />,
+      title: "Browse Jobs",
+      description: "Explore career opportunities",
+      action: () => navigate("/dashboard/opportunities"),
       color: "bg-green-500"
     },
     {
       icon: <Trophy className="h-6 w-6" />,
-      title: "Skills & Badges",
-      description: "View your achievements",
+      title: "Take Assessment",
+      description: "Test and verify your skills",
       action: () => navigate("/dashboard/skills"),
-      color: "bg-purple-500"
-    },
-    {
-      icon: <Brain className="h-6 w-6" />,
-      title: "Career Twin",
-      description: "AI career guidance",
-      action: () => navigate("/dashboard/career-twin"),
       color: "bg-orange-500"
     }
   ];
