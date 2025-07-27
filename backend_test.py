@@ -295,6 +295,7 @@ class ProLAWHBackendTester:
     def test_job_application(self):
         """Test job application"""
         application_data = {
+            "job_id": "1",
             "cover_letter": "I am very interested in this position and believe my skills align well with the requirements.",
             "resume_url": "https://example.com/resume.pdf"
         }
