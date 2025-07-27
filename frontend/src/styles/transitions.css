@@ -1,0 +1,42 @@
+
+@layer utilities {
+  /* Theme transitions */
+  .theme-ready {
+    transition: background-color var(--theme-transition),
+                color var(--theme-transition),
+                border-color var(--theme-transition);
+  }
+
+  /* Interactive transitions */
+  .transition-transform {
+    transition: transform 0.2s ease-out;
+  }
+
+  .transition-opacity {
+    transition: opacity 0.2s ease-out;
+  }
+
+  .transition-colors {
+    transition: background-color 0.2s ease-out,
+                border-color 0.2s ease-out,
+                color 0.2s ease-out;
+  }
+
+  /* Hover effects */
+  .hover-scale {
+    @apply transition-transform hover:scale-105;
+  }
+
+  .hover-fade {
+    @apply transition-opacity hover:opacity-80;
+  }
+
+  /* Combined effects */
+  .interactive {
+    @apply transition-all duration-300;
+  }
+
+  .interactive-card {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+  }
+}

@@ -1,0 +1,10 @@
+
+@layer components {
+  .card {
+    @apply p-8;
+  }
+
+  .read-the-docs {
+    @apply text-gray-500;
+  }
+}
