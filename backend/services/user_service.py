@@ -48,7 +48,7 @@ class UserService:
             user_doc["_id"] = user_id
             
             # Insert into database
-            await self.collection.insert_one(user_doc)
+            await collection.insert_one(user_doc)
             
             return UserResponse(**user_profile.dict())
         except DuplicateKeyError:
