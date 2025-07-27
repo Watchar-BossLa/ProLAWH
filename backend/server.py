@@ -261,6 +261,7 @@ async def request_mentorship(
     current_user: UserResponse = Depends(get_current_user)
 ):
     """Request mentorship from a mentor."""
+    from services.mentorship_service import mentorship_service
     connection = await mentorship_service.request_mentorship(current_user.user_id, request)
     return {"message": "Mentorship request sent", "connection": connection.dict()}
 
