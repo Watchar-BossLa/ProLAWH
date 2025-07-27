@@ -15,6 +15,7 @@ class CourseService:
 
     async def create_course(self, course_data: CourseCreate, instructor_name: str) -> CourseResponse:
         """Create a new course."""
+        courses_collection, _ = self._get_collections()
         course_id = str(uuid.uuid4())
         
         course = Course(
