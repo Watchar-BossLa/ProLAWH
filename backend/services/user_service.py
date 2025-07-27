@@ -28,6 +28,7 @@ class UserService:
 
     async def create_user(self, user_data: UserCreate) -> UserResponse:
         """Create a new user."""
+        collection = self._get_collection()
         try:
             # Hash password
             hashed_password = pwd_context.hash(user_data.password)
