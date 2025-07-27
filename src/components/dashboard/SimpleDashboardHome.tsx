@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,14 +15,27 @@ import {
   Calendar,
   Briefcase,
   Bot,
-  Loader2
+  Loader2,
+  RefreshCw
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/SimpleAuthProvider";
+import { useDashboardStats, useRecommendations } from "@/hooks/useApi";
 
 export function SimpleDashboardHome() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { data: stats, loading: statsLoading, refetch: refetchStats } = useDashboardStats();
+  const { data: recommendations, loading: recommendationsLoading, refetch: refetchRecommendations } = useRecommendations();
+
+  // Auto-refresh recommendations every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetchRecommendations();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [refetchRecommendations]);
 
   const quickActions = [
     {
