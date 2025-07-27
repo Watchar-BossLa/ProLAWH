@@ -17,8 +17,14 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 class UserService:
     def __init__(self):
-        self.db = get_database()
-        self.collection = self.db.users
+        self.db = None
+        self.collection = None
+
+    def _get_collection(self):
+        if self.collection is None:
+            self.db = get_database()
+            self.collection = self.db.users
+        return self.collection
 
     async def create_user(self, user_data: UserCreate) -> UserResponse:
         """Create a new user."""
