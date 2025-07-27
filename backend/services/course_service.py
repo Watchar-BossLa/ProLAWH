@@ -143,7 +143,8 @@ class CourseService:
 
     async def get_popular_courses(self, limit: int = 10) -> List[CourseResponse]:
         """Get popular courses based on enrollment count."""
-        cursor = self.courses_collection.find({"status": "published"}).sort("enrollment_count", -1).limit(limit)
+        courses_collection, _ = self._get_collections()
+        cursor = courses_collection.find({"status": "published"}).sort("enrollment_count", -1).limit(limit)
         courses = []
         async for course_doc in cursor:
             courses.append(CourseResponse(**course_doc))
