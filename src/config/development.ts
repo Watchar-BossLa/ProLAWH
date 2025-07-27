@@ -1,7 +1,7 @@
 
 export const DEVELOPMENT_CONFIG = {
   // Development bypass for testing without auth
-  BYPASS_AUTH: false, // Set to true only for development
+  BYPASS_AUTH: true, // Set to true only for development
   
   // Mock user for development (only used if BYPASS_AUTH is true)
   MOCK_USER: {
