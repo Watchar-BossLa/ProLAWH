@@ -16,6 +16,7 @@ from models.opportunity import JobCreate, JobResponse, ApplicationCreate
 from models.chat import ChatCreate, MessageCreate, ChatRoom, ChatMessage
 from database.connection import connect_to_mongo, close_mongo_connection
 from routers.websocket_router import websocket_router
+from middleware.security_middleware import SecurityMiddleware
 
 # JWT settings
 SECRET_KEY = "prolawh-secret-key-2025"
