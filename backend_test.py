@@ -336,7 +336,7 @@ class ProLAWHBackendTester:
             # Test creating a chat
             chat_data = {
                 "name": "Study Group - React Development",
-                "type": "group",
+                "chat_type": "group",
                 "participants": ["user-123", "user-456"]
             }
             
