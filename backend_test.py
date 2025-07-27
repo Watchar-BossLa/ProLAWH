@@ -309,6 +309,11 @@ class ProLAWHBackendTester:
             if "message" in data and "application_id" in data:
                 self.log_test("Job Application", True, f"Application submitted: {data['application_id']}")
                 return True
+        elif response.status_code == 422:
+            # Log validation error details
+            error_details = response.json().get("detail", "Validation error")
+            self.log_test("Job Application", False, f"Validation error: {error_details}")
+            return False
                 
         self.log_test("Job Application", False, f"Status: {response.status_code}")
         return False
