@@ -5,7 +5,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { authService } from '@/utils/auth/AuthService';
-import { logger, performanceLogger } from '@/utils/logger/Logger';
+import { enterpriseLogger } from '@/utils/logging/enterpriseLogger';
 import { ENV } from '@/config/environment';
 import type { 
   AuthContextType, 
@@ -47,7 +47,12 @@ export function EnterpriseAuthProvider({ children }: EnterpriseAuthProviderProps
 
   const initializeAuth = useCallback(async () => {
     try {
-      await logger.info('Initializing authentication state', {}, 'EnterpriseAuthProvider');
+      await enterpriseLogger.log({
+        level: 'info',
+        message: 'Initializing authentication state',
+        component: 'EnterpriseAuthProvider',
+        metadata: {}
+      });
       
       const { session, error } = await authService.getCurrentSession();
       
@@ -75,13 +80,21 @@ export function EnterpriseAuthProvider({ children }: EnterpriseAuthProviderProps
           sessionStorage.setItem('user_id', session.user.id);
         }
         
-        await logger.info('User authentication restored', { 
-          userId: session.user.id 
-        }, 'EnterpriseAuthProvider');
+        await enterpriseLogger.log({
+          level: 'info',
+          message: 'User authentication restored',
+          component: 'EnterpriseAuthProvider',
+          metadata: { userId: session.user.id }
+        });
       }
 
     } catch (error) {
-      await logger.error('Failed to initialize auth', { error }, 'EnterpriseAuthProvider');
+      await enterpriseLogger.log({
+        level: 'error',
+        message: 'Failed to initialize auth',
+        component: 'EnterpriseAuthProvider',
+        metadata: { error: error instanceof Error ? error.message : 'Unknown error' }
+      });
       setAuthState(prev => ({
         ...prev,
         isLoading: false,
@@ -95,132 +108,132 @@ export function EnterpriseAuthProvider({ children }: EnterpriseAuthProviderProps
   }, []);
 
   const signIn = useCallback(async (credentials: SignInCredentials) => {
-    return await performanceLogger.measureAsync('signIn', async () => {
-      setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
+    setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
 
-      const { data, error } = await authService.signIn(credentials);
+    const { data, error } = await authService.signIn(credentials);
 
-      if (error) {
-        setAuthState(prev => ({
-          ...prev,
-          isLoading: false,
-          error
-        }));
-        return { error };
-      }
+    if (error) {
+      setAuthState(prev => ({
+        ...prev,
+        isLoading: false,
+        error
+      }));
+      return { error };
+    }
 
-      if (data) {
-        // Store session info for logging context
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('session_id', data.session.access_token.slice(-10));
-          sessionStorage.setItem('user_id', data.user.id);
-        }
-
-        setAuthState({
-          user: data.user,
-          session: data.session,
-          isLoading: false,
-          isAuthenticated: true,
-          error: null
-        });
-      }
-
-      return { error: null };
-    }, { operation: 'user_signin' });
-  }, []);
-
-  const signUp = useCallback(async (credentials: SignUpCredentials) => {
-    return await performanceLogger.measureAsync('signUp', async () => {
-      setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
-
-      const { data, error } = await authService.signUp(credentials);
-
-      if (error) {
-        setAuthState(prev => ({
-          ...prev,
-          isLoading: false,
-          error
-        }));
-        return { error };
-      }
-
-      if (data) {
-        // Only store session info if we have a session (email confirmation might be required)
-        if (data.session && typeof window !== 'undefined') {
-          sessionStorage.setItem('session_id', data.session.access_token.slice(-10));
-          sessionStorage.setItem('user_id', data.user.id);
-        }
-
-        setAuthState({
-          user: data.user,
-          session: data.session,
-          isLoading: false,
-          isAuthenticated: !!data.session,
-          error: null
-        });
-      }
-
-      return { error: null };
-    }, { operation: 'user_signup' });
-  }, []);
-
-  const signOut = useCallback(async () => {
-    return await performanceLogger.measureAsync('signOut', async () => {
-      setAuthState(prev => ({ ...prev, isLoading: true }));
-
-      const { error } = await authService.signOut();
-
-      // Clear session info regardless of error
+    if (data) {
+      // Store session info for logging context
       if (typeof window !== 'undefined') {
-        sessionStorage.removeItem('session_id');
-        sessionStorage.removeItem('user_id');
+        sessionStorage.setItem('session_id', data.session.access_token.slice(-10));
+        sessionStorage.setItem('user_id', data.user.id);
       }
 
       setAuthState({
-        user: null,
-        session: null,
+        user: data.user,
+        session: data.session,
         isLoading: false,
-        isAuthenticated: false,
-        error
+        isAuthenticated: true,
+        error: null
       });
+    }
 
+    return { error: null };
+  }, []);
+
+  const signUp = useCallback(async (credentials: SignUpCredentials) => {
+    setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
+
+    const { data, error } = await authService.signUp(credentials);
+
+    if (error) {
+      setAuthState(prev => ({
+        ...prev,
+        isLoading: false,
+        error
+      }));
       return { error };
-    }, { operation: 'user_signout' });
+    }
+
+    if (data) {
+      // Only store session info if we have a session (email confirmation might be required)
+      if (data.session && typeof window !== 'undefined') {
+        sessionStorage.setItem('session_id', data.session.access_token.slice(-10));
+        sessionStorage.setItem('user_id', data.user.id);
+      }
+
+      setAuthState({
+        user: data.user,
+        session: data.session,
+        isLoading: false,
+        isAuthenticated: !!data.session,
+        error: null
+      });
+    }
+
+    return { error: null };
+  }, []);
+
+  const signOut = useCallback(async () => {
+    setAuthState(prev => ({ ...prev, isLoading: true }));
+
+    const { error } = await authService.signOut();
+
+    // Clear session info regardless of error
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('session_id');
+      sessionStorage.removeItem('user_id');
+    }
+
+    setAuthState({
+      user: null,
+      session: null,
+      isLoading: false,
+      isAuthenticated: false,
+      error
+    });
+
+    return { error };
   }, []);
 
   const resetPassword = useCallback(async (request: { email: string }) => {
-    // This would be implemented with Supabase password reset
-    await logger.info('Password reset requested', { email: request.email }, 'EnterpriseAuthProvider');
+    await enterpriseLogger.log({
+      level: 'info',
+      message: 'Password reset requested',
+      component: 'EnterpriseAuthProvider',
+      metadata: { email: request.email }
+    });
     return { error: null };
   }, []);
 
   const updatePassword = useCallback(async (request: { currentPassword: string; newPassword: string }) => {
-    // This would be implemented with Supabase password update
-    await logger.info('Password update requested', {}, 'EnterpriseAuthProvider');
+    await enterpriseLogger.log({
+      level: 'info',
+      message: 'Password update requested',
+      component: 'EnterpriseAuthProvider',
+      metadata: {}
+    });
     return { error: null };
   }, []);
 
   const refreshSession = useCallback(async () => {
-    return await performanceLogger.measureAsync('refreshSession', async () => {
-      const { session, error } = await authService.refreshSession();
+    const { session, error } = await authService.refreshSession();
 
-      if (error) {
-        setAuthState(prev => ({ ...prev, error }));
-        return { error };
-      }
+    if (error) {
+      setAuthState(prev => ({ ...prev, error }));
+      return { error };
+    }
 
-      if (session) {
-        setAuthState(prev => ({
-          ...prev,
-          user: session.user,
-          session,
-          isAuthenticated: true,
-          error: null
-        }));
-      }
+    if (session) {
+      setAuthState(prev => ({
+        ...prev,
+        user: session.user,
+        session,
+        isAuthenticated: true,
+        error: null
+      }));
+    }
 
-      return { error: null };
-    }, { operation: 'session_refresh' });
+    return { error: null };
   }, []);
 
   const clearError = useCallback(() => {
