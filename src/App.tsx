@@ -48,8 +48,7 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <EnterpriseAuthProvider>
-        <SessionMonitor />
+      <SimpleAuthProvider>
         <TooltipProvider>
           <Toaster />
           <BrowserRouter>
