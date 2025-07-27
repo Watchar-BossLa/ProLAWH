@@ -103,7 +103,7 @@ function App() {
             </NavigationProvider>
           </BrowserRouter>
         </TooltipProvider>
-      </EnterpriseAuthProvider>
+      </SimpleAuthProvider>
     </QueryClientProvider>
   );
 }
