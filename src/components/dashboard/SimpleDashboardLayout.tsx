@@ -13,7 +13,17 @@ import {
   Menu,
   Settings,
   LogOut,
-  Zap
+  Zap,
+  UserCheck,
+  Briefcase,
+  MessageSquare,
+  ChevronDown,
+  ChevronRight,
+  Bot,
+  Atom,
+  Leaf,
+  Grid3X3,
+  MessageCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate, useLocation } from "react-router-dom";
