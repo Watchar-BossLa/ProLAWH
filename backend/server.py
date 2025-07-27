@@ -274,6 +274,7 @@ async def get_my_mentorships(current_user: UserResponse = Depends(get_current_us
 @app.get("/api/my/sessions")
 async def get_my_sessions(current_user: UserResponse = Depends(get_current_user)):
     """Get upcoming mentorship sessions."""
+    from services.mentorship_service import mentorship_service
     sessions = await mentorship_service.get_upcoming_sessions(current_user.user_id)
     return [session.dict() for session in sessions]
 
