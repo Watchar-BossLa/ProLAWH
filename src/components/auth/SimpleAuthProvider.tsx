@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CONFIG, ENV } from '@/config';
+import apiClient from '@/services/api';
+import wsManager from '@/services/websocket';
 
 interface AuthUser {
   id: string;
