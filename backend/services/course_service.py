@@ -39,7 +39,8 @@ class CourseService:
 
     async def get_course(self, course_id: str) -> Optional[CourseResponse]:
         """Get course by ID."""
-        course_doc = await self.courses_collection.find_one({"_id": course_id})
+        courses_collection, _ = self._get_collections()
+        course_doc = await courses_collection.find_one({"_id": course_id})
         if not course_doc:
             return None
         return CourseResponse(**course_doc)
