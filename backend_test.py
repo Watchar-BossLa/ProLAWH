@@ -345,6 +345,11 @@ class ProLAWHBackendTester:
                 if "message" in data and "chat" in data:
                     self.log_test("Create Chat", True, "Chat room created successfully")
                     return True
+            elif response.status_code == 422:
+                # Log validation error details
+                error_details = response.json().get("detail", "Validation error")
+                self.log_test("Create Chat", False, f"Validation error: {error_details}")
+                return False
                     
         self.log_test("Chat Endpoints", False, f"Status: {response.status_code}")
         return False
