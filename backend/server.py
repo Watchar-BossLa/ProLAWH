@@ -200,6 +200,7 @@ async def search_courses(q: str, category: Optional[str] = None):
 @app.get("/api/courses/popular", response_model=List[CourseResponse])
 async def get_popular_courses(limit: int = 10):
     """Get popular courses."""
+    from services.course_service import course_service
     return await course_service.get_popular_courses(limit)
 
 @app.get("/api/courses/{course_id}", response_model=CourseResponse)
