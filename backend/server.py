@@ -268,6 +268,7 @@ async def request_mentorship(
 @app.get("/api/my/mentorships")
 async def get_my_mentorships(current_user: UserResponse = Depends(get_current_user)):
     """Get user's mentorship connections."""
+    from services.mentorship_service import mentorship_service
     return await mentorship_service.get_user_mentorships(current_user.user_id)
 
 @app.get("/api/my/sessions")
