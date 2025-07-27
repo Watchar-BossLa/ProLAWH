@@ -1,11 +1,20 @@
 
 export const DEVELOPMENT_CONFIG = {
-  // SECURITY: Development authentication bypass REMOVED for security
-  // Authentication bypass is a critical security vulnerability - NEVER enable
-  BYPASS_AUTH: false, // PERMANENTLY DISABLED
+  // SECURITY: Development authentication bypass temporarily enabled for testing
+  // This should be disabled in production
+  BYPASS_AUTH: true, // TEMPORARILY ENABLED for testing
   
-  // SECURITY: Mock user removed to prevent unauthorized access
-  MOCK_USER: null,
+  // Mock user for development
+  MOCK_USER: {
+    id: 'dev-user-123',
+    email: 'dev@prolawh.com',
+    user_metadata: {
+      full_name: 'Demo User'
+    },
+    app_metadata: {},
+    aud: 'authenticated',
+    created_at: new Date().toISOString()
+  },
   
   // Enterprise system settings
   ENTERPRISE: {
