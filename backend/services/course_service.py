@@ -47,7 +47,8 @@ class CourseService:
 
     async def get_all_courses(self, skip: int = 0, limit: int = 20) -> List[CourseResponse]:
         """Get all courses with pagination."""
-        cursor = self.courses_collection.find({"status": "published"}).skip(skip).limit(limit)
+        courses_collection, _ = self._get_collections()
+        cursor = courses_collection.find({"status": "published"}).skip(skip).limit(limit)
         courses = []
         async for course_doc in cursor:
             courses.append(CourseResponse(**course_doc))
