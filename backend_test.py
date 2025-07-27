@@ -249,7 +249,8 @@ class ProLAWHBackendTester:
         request_data = {
             "mentor_id": "mentor-123",
             "message": "I would like to learn more about full-stack development",
-            "preferred_schedule": "weekends"
+            "preferred_schedule": "weekends",
+            "goals": ["Learn React", "Master TypeScript", "Build full-stack applications"]
         }
         
         success, response = self.make_request("POST", "/mentorship/request", request_data)
