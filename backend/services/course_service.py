@@ -6,9 +6,12 @@ from database.connection import get_database
 
 class CourseService:
     def __init__(self):
-        self.db = get_database()
-        self.courses_collection = self.db.courses
-        self.progress_collection = self.db.course_progress
+        pass
+
+    def _get_collections(self):
+        """Get course collections from database."""
+        db = get_database()
+        return db.courses, db.course_progress
 
     async def create_course(self, course_data: CourseCreate, instructor_name: str) -> CourseResponse:
         """Create a new course."""
