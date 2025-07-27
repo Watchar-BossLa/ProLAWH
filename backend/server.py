@@ -520,5 +520,71 @@ async def get_notifications(current_user: UserResponse = Depends(get_current_use
     notifications = await chat_service.get_unread_notifications(current_user.user_id)
     return [notification.dict() for notification in notifications]
 
+# ==================== ADMIN ENDPOINTS ====================
+
+async def get_admin_user(current_user: UserResponse = Depends(get_current_user)) -> UserResponse:
+    """Admin-only dependency."""
+    from services.security_service import security_service
+    
+    has_admin_access = await security_service.has_permission(current_user.user_id, "admin_access")
+    if not has_admin_access and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
+
+@app.get("/api/admin/stats")
+async def get_admin_stats(admin_user: UserResponse = Depends(get_admin_user)):
+    """Get admin dashboard statistics."""
+    from services.analytics_service import analytics_service
+    platform_stats = await analytics_service.get_platform_statistics()
+    return platform_stats
+
+@app.get("/api/admin/security")
+async def get_security_summary(admin_user: UserResponse = Depends(get_admin_user)):
+    """Get security summary for admin."""
+    from services.security_service import security_service
+    summary = await security_service.get_security_summary()
+    return summary
+
+@app.get("/api/admin/audit-logs")
+async def get_audit_logs(
+    skip: int = 0,
+    limit: int = 50,
+    admin_user: UserResponse = Depends(get_admin_user)
+):
+    """Get audit logs."""
+    from services.security_service import security_service
+    # This would fetch from database in real implementation
+    return {
+        "logs": [],
+        "total": 0,
+        "message": "Audit logs endpoint ready"
+    }
+
+@app.post("/api/admin/users/{user_id}/role")
+async def assign_user_role(
+    user_id: str,
+    role_data: dict,
+    admin_user: UserResponse = Depends(get_admin_user)
+):
+    """Assign role to user."""
+    from services.security_service import security_service
+    
+    role_id = role_data.get("role_id")
+    if not role_id:
+        raise HTTPException(status_code=400, detail="Role ID required")
+    
+    await security_service.assign_role_to_user(user_id, role_id, admin_user.user_id)
+    return {"message": "Role assigned successfully"}
+
+@app.get("/api/admin/users/{user_id}/permissions")
+async def get_user_permissions(
+    user_id: str,
+    admin_user: UserResponse = Depends(get_admin_user)
+):
+    """Get user's permissions."""
+    from services.security_service import security_service
+    permissions = await security_service.get_user_permissions(user_id)
+    return {"user_id": user_id, "permissions": permissions}
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8001)
