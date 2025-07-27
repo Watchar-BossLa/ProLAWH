@@ -159,6 +159,7 @@ async def search_users(
     current_user: UserResponse = Depends(get_current_user)
 ):
     """Search users."""
+    from services.user_service import user_service
     return await user_service.search_users(q, skip, limit)
 
 @app.get("/api/users/{user_id}", response_model=UserResponse)
