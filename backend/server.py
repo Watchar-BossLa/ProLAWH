@@ -439,5 +439,65 @@ async def get_recommendations(current_user: UserResponse = Depends(get_current_u
         ]
     }
 
+# ==================== REAL-TIME CHAT ENDPOINTS ====================
+
+@app.get("/api/chats")
+async def get_my_chats(current_user: UserResponse = Depends(get_current_user)):
+    """Get user's chat rooms."""
+    from services.chat_service import chat_service
+    chats = await chat_service.get_user_chats(current_user.user_id)
+    return [chat.dict() for chat in chats]
+
+@app.post("/api/chats")
+async def create_chat(
+    chat_data: ChatCreate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Create a new chat room."""
+    from services.chat_service import chat_service
+    chat_room = await chat_service.create_chat_room(current_user.user_id, chat_data)
+    return {"message": "Chat created", "chat": chat_room.dict()}
+
+@app.get("/api/chats/{chat_id}/messages")
+async def get_chat_messages(
+    chat_id: str,
+    skip: int = 0,
+    limit: int = 50,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get messages from a chat room."""
+    from services.chat_service import chat_service
+    messages = await chat_service.get_chat_messages(chat_id, skip, limit)
+    return [message.dict() for message in messages]
+
+@app.post("/api/chats/{chat_id}/messages")
+async def send_chat_message(
+    chat_id: str,
+    message_data: MessageCreate,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Send a message to a chat room."""
+    from services.chat_service import chat_service
+    message = await chat_service.send_message(
+        current_user.user_id, 
+        current_user.full_name, 
+        message_data
+    )
+    return {"message": "Message sent", "chat_message": message.dict()}
+
+@app.get("/api/presence")
+async def get_online_users(current_user: UserResponse = Depends(get_current_user)):
+    """Get list of online users."""
+    from services.chat_service import chat_service
+    online_users = await chat_service.get_online_users()
+    return {"online_users": online_users, "total": len(online_users)}
+
+@app.get("/api/notifications")
+async def get_notifications(current_user: UserResponse = Depends(get_current_user)):
+    """Get unread notifications."""
+    from services.chat_service import chat_service
+    notifications = await chat_service.get_unread_notifications(current_user.user_id)
+    return [notification.dict() for notification in notifications]
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8001)
