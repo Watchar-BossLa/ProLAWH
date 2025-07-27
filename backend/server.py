@@ -95,6 +95,8 @@ async def health_check():
 @app.post("/api/auth/register", response_model=dict)
 async def register(user_data: UserCreate):
     """Register a new user."""
+    from services.user_service import user_service
+    
     try:
         user = await user_service.create_user(user_data)
         
