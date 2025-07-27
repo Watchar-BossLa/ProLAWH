@@ -93,8 +93,8 @@ export function SimpleDashboardLayout() {
 
   return (
     <div className="flex h-screen bg-background">
-      {/* Desktop Sidebar */}
-      <div className="hidden md:flex md:w-64">
+      {/* Desktop Sidebar - Hidden on mobile */}
+      <div className="hidden lg:flex lg:w-64">
         <Sidebar />
       </div>
 
@@ -102,10 +102,10 @@ export function SimpleDashboardLayout() {
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <header className="h-16 border-b flex items-center justify-between px-4 md:px-6">
+          <header className="h-16 border-b flex items-center justify-between px-4 lg:px-6">
             <div className="flex items-center gap-4">
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
+                <Button variant="ghost" size="icon" className="lg:hidden">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
