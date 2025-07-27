@@ -115,6 +115,7 @@ class CourseService:
 
     async def get_user_courses(self, user_id: str) -> List[dict]:
         """Get all courses user is enrolled in with progress."""
+        _, progress_collection = self._get_collections()
         pipeline = [
             {"$match": {"user_id": user_id}},
             {"$lookup": {
@@ -136,7 +137,7 @@ class CourseService:
         ]
         
         result = []
-        async for doc in self.progress_collection.aggregate(pipeline):
+        async for doc in progress_collection.aggregate(pipeline):
             result.append(doc)
         return result
 
