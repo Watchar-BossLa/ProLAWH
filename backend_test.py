@@ -10,7 +10,7 @@ import time
 from typing import Dict, Any, Optional
 
 # Backend URL from environment
-BACKEND_URL = "https://bbe52efb-1c2a-48b7-a089-5f657e640a20.preview.emergentagent.com"
+BACKEND_URL = "https://be9ec068-3e12-4f8e-8b58-546a8c400656.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 class ProLAWHBackendTester:
