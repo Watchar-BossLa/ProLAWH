@@ -177,6 +177,7 @@ async def update_profile(
     current_user: UserResponse = Depends(get_current_user)
 ):
     """Update current user's profile."""
+    from services.user_service import user_service
     updated_user = await user_service.update_user(current_user.user_id, user_data)
     if not updated_user:
         raise HTTPException(status_code=404, detail="User not found")
