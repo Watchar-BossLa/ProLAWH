@@ -55,7 +55,7 @@ function App() {
             <NavigationProvider>
               <Routes>
                 <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<EnterpriseAuthPage />} />
+                <Route path="/auth" element={<SimpleAuthPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 
                 {/* Dashboard Routes */}
