@@ -240,6 +240,7 @@ async def get_course_progress(
 @app.get("/api/my/courses", response_model=List[dict])
 async def get_my_courses(current_user: UserResponse = Depends(get_current_user)):
     """Get user's enrolled courses."""
+    from services.course_service import course_service
     return await course_service.get_user_courses(current_user.user_id)
 
 # ==================== MENTORSHIP ENDPOINTS ====================
