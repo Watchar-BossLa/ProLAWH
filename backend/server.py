@@ -381,6 +381,9 @@ async def apply_to_job(
 @app.get("/api/dashboard/stats")
 async def get_dashboard_stats(current_user: UserResponse = Depends(get_current_user)):
     """Get user dashboard statistics."""
+    from services.course_service import course_service
+    from services.mentorship_service import mentorship_service
+    
     # Get user courses
     user_courses = await course_service.get_user_courses(current_user.user_id)
     completed_courses = len([c for c in user_courses if c.get('is_completed', False)])
