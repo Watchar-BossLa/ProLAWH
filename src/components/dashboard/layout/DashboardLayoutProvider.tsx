@@ -1,6 +1,6 @@
 
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
-import { useEnterpriseAuth } from '@/components/auth/EnterpriseAuthProvider';
+import { useAuth } from '@/components/auth/SimpleAuthProvider';
 import { CONFIG, ENV } from "@/config";
 
 interface DashboardLayoutContextType {
@@ -25,7 +25,7 @@ interface DashboardLayoutProviderProps {
 }
 
 export function DashboardLayoutProvider({ children }: DashboardLayoutProviderProps) {
-  const { user, isLoading } = useEnterpriseAuth();
+  const { user, isLoading } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Use development bypass if enabled
