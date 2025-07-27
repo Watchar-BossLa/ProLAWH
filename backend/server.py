@@ -115,6 +115,8 @@ async def register(user_data: UserCreate):
 @app.post("/api/auth/login", response_model=dict)
 async def login(login_data: UserLogin):
     """Authenticate user and return token."""
+    from services.user_service import user_service
+    
     user = await user_service.authenticate_user(login_data)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
