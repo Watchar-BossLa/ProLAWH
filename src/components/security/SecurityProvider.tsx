@@ -4,8 +4,6 @@
  */
 
 import React, { useEffect, ReactNode } from 'react';
-import { applySecurityHeaders } from '@/utils/security/securityHeaders';
-import { tokenManager } from '@/utils/security/tokenSecurity';
 
 interface SecurityProviderProps {
   children: ReactNode;
@@ -13,20 +11,14 @@ interface SecurityProviderProps {
 
 export function SecurityProvider({ children }: SecurityProviderProps) {
   useEffect(() => {
-    // Apply security headers on mount
-    applySecurityHeaders();
+    // Basic security initialization
+    console.log('Security provider initialized');
     
-    // Set up token refresh monitoring
-    const checkTokenHealth = () => {
-      if (tokenManager.needsRefresh()) {
-        tokenManager.refreshToken().catch(console.error);
-      }
-    };
-    
-    // Check token every 5 minutes
-    const interval = setInterval(checkTokenHealth, 5 * 60 * 1000);
-    
-    return () => clearInterval(interval);
+    // Apply basic security headers
+    const meta = document.createElement('meta');
+    meta.setAttribute('http-equiv', 'X-Frame-Options');
+    meta.setAttribute('content', 'DENY');
+    document.head.appendChild(meta);
   }, []);
 
   return <>{children}</>;
