@@ -25,11 +25,11 @@ interface TestResult {
 
 // Simple code evaluation function
 // In a real application, this would be done securely on the server
-const evaluateCode = async (code: string, testCase: TestCase): Promise<TestResult> => {
+const evaluateCode = (code: string, testCase: TestCase): TestResult => {
   try {
     // SECURITY FIX: Use safe code execution instead of Function() constructor
     // This prevents code injection vulnerabilities
-    const result = await safeCodeExecution(code, testCase.input);
+    const result = safeCodeExecution(code, testCase.input);
     const stringResult = String(result).trim();
     const expectedOutput = testCase.expected_output.trim();
     
@@ -70,7 +70,7 @@ export function CodeChallenge({ challenge, onComplete }: CodeChallengeProps) {
     setIsSubmitting(true);
     
     try {
-      const results = await Promise.all(testCases.map(testCase => evaluateCode(code, testCase)));
+      const results = testCases.map(testCase => evaluateCode(code, testCase));
       setTestResults(results);
     } catch (error) {
       console.error("Error running tests:", error);
@@ -97,7 +97,7 @@ export function CodeChallenge({ challenge, onComplete }: CodeChallengeProps) {
     setIsSubmitting(true);
     
     try {
-      const results = await Promise.all(testCases.map(testCase => evaluateCode(code, testCase)));
+      const results = testCases.map(testCase => evaluateCode(code, testCase));
       setTestResults(results);
       
       // Check if all tests passed

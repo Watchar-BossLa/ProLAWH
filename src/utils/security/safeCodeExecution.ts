@@ -13,7 +13,7 @@ export interface CodeExecutionResult {
  * Safe code execution for arcade challenges
  * Uses a whitelist approach and sandboxed environment
  */
-export async function safeCodeExecution(code: string, input: string): Promise<any> {
+export function safeCodeExecution(code: string, input: string): any {
   // Validate input code for dangerous patterns
   const dangerousPatterns = [
     /eval\s*\(/i,
