@@ -223,11 +223,16 @@ class AuthenticationService {
         metadata: { email: credentials.email }
       });
 
-      await logger.info('Sign in successful', { 
-        userId: data.user.id,
-        email: credentials.email,
-        duration: `${(performance.now() - startTime).toFixed(2)}ms`
-      }, 'AuthService');
+      await enterpriseLogger.log({
+        level: 'info',
+        message: 'Sign in successful',
+        component: 'AuthService',
+        metadata: { 
+          userId: data.user.id,
+          email: credentials.email,
+          duration: `${(performance.now() - startTime).toFixed(2)}ms`
+        }
+      });
 
       return { 
         data: { 
@@ -244,11 +249,16 @@ class AuthenticationService {
         'server'
       );
 
-      await logger.error('Sign in error', { 
-        email: credentials.email, 
-        error: error instanceof Error ? error.message : 'Unknown error',
-        duration: `${(performance.now() - startTime).toFixed(2)}ms`
-      }, 'AuthService');
+      await enterpriseLogger.log({
+        level: 'error',
+        message: 'Sign in error',
+        component: 'AuthService',
+        metadata: { 
+          email: credentials.email, 
+          error: error instanceof Error ? error.message : 'Unknown error',
+          duration: `${(performance.now() - startTime).toFixed(2)}ms`
+        }
+      });
 
       return { error: authError };
     }
@@ -259,7 +269,12 @@ class AuthenticationService {
     const { ipAddress, userAgent } = this.getClientInfo();
 
     try {
-      await logger.info('Sign up attempt started', { email: credentials.email }, 'AuthService');
+      await enterpriseLogger.log({
+        level: 'info',
+        message: 'Sign up attempt started',
+        component: 'AuthService',
+        metadata: { email: credentials.email }
+      });
 
       // Validate credentials
       const validationError = this.validateSignUpCredentials(credentials);
@@ -301,11 +316,16 @@ class AuthenticationService {
           }
         });
 
-        await logger.warn('Sign up failed', { 
-          email: credentials.email, 
-          error: supabaseError.message,
-          duration: `${(performance.now() - startTime).toFixed(2)}ms`
-        }, 'AuthService');
+        await enterpriseLogger.log({
+          level: 'warn',
+          message: 'Sign up failed',
+          component: 'AuthService',
+          metadata: { 
+            email: credentials.email, 
+            error: supabaseError.message,
+            duration: `${(performance.now() - startTime).toFixed(2)}ms`
+          }
+        });
 
         return { error };
       }
@@ -327,12 +347,17 @@ class AuthenticationService {
         metadata: { email: credentials.email }
       });
 
-      await logger.info('Sign up successful', { 
-        userId: data.user.id,
-        email: credentials.email,
-        hasSession: !!data.session,
-        duration: `${(performance.now() - startTime).toFixed(2)}ms`
-      }, 'AuthService');
+      await enterpriseLogger.log({
+        level: 'info',
+        message: 'Sign up successful',
+        component: 'AuthService',
+        metadata: { 
+          userId: data.user.id,
+          email: credentials.email,
+          hasSession: !!data.session,
+          duration: `${(performance.now() - startTime).toFixed(2)}ms`
+        }
+      });
 
       return { 
         data: { 
@@ -349,11 +374,16 @@ class AuthenticationService {
         'server'
       );
 
-      await logger.error('Sign up error', { 
-        email: credentials.email, 
-        error: error instanceof Error ? error.message : 'Unknown error',
-        duration: `${(performance.now() - startTime).toFixed(2)}ms`
-      }, 'AuthService');
+      await enterpriseLogger.log({
+        level: 'error',
+        message: 'Sign up error',
+        component: 'AuthService',
+        metadata: { 
+          email: credentials.email, 
+          error: error instanceof Error ? error.message : 'Unknown error',
+          duration: `${(performance.now() - startTime).toFixed(2)}ms`
+        }
+      });
 
       return { error: authError };
     }
@@ -364,7 +394,12 @@ class AuthenticationService {
     const { ipAddress, userAgent } = this.getClientInfo();
 
     try {
-      await logger.info('Sign out started', {}, 'AuthService');
+      await enterpriseLogger.log({
+        level: 'info',
+        message: 'Sign out started',
+        component: 'AuthService',
+        metadata: {}
+      });
 
       const { error: supabaseError } = await supabase.auth.signOut();
 
@@ -374,10 +409,15 @@ class AuthenticationService {
           supabaseError.message
         );
 
-        await logger.warn('Sign out failed', { 
-          error: supabaseError.message,
-          duration: `${(performance.now() - startTime).toFixed(2)}ms`
-        }, 'AuthService');
+        await enterpriseLogger.log({
+          level: 'warn',
+          message: 'Sign out failed',
+          component: 'AuthService',
+          metadata: { 
+            error: supabaseError.message,
+            duration: `${(performance.now() - startTime).toFixed(2)}ms`
+          }
+        });
 
         return { error };
       }
@@ -391,9 +431,14 @@ class AuthenticationService {
         metadata: {}
       });
 
-      await logger.info('Sign out successful', { 
-        duration: `${(performance.now() - startTime).toFixed(2)}ms`
-      }, 'AuthService');
+      await enterpriseLogger.log({
+        level: 'info',
+        message: 'Sign out successful',
+        component: 'AuthService',
+        metadata: { 
+          duration: `${(performance.now() - startTime).toFixed(2)}ms`
+        }
+      });
 
       return { error: null };
 
@@ -404,10 +449,15 @@ class AuthenticationService {
         'server'
       );
 
-      await logger.error('Sign out error', { 
-        error: error instanceof Error ? error.message : 'Unknown error',
-        duration: `${(performance.now() - startTime).toFixed(2)}ms`
-      }, 'AuthService');
+      await enterpriseLogger.log({
+        level: 'error',
+        message: 'Sign out error',
+        component: 'AuthService',
+        metadata: { 
+          error: error instanceof Error ? error.message : 'Unknown error',
+          duration: `${(performance.now() - startTime).toFixed(2)}ms`
+        }
+      });
 
       return { error: authError };
     }
@@ -457,9 +507,19 @@ class AuthenticationService {
       };
 
       // Store session info (this would be in a sessions table)
-      await logger.debug('Session info created', sessionInfo, 'AuthService');
+      await enterpriseLogger.log({
+        level: 'debug',
+        message: 'Session info created',
+        component: 'AuthService',
+        metadata: sessionInfo
+      });
     } catch (error) {
-      await logger.error('Failed to create session info', { error }, 'AuthService');
+      await enterpriseLogger.log({
+        level: 'error',
+        message: 'Failed to create session info',
+        component: 'AuthService',
+        metadata: { error }
+      });
     }
   }
 

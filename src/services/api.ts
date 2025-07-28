@@ -1,31 +1,27 @@
-const API_BASE_URL = import.meta.env.VITE_REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+interface AuthUser {
+  id: string;
+  email: string;
+  user_metadata: {
+    full_name?: string;
+  };
+}
+
+interface AuthResponse {
+  data?: {
+    access_token: string;
+    user: AuthUser;
+  };
+  error?: string;
+}
 
 interface ApiResponse<T> {
   data?: T;
   error?: string;
-  status: number;
 }
 
 class ApiClient {
-  private baseURL: string;
   private token: string | null = null;
-
-  constructor(baseURL: string) {
-    this.baseURL = baseURL;
-    this.token = localStorage.getItem('prolawh_token');
-  }
-
-  private getHeaders(): HeadersInit {
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-    };
-
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
-    }
-
-    return headers;
-  }
+  private baseUrl = '/api'; // Mock API base URL
 
   setToken(token: string) {
     this.token = token;
@@ -35,215 +31,167 @@ class ApiClient {
   removeToken() {
     this.token = null;
     localStorage.removeItem('prolawh_token');
+    localStorage.removeItem('prolawh_user');
   }
 
-  async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
+  async getCurrentUser(): Promise<ApiResponse<AuthUser> & { status: number }> {
     try {
-      const url = `${this.baseURL}${endpoint}`;
-      const config: RequestInit = {
-        ...options,
-        headers: {
-          ...this.getHeaders(),
-          ...options.headers,
-        },
-      };
-
-      const response = await fetch(url, config);
-      
-      if (response.status === 401) {
-        this.removeToken();
-        window.location.href = '/auth';
-        throw new Error('Unauthorized');
+      if (!this.token) {
+        return { error: 'No token provided', status: 401 };
       }
-
-      const data = await response.json();
       
-      return {
-        data,
-        status: response.status,
-        error: response.ok ? undefined : data.detail || 'An error occurred'
+      // Mock user data for development
+      const mockUser: AuthUser = {
+        id: 'user-123',
+        email: 'demo@prolawh.com',
+        user_metadata: {
+          full_name: 'Demo User'
+        }
       };
+
+      return { data: mockUser, status: 200 };
     } catch (error) {
-      return {
-        status: 500,
-        error: error instanceof Error ? error.message : 'Network error'
-      };
+      return { error: 'Failed to get current user', status: 500 };
     }
   }
 
-  // Authentication
-  async login(email: string, password: string) {
-    return this.request<{access_token: string, user: any}>('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
+  async login(email: string, password: string): Promise<AuthResponse> {
+    try {
+      // Mock login for development
+      const mockUser: AuthUser = {
+        id: 'user-123',
+        email,
+        user_metadata: {
+          full_name: 'Demo User'
+        }
+      };
+
+      const mockToken = 'mock-jwt-token-' + Date.now();
+      
+      return {
+        data: {
+          access_token: mockToken,
+          user: mockUser
+        }
+      };
+    } catch (error) {
+      return { error: 'Login failed' };
+    }
   }
 
-  async register(email: string, password: string, full_name: string) {
-    return this.request<{access_token: string, user: any}>('/api/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({ email, password, full_name, role: 'learner' }),
-    });
+  async register(email: string, password: string, fullName: string): Promise<AuthResponse> {
+    try {
+      // Mock registration for development
+      const mockUser: AuthUser = {
+        id: 'user-' + Date.now(),
+        email,
+        user_metadata: {
+          full_name: fullName
+        }
+      };
+
+      const mockToken = 'mock-jwt-token-' + Date.now();
+      
+      return {
+        data: {
+          access_token: mockToken,
+          user: mockUser
+        }
+      };
+    } catch (error) {
+      return { error: 'Registration failed' };
+    }
   }
 
-  async getCurrentUser() {
-    return this.request<any>('/api/auth/me');
-  }
-
-  // Dashboard
+  // Mock API methods for dashboard functionality
   async getDashboardStats() {
-    return this.request<any>('/api/dashboard/stats');
+    return {
+      data: {
+        courses_completed: 12,
+        skills_verified: 8,
+        network_connections: 156,
+        learning_streak: 14,
+        total_learning_hours: 240
+      },
+      error: null,
+      status: 200
+    };
   }
 
   async getRecommendations() {
-    return this.request<any>('/api/dashboard/recommendations');
+    return {
+      data: [
+        { id: 1, title: "Advanced React Patterns", type: "course" },
+        { id: 2, title: "System Design Interview", type: "course" },
+        { id: 3, title: "Tech Lead Role at StartupCo", type: "opportunity" }
+      ],
+      error: null,
+      status: 200
+    };
   }
 
-  // Courses
   async getCourses(skip = 0, limit = 20) {
-    return this.request<any[]>(`/api/courses?skip=${skip}&limit=${limit}`);
+    return {
+      data: {
+        courses: [
+          { id: 1, title: "React Fundamentals", progress: 85 },
+          { id: 2, title: "Node.js Mastery", progress: 60 },
+          { id: 3, title: "System Design", progress: 30 }
+        ]
+      },
+      error: null,
+      status: 200
+    };
   }
 
-  async searchCourses(query: string, category?: string) {
-    const params = new URLSearchParams({ q: query });
-    if (category) params.append('category', category);
-    return this.request<any[]>(`/api/courses/search?${params}`);
-  }
-
-  async getCourse(courseId: string) {
-    return this.request<any>(`/api/courses/${courseId}`);
-  }
-
-  async enrollInCourse(courseId: string) {
-    return this.request<any>(`/api/courses/${courseId}/enroll`, {
-      method: 'POST',
-    });
-  }
-
-  async getMyCourses() {
-    return this.request<any[]>('/api/my/courses');
-  }
-
-  // Mentorship
   async getMentors(specialties?: string[], skip = 0, limit = 20) {
-    const params = new URLSearchParams({
-      skip: skip.toString(),
-      limit: limit.toString(),
-    });
-    if (specialties?.length) {
-      specialties.forEach(s => params.append('specialties', s));
-    }
-    return this.request<any[]>(`/api/mentors?${params}`);
+    return {
+      data: [
+        { id: 1, name: "Sarah Chen", expertise: "React Development" },
+        { id: 2, name: "Alex Rodriguez", expertise: "System Architecture" }
+      ],
+      error: null,
+      status: 200
+    };
   }
 
-  async requestMentorship(mentorId: string, goals: string[], message?: string) {
-    return this.request<any>('/api/mentorship/request', {
-      method: 'POST',
-      body: JSON.stringify({
-        mentor_id: mentorId,
-        goals,
-        message,
-      }),
-    });
+  async getOpportunities(skip = 0, limit = 20) {
+    return {
+      data: [
+        { id: 1, title: "Senior Frontend Developer", company: "TechCorp" },
+        { id: 2, title: "React Consultant", company: "StartupCo" }
+      ],
+      error: null,
+      status: 200
+    };
   }
 
-  async getMyMentorships() {
-    return this.request<any>('/api/my/mentorships');
-  }
-
-  async getMySessions() {
-    return this.request<any[]>('/api/my/sessions');
-  }
-
-  // Opportunities
-  async getOpportunities(skip = 0, limit = 20, jobType?: string, location?: string) {
-    const params = new URLSearchParams({
-      skip: skip.toString(),
-      limit: limit.toString(),
-    });
-    if (jobType) params.append('job_type', jobType);
-    if (location) params.append('location', location);
-    return this.request<any[]>(`/api/opportunities?${params}`);
-  }
-
-  async getOpportunity(jobId: string) {
-    return this.request<any>(`/api/opportunities/${jobId}`);
-  }
-
-  async applyToJob(jobId: string, coverLetter?: string, resumeUrl?: string) {
-    return this.request<any>(`/api/opportunities/${jobId}/apply`, {
-      method: 'POST',
-      body: JSON.stringify({
-        job_id: jobId,
-        cover_letter: coverLetter,
-        resume_url: resumeUrl,
-      }),
-    });
-  }
-
-  // Chat
   async getMyChats() {
-    return this.request<any[]>('/api/chats');
-  }
-
-  async createChat(name?: string, chatType = 'group', participants: string[] = []) {
-    return this.request<any>('/api/chats', {
-      method: 'POST',
-      body: JSON.stringify({
-        name,
-        chat_type: chatType,
-        participants,
-      }),
-    });
-  }
-
-  async getChatMessages(chatId: string, skip = 0, limit = 50) {
-    return this.request<any[]>(`/api/chats/${chatId}/messages?skip=${skip}&limit=${limit}`);
-  }
-
-  async sendMessage(chatId: string, content: string, messageType = 'text') {
-    return this.request<any>(`/api/chats/${chatId}/messages`, {
-      method: 'POST',
-      body: JSON.stringify({
-        chat_id: chatId,
-        content,
-        message_type: messageType,
-      }),
-    });
-  }
-
-  // AI & Analytics
-  async getSkillPath(targetRole: string) {
-    return this.request<any>(`/api/ai/skill-path?target_role=${encodeURIComponent(targetRole)}`);
+    return {
+      data: [
+        { id: 1, name: "React Study Group", lastMessage: "Great discussion today!" },
+        { id: 2, name: "Career Mentorship", lastMessage: "Let's schedule a call" }
+      ],
+      error: null,
+      status: 200
+    };
   }
 
   async getLearningAnalytics() {
-    return this.request<any>('/api/analytics/learning');
-  }
-
-  async getProgressReport(period = 'monthly') {
-    return this.request<any>(`/api/analytics/progress-report?period=${period}`);
-  }
-
-  // Users
-  async getUsers(skip = 0, limit = 50) {
-    return this.request<any[]>(`/api/users?skip=${skip}&limit=${limit}`);
-  }
-
-  async searchUsers(query: string, skip = 0, limit = 20) {
-    return this.request<any[]>(`/api/users/search?q=${encodeURIComponent(query)}&skip=${skip}&limit=${limit}`);
-  }
-
-  async updateProfile(data: any) {
-    return this.request<any>('/api/users/me', {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
+    return {
+      data: {
+        weeklyProgress: [
+          { week: "Week 1", hours: 12 },
+          { week: "Week 2", hours: 15 },
+          { week: "Week 3", hours: 18 },
+          { week: "Week 4", hours: 14 }
+        ]
+      },
+      error: null,
+      status: 200
+    };
   }
 }
 
-export const apiClient = new ApiClient(API_BASE_URL || 'http://localhost:8001');
+const apiClient = new ApiClient();
 export default apiClient;

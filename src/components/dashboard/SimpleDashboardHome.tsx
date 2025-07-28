@@ -138,7 +138,7 @@ export function SimpleDashboardHome() {
                   <span className="text-sm">Generating personalized recommendations...</span>
                 </div>
               ) : (
-                recommendations?.courses?.slice(0, 2).map((course: any, index: number) => (
+                recommendations?.slice(0, 2).map((course: any, index: number) => (
                   <div key={index} className="p-3 bg-muted/50 rounded-lg">
                     <p className="font-medium text-sm">{course.title}</p>
                     <p className="text-xs text-muted-foreground">{course.reason}</p>
