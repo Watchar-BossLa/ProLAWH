@@ -1,42 +1,46 @@
 import type { NavigationSuggestion } from '@/types/navigation';
 
-export function generateNavigationSuggestions(currentPath: string): NavigationSuggestion[] {
-  const suggestions: NavigationSuggestion[] = [];
+const suggestions: Record<string, NavigationSuggestion[]> = {
+  '/dashboard': [
+    {
+      id: 'learning-suggestion',
+      title: 'Start Learning',
+      description: 'Explore courses and skill development',
+      path: '/dashboard/learning',
+      reason: 'Continue your learning journey',
+      priority: 1
+    },
+    {
+      id: 'network-suggestion',
+      title: 'Build Network',
+      description: 'Connect with professionals in your field',
+      path: '/dashboard/network',
+      reason: 'Expand your professional network',
+      priority: 2
+    }
+  ],
+  '/dashboard/learning': [
+    {
+      id: 'skills-suggestion',
+      title: 'View Skills',
+      description: 'Check your progress and badges',
+      path: '/dashboard/skills',
+      reason: 'Track your skill development',
+      priority: 1
+    }
+  ],
+  '/dashboard/network': [
+    {
+      id: 'mentorship-suggestion',
+      title: 'Find Mentors',
+      description: 'Connect with experienced professionals',
+      path: '/dashboard/mentorship',
+      reason: 'Accelerate your growth with mentorship',
+      priority: 1
+    }
+  ]
+};
 
-  // Context-based suggestions
-  if (currentPath === '/dashboard') {
-    suggestions.push(
-      {
-        id: 'start-learning',
-        title: 'Start Learning',
-        description: 'Explore courses and learning paths',
-        path: '/dashboard/learning',
-        reason: 'Popular action from dashboard',
-        priority: 1,
-      },
-      {
-        id: 'view-skills',
-        title: 'View Skills',
-        description: 'Check your skill progress and badges',
-        path: '/dashboard/skills',
-        reason: 'Track your progress',
-        priority: 2,
-      }
-    );
-  }
-
-  if (currentPath.includes('/learning')) {
-    suggestions.push(
-      {
-        id: 'skills-assessment',
-        title: 'Skills Assessment',
-        description: 'Test your knowledge and earn badges',
-        path: '/dashboard/skills',
-        reason: 'Related to learning',
-        priority: 1,
-      }
-    );
-  }
-
-  return suggestions.sort((a, b) => a.priority - b.priority);
+export function generateNavigationSuggestions(pathname: string): NavigationSuggestion[] {
+  return suggestions[pathname] || [];
 }

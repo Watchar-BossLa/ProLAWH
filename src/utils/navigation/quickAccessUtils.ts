@@ -3,36 +3,36 @@ import type { QuickAccessItem } from '@/types/navigation';
 export function getDefaultQuickAccess(): QuickAccessItem[] {
   return [
     {
-      id: 'dashboard-home',
+      id: 'dashboard',
       title: 'Dashboard',
-      description: 'Your personalized dashboard',
+      description: 'Your main dashboard',
       path: '/dashboard',
-      icon: 'Home',
-      category: 'frequent',
+      icon: 'LayoutDashboard',
+      category: 'frequent'
     },
     {
-      id: 'learning-center',
-      title: 'Learning Center',
-      description: 'Explore courses and learning paths',
+      id: 'learning',
+      title: 'Learning',
+      description: 'Courses and skill development',
       path: '/dashboard/learning',
       icon: 'BookOpen',
-      category: 'frequent',
+      category: 'frequent'
     },
     {
-      id: 'skills-badges',
-      title: 'Skills & Badges',
-      description: 'Track your skill progress',
-      path: '/dashboard/skills',
-      icon: 'Trophy',
-      category: 'frequent',
+      id: 'network',
+      title: 'Network',
+      description: 'Professional connections',
+      path: '/dashboard/network',
+      icon: 'Users',
+      category: 'frequent'
     },
     {
-      id: 'chat',
-      title: 'Real-Time Chat',
-      description: 'Connect with peers and mentors',
-      path: '/dashboard/chat',
-      icon: 'MessageCircle',
-      category: 'suggested',
-    },
+      id: 'opportunities',
+      title: 'Opportunities',
+      description: 'Job and project opportunities',
+      path: '/dashboard/opportunities',
+      icon: 'Briefcase',
+      category: 'suggested'
+    }
   ];
 }

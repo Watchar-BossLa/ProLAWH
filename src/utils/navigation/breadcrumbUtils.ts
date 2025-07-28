@@ -1,39 +1,59 @@
 import type { BreadcrumbItem } from '@/types/navigation';
 
-const routeLabels: Record<string, string> = {
+const pathMappings: Record<string, string> = {
+  '/': 'Home',
   '/dashboard': 'Dashboard',
   '/dashboard/learning': 'Learning',
   '/dashboard/skills': 'Skills & Badges',
   '/dashboard/network': 'Network',
   '/dashboard/mentorship': 'Mentorship',
   '/dashboard/opportunities': 'Opportunities',
-  '/dashboard/collaboration': 'Collaboration',
-  '/dashboard/ai-enhanced': 'Enhanced AI',
-  '/dashboard/quantum-matching': 'Quantum Matching',
   '/dashboard/career-twin': 'Career Twin',
-  '/dashboard/green-skills': 'Green Skills',
-  '/dashboard/sustainability': 'Sustainability',
   '/dashboard/arcade': 'Arcade',
-  '/dashboard/platforms': 'Learning Platforms',
-  '/dashboard/chat': 'Real-Time Chat',
+  '/dashboard/staking': 'Skill Staking',
+  '/dashboard/study-bee': 'Study Bee',
+  '/dashboard/veriskill': 'VeriSkill',
+  '/dashboard/quantum-matching': 'Quantum Matching',
+  '/dashboard/quorumforge': 'QuorumForge',
+  '/dashboard/enhanced-ai': 'Enhanced AI',
+  '/dashboard/sustainability': 'Sustainability',
+  '/dashboard/collaboration': 'Collaboration',
+  '/dashboard/community': 'Community',
+  '/dashboard/study-groups': 'Study Groups',
+  '/dashboard/chat': 'Chat',
   '/admin': 'Admin',
+  '/admin/users': 'Users',
+  '/admin/analytics': 'Analytics',
+  '/admin/payments': 'Payments',
+  '/admin/settings': 'Settings',
   '/profile': 'Profile',
+  '/auth': 'Authentication',
 };
 
 export function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
-  const segments = pathname.split('/').filter(Boolean);
+  const pathSegments = pathname.split('/').filter(Boolean);
   const breadcrumbs: BreadcrumbItem[] = [];
 
+  // Add home
+  breadcrumbs.push({
+    label: 'Home',
+    href: '/',
+    current: pathname === '/'
+  });
+
+  // Build path progressively
   let currentPath = '';
-  
-  segments.forEach((segment, index) => {
+  pathSegments.forEach((segment, index) => {
     currentPath += `/${segment}`;
-    const isLast = index === segments.length - 1;
+    const isLast = index === pathSegments.length - 1;
     
+    const label = pathMappings[currentPath] || 
+      segment.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
     breadcrumbs.push({
-      label: routeLabels[currentPath] || segment.charAt(0).toUpperCase() + segment.slice(1),
+      label,
       href: isLast ? undefined : currentPath,
-      current: isLast,
+      current: isLast
     });
   });
 
