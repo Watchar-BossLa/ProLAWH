@@ -47,7 +47,7 @@ export function MentorFinderSection() {
     }
     
     // Filter by industry
-    if (industry) {
+    if (industry && industry !== "all") {
       filtered = filtered.filter(mentor => mentor.industry === industry);
     }
     
