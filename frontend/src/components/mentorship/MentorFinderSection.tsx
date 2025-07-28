@@ -86,7 +86,7 @@ export function MentorFinderSection() {
               <SelectValue placeholder="Industry" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Industries</SelectItem>
+              <SelectItem value="all">All Industries</SelectItem>
               <SelectItem value="technology">Technology</SelectItem>
               <SelectItem value="healthcare">Healthcare</SelectItem>
               <SelectItem value="finance">Finance</SelectItem>
