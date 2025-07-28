@@ -214,7 +214,7 @@ Observation: [Results of your action - will be filled automatically]`
 
     this.tools.set('calculate', async (expression: string) => {
       try {
-        // SECURITY FIX: Replace eval() with safe expression parser
+        // SECURITY FIX: Use safe math expression parser
         const result = this.safeCalculate(expression);
         return `Calculation result: ${result}`;
       } catch (error) {

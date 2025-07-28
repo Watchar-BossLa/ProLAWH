@@ -8,6 +8,7 @@ import { Challenge, TestCase } from "@/types/arcade";
 import { Badge } from "@/components/ui/badge"; 
 import { Check, Play, X } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { safeCodeExecution } from "@/utils/security/safeCodeExecution";
 
 interface CodeChallengeProps {
   challenge: Pick<Challenge, 'id' | 'validation_rules' | 'points'>;
@@ -24,25 +25,11 @@ interface TestResult {
 
 // Simple code evaluation function
 // In a real application, this would be done securely on the server
-const evaluateCode = (code: string, testCase: TestCase): TestResult => {
+const evaluateCode = async (code: string, testCase: TestCase): Promise<TestResult> => {
   try {
-    // This is a very simplified version - in production you'd use a secure evaluation method
-    // like WebAssembly or a server-side execution environment
-    const wrappedCode = `
-      try {
-        const userFunction = (input) => {
-          ${code}
-          return input;  // Default fallback if no return statement
-        };
-        return userFunction(\`${testCase.input}\`);
-      } catch (error) {
-        throw new Error(error.message);
-      }
-    `;
-
-    // WARNING: Never use eval in production code!
-    // This is only for demonstration purposes
-    const result = Function(wrappedCode)();
+    // SECURITY FIX: Use safe code execution instead of Function() constructor
+    // This prevents code injection vulnerabilities
+    const result = await safeCodeExecution(code, testCase.input);
     const stringResult = String(result).trim();
     const expectedOutput = testCase.expected_output.trim();
     
@@ -70,7 +57,7 @@ export function CodeChallenge({ challenge, onComplete }: CodeChallengeProps) {
   
   const testCases = challenge.validation_rules.test_cases || [];
   
-  const runTests = () => {
+  const runTests = async () => {
     if (!code.trim()) {
       toast({
         title: "Empty Code",
@@ -83,7 +70,7 @@ export function CodeChallenge({ challenge, onComplete }: CodeChallengeProps) {
     setIsSubmitting(true);
     
     try {
-      const results = testCases.map(testCase => evaluateCode(code, testCase));
+      const results = await Promise.all(testCases.map(testCase => evaluateCode(code, testCase)));
       setTestResults(results);
     } catch (error) {
       console.error("Error running tests:", error);
@@ -97,7 +84,7 @@ export function CodeChallenge({ challenge, onComplete }: CodeChallengeProps) {
     }
   };
   
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!code.trim()) {
       toast({
         title: "Empty Code",
@@ -110,7 +97,7 @@ export function CodeChallenge({ challenge, onComplete }: CodeChallengeProps) {
     setIsSubmitting(true);
     
     try {
-      const results = testCases.map(testCase => evaluateCode(code, testCase));
+      const results = await Promise.all(testCases.map(testCase => evaluateCode(code, testCase)));
       setTestResults(results);
       
       // Check if all tests passed
