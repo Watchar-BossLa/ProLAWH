@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SimpleAuthProvider } from "@/components/auth/SimpleAuthProvider";
 import { NavigationProvider } from "@/components/navigation/NavigationProvider";
-// import { SecurityProvider } from "@/components/security/SecurityProvider";
+import { SecurityProvider } from "@/components/security/SecurityProvider";
 import Index from "./pages/Index";
 import SimpleAuthPage from "./pages/auth/SimpleAuthPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
@@ -53,7 +53,8 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <SimpleAuthProvider>
+      <SecurityProvider>
+        <SimpleAuthProvider>
           <TooltipProvider>
             <Toaster />
             <BrowserRouter>
@@ -112,6 +113,7 @@ function App() {
           </BrowserRouter>
         </TooltipProvider>
       </SimpleAuthProvider>
+    </SecurityProvider>
     </QueryClientProvider>
   );
 }

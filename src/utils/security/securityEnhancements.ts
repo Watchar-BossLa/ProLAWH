@@ -1,4 +1,3 @@
-import { enterpriseSecurity } from './enterpriseSecurity';
 import { SecurityEvent, SecurityContext } from './types';
 
 export class SecurityEnhancementService {
@@ -202,7 +201,7 @@ export class SecurityEnhancementService {
   }
 
   private logSecurityEvent(event: SecurityEvent): void {
-    enterpriseSecurity.logSecurityEvent(event);
+    console.warn('Security Event:', event);
   }
 
   private createSecurityContext(): SecurityContext {
