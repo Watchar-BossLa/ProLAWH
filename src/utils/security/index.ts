@@ -7,6 +7,9 @@ export { securityMonitoring } from './securityMonitoring';
 export { inputSanitization } from './inputSanitization';
 export * from './types';
 
+// Import for internal use
+import { enterpriseSecurity } from './enterpriseSecurity';
+
 // Create a unified security utils class for easier access
 export class SecurityUtils {
   static sanitizeInput(input: string): string {
