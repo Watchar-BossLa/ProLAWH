@@ -1,7 +1,3 @@
-/**
- * Security Provider Component
- * Initializes security features and monitoring across the application
- */
 
 import React, { useEffect, ReactNode } from 'react';
 import { enterpriseSecurity } from '@/utils/security';
