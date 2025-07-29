@@ -1,61 +1,116 @@
+/**
+ * Enhanced Rate Limiting Service for Security
+ */
 
-import { SecurityEvent, SecurityContext } from './types';
+interface RateLimitEntry {
+  count: number;
+  resetTime: number;
+  blocked: boolean;
+}
 
 export class RateLimitingService {
-  private rateLimitStore = new Map<string, number[]>();
+  private storage = new Map<string, RateLimitEntry>();
+  private logSecurityEvent: (event: any) => void;
 
-  constructor(private onSecurityEvent: (event: SecurityEvent) => void) {}
+  constructor(logger: (event: any) => void) {
+    this.logSecurityEvent = logger;
+    this.setupCleanup();
+  }
 
+  // Check if request should be rate limited
   checkRateLimit(key: string, maxRequests: number, windowMs: number): boolean {
     const now = Date.now();
-    const window = this.rateLimitStore.get(key) || [];
+    const resetTime = now + windowMs;
     
-    // Remove old entries
-    const validEntries = window.filter(timestamp => now - timestamp < windowMs);
+    const entry = this.storage.get(key);
     
-    if (validEntries.length >= maxRequests) {
-      this.onSecurityEvent({
-        type: 'rate_limit',
-        severity: 'medium',
-        description: 'Rate limit exceeded',
-        context: this.createSecurityContext(),
-        metadata: { key, attempts: validEntries.length, maxRequests, windowMs }
+    if (!entry || now > entry.resetTime) {
+      // New window or expired entry
+      this.storage.set(key, {
+        count: 1,
+        resetTime,
+        blocked: false
       });
+      return true;
+    }
+    
+    if (entry.count >= maxRequests) {
+      if (!entry.blocked) {
+        // First time blocking - log security event
+        this.logSecurityEvent({
+          type: 'rate_limit',
+          severity: 'medium',
+          description: `Rate limit exceeded for key: ${key}`,
+          context: this.createSecurityContext(),
+          metadata: {
+            key,
+            attempts: entry.count,
+            maxRequests,
+            windowMs
+          }
+        });
+        entry.blocked = true;
+      }
+      
+      entry.count++;
       return false;
     }
-
-    validEntries.push(now);
-    this.rateLimitStore.set(key, validEntries);
+    
+    entry.count++;
     return true;
   }
 
-  private createSecurityContext(riskScore: number = 0): SecurityContext {
+  // Get current rate limit status
+  getRateLimitStatus(key: string): { count: number; remaining: number; resetTime: number } | null {
+    const entry = this.storage.get(key);
+    if (!entry) return null;
+    
     return {
-      userId: this.getCurrentUserId(),
-      sessionId: this.getCurrentSessionId(),
-      ipAddress: 'client-side',
-      userAgent: navigator.userAgent,
-      timestamp: new Date().toISOString(),
-      riskScore,
-      flags: []
+      count: entry.count,
+      remaining: Math.max(0, 100 - entry.count), // Assuming max 100
+      resetTime: entry.resetTime
     };
   }
 
-  private getCurrentUserId(): string | undefined {
-    try {
-      const session = JSON.parse(localStorage.getItem('supabase.auth.token') || '{}');
-      return session.user?.id;
-    } catch {
-      return undefined;
-    }
+  // Setup periodic cleanup
+  private setupCleanup(): void {
+    setInterval(() => {
+      const now = Date.now();
+      for (const [key, entry] of this.storage.entries()) {
+        if (now > entry.resetTime) {
+          this.storage.delete(key);
+        }
+      }
+    }, 60000); // Clean every minute
   }
 
-  private getCurrentSessionId(): string | undefined {
-    try {
-      const session = JSON.parse(localStorage.getItem('supabase.auth.token') || '{}');
-      return session.access_token?.substring(0, 10);
-    } catch {
-      return undefined;
-    }
+  // Clear all rate limits (admin function)
+  clearAll(): void {
+    this.storage.clear();
+  }
+
+  // Block specific key
+  blockKey(key: string, durationMs: number = 3600000): void {
+    this.storage.set(key, {
+      count: 9999,
+      resetTime: Date.now() + durationMs,
+      blocked: true
+    });
+    
+    this.logSecurityEvent({
+      type: 'rate_limit',
+      severity: 'high',
+      description: `Key manually blocked: ${key}`,
+      context: this.createSecurityContext(),
+      metadata: { key, durationMs }
+    });
+  }
+
+  private createSecurityContext() {
+    return {
+      timestamp: new Date().toISOString(),
+      riskScore: 3,
+      flags: []
+    };
   }
 }

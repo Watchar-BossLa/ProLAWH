@@ -155,8 +155,99 @@ class EnterpriseSecurity {
     this.validateCSP();
     this.validateSecurityHeaders();
     this.detectDOMTampering();
+    this.setupRateLimiting();
+    this.initializeSecurityMonitoring();
     
     enterpriseLogger.info('Enterprise security monitoring initialized', {}, 'EnterpriseSecurity');
+  }
+
+  // Rate limiting implementation
+  private setupRateLimiting(): void {
+    const rateLimitStorage = new Map<string, { count: number; resetTime: number }>();
+    
+    // Clear expired rate limits every minute
+    setInterval(() => {
+      const now = Date.now();
+      for (const [key, value] of rateLimitStorage.entries()) {
+        if (now > value.resetTime) {
+          rateLimitStorage.delete(key);
+        }
+      }
+    }, 60000);
+  }
+
+  // Enhanced security monitoring
+  private initializeSecurityMonitoring(): void {
+    // Monitor for suspicious DOM modifications
+    if (typeof MutationObserver !== 'undefined') {
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+            mutation.addedNodes.forEach((node) => {
+              if (node.nodeType === Node.ELEMENT_NODE) {
+                const element = node as Element;
+                // Check for potentially malicious scripts
+                if (element.tagName === 'SCRIPT' || element.innerHTML.includes('<script')) {
+                  this.logSecurityEvent({
+                    type: 'dom_tampering',
+                    severity: 'high',
+                    description: 'Suspicious script injection detected',
+                    context: this.createSecurityContext(8),
+                    metadata: { 
+                      element: element.outerHTML.substring(0, 200),
+                      timestamp: new Date().toISOString()
+                    }
+                  });
+                }
+              }
+            });
+          }
+        });
+      });
+      
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['src', 'href', 'onclick']
+      });
+    }
+
+    // Monitor for excessive API calls (potential attack)
+    this.setupAPICallMonitoring();
+  }
+
+  // API call monitoring for abuse detection
+  private setupAPICallMonitoring(): void {
+    const originalFetch = window.fetch;
+    const apiCallCount = new Map<string, number>();
+    
+    window.fetch = (...args) => {
+      const url = args[0]?.toString() || '';
+      const endpoint = new URL(url, window.location.origin).pathname;
+      
+      // Track API calls per endpoint
+      const count = apiCallCount.get(endpoint) || 0;
+      apiCallCount.set(endpoint, count + 1);
+      
+      // Alert on excessive calls (potential DoS)
+      if (count > 100) {
+        this.logSecurityEvent({
+          type: 'api_abuse',
+          severity: 'high',
+          description: `Excessive API calls detected to ${endpoint}`,
+          context: this.createSecurityContext(7),
+          metadata: { endpoint, callCount: count }
+        });
+      }
+      
+      return originalFetch.apply(this, args);
+    };
+    
+    // Reset counters every 5 minutes
+    setInterval(() => {
+      apiCallCount.clear();
+    }, 300000);
   }
 
   // Get security metrics

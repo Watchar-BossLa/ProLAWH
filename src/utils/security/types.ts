@@ -9,7 +9,7 @@ export interface SecurityContext {
   flags: string[];
 }
 
-export type SecurityEventType = 'authentication' | 'authorization' | 'data_access' | 'suspicious_activity' | 'rate_limit' | 'injection_attempt';
+export type SecurityEventType = 'authentication' | 'authorization' | 'data_access' | 'suspicious_activity' | 'rate_limit' | 'injection_attempt' | 'dom_tampering' | 'api_abuse' | 'input_validation_failed' | 'csp_missing' | 'session_validation_failed' | 'bulk_data_access' | 'excessive_data_access' | 'rapid_user_actions' | 'high_memory_usage' | 'security_header_missing' | 'role_access' | 'admin_access';
 export type SecuritySeverity = 'low' | 'medium' | 'high' | 'critical';
 
 export interface SecurityEvent {
@@ -17,6 +17,7 @@ export interface SecurityEvent {
   severity: SecuritySeverity;
   description: string;
   context: SecurityContext;
+  timestamp?: string;
   metadata?: Record<string, any>;
 }
 

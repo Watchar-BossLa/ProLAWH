@@ -1,83 +1,89 @@
-
-import { SecurityEvent, SecurityContext } from './types';
+/**
+ * Input Sanitization Service
+ */
 
 export class InputSanitizationService {
-  private suspiciousPatterns = [
-    /script\s*>/i,
-    /javascript:/i,
-    /on\w+\s*=/i,
-    /eval\s*\(/i,
-    /function\s*\(/i,
-    /<iframe/i,
-    /document\.cookie/i,
-    /localStorage/i,
-    /sessionStorage/i
-  ];
+  private logSecurityEvent: (event: any) => void;
 
-  constructor(private onSecurityEvent: (event: SecurityEvent) => void) {}
+  constructor(logger: (event: any) => void) {
+    this.logSecurityEvent = logger;
+  }
 
+  // Sanitize user input to prevent XSS and injection attacks
   sanitizeInput(input: string): string {
     if (typeof input !== 'string') {
-      this.onSecurityEvent({
-        type: 'injection_attempt',
+      this.logSecurityEvent({
+        type: 'input_validation_failed',
         severity: 'medium',
-        description: 'Non-string input detected',
+        description: 'Non-string input received for sanitization',
         context: this.createSecurityContext(),
         metadata: { inputType: typeof input }
       });
       return '';
     }
 
-    // Basic XSS prevention
-    let sanitized = input
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#x27;')
-      .replace(/\//g, '&#x2F;');
-
-    // Check for suspicious patterns
-    const suspiciousDetected = this.suspiciousPatterns.some(pattern => pattern.test(input));
-    if (suspiciousDetected) {
-      this.onSecurityEvent({
-        type: 'injection_attempt',
-        severity: 'high',
-        description: 'Suspicious pattern detected in input',
+    let sanitized = input;
+    const originalLength = input.length;
+    
+    // Remove script tags
+    sanitized = sanitized.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '');
+    
+    // Remove javascript: URLs
+    sanitized = sanitized.replace(/javascript:/gi, '');
+    
+    // Remove event handlers
+    sanitized = sanitized.replace(/on\w+\s*=/gi, '');
+    
+    // Remove potentially dangerous HTML tags
+    const dangerousTags = ['iframe', 'object', 'embed', 'form', 'input', 'textarea', 'select'];
+    dangerousTags.forEach(tag => {
+      const regex = new RegExp(`<${tag}[^>]*>.*?<\/${tag}>`, 'gi');
+      sanitized = sanitized.replace(regex, '');
+    });
+    
+    // Remove HTML comments that might contain malicious code
+    sanitized = sanitized.replace(/<!--[\s\S]*?-->/g, '');
+    
+    // Encode remaining HTML entities for safety
+    sanitized = this.encodeHTMLEntities(sanitized);
+    
+    // Log if significant sanitization occurred
+    if (sanitized.length < originalLength * 0.8) {
+      this.logSecurityEvent({
+        type: 'input_validation_failed',
+        severity: 'medium',
+        description: 'Significant content removed during sanitization',
         context: this.createSecurityContext(),
-        metadata: { originalInput: input, sanitizedInput: sanitized }
+        metadata: {
+          originalLength,
+          sanitizedLength: sanitized.length,
+          reductionPercentage: Math.round(((originalLength - sanitized.length) / originalLength) * 100)
+        }
       });
     }
-
+    
     return sanitized;
   }
 
-  private createSecurityContext(riskScore: number = 0): SecurityContext {
+  // Encode HTML entities
+  private encodeHTMLEntities(str: string): string {
+    const entityMap: { [key: string]: string } = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+      '/': '&#x2F;'
+    };
+    
+    return str.replace(/[&<>"'\/]/g, (char) => entityMap[char]);
+  }
+
+  private createSecurityContext() {
     return {
-      userId: this.getCurrentUserId(),
-      sessionId: this.getCurrentSessionId(),
-      ipAddress: 'client-side',
-      userAgent: navigator.userAgent,
       timestamp: new Date().toISOString(),
-      riskScore,
+      riskScore: 3,
       flags: []
     };
-  }
-
-  private getCurrentUserId(): string | undefined {
-    try {
-      const session = JSON.parse(localStorage.getItem('supabase.auth.token') || '{}');
-      return session.user?.id;
-    } catch {
-      return undefined;
-    }
-  }
-
-  private getCurrentSessionId(): string | undefined {
-    try {
-      const session = JSON.parse(localStorage.getItem('supabase.auth.token') || '{}');
-      return session.access_token?.substring(0, 10);
-    } catch {
-      return undefined;
-    }
   }
 }

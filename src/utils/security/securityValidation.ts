@@ -1,98 +1,124 @@
-
-import { SecurityEvent, SecurityContext } from './types';
+/**
+ * Security Validation Service
+ */
 
 export class SecurityValidationService {
-  constructor(private onSecurityEvent: (event: SecurityEvent) => void) {}
+  private logSecurityEvent: (event: any) => void;
 
+  constructor(logger: (event: any) => void) {
+    this.logSecurityEvent = logger;
+  }
+
+  // Validate Content Security Policy
   validateCSP(): boolean {
-    const metaCSP = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
-    if (!metaCSP) {
-      this.onSecurityEvent({
-        type: 'suspicious_activity',
-        severity: 'medium',
-        description: 'Content Security Policy not found',
-        context: this.createSecurityContext()
-      });
-      return false;
-    }
-    return true;
-  }
-
-  validateSession(sessionData: any): boolean {
-    if (!sessionData) {
-      this.onSecurityEvent({
-        type: 'authentication',
-        severity: 'medium',
-        description: 'Invalid session data',
-        context: this.createSecurityContext()
-      });
-      return false;
-    }
-
-    // Check session expiry
-    if (sessionData.expires_at && new Date(sessionData.expires_at) < new Date()) {
-      this.onSecurityEvent({
-        type: 'authentication',
-        severity: 'medium',
-        description: 'Expired session detected',
+    try {
+      // Check if CSP is properly configured
+      const metaTags = document.querySelectorAll('meta[http-equiv="Content-Security-Policy"]');
+      
+      if (metaTags.length === 0) {
+        this.logSecurityEvent({
+          type: 'csp_missing',
+          severity: 'medium',
+          description: 'Content Security Policy not configured',
+          context: this.createSecurityContext(),
+          metadata: { location: 'meta tags check' }
+        });
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      this.logSecurityEvent({
+        type: 'csp_missing',
+        severity: 'low',
+        description: 'Error validating CSP',
         context: this.createSecurityContext(),
-        metadata: { expiresAt: sessionData.expires_at }
+        metadata: { error: error.message }
       });
       return false;
     }
-
-    return true;
   }
 
+  // Validate session data integrity
+  validateSession(sessionData: any): boolean {
+    if (!sessionData) return false;
+    
+    try {
+      // Check for required session fields
+      const requiredFields = ['access_token', 'user', 'expires_at'];
+      const hasAllFields = requiredFields.every(field => 
+        sessionData.hasOwnProperty(field) && sessionData[field] !== null
+      );
+      
+      if (!hasAllFields) {
+        this.logSecurityEvent({
+          type: 'session_validation_failed',
+          severity: 'medium',
+          description: 'Session missing required fields',
+          context: this.createSecurityContext(),
+          metadata: { 
+            hasAccessToken: !!sessionData.access_token,
+            hasUser: !!sessionData.user,
+            hasExpiresAt: !!sessionData.expires_at
+          }
+        });
+        return false;
+      }
+      
+      // Check if session is expired
+      const expiresAt = new Date(sessionData.expires_at);
+      if (expiresAt < new Date()) {
+        this.logSecurityEvent({
+          type: 'session_validation_failed',
+          severity: 'low',
+          description: 'Session has expired',
+          context: this.createSecurityContext(),
+          metadata: { expiresAt: sessionData.expires_at }
+        });
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      this.logSecurityEvent({
+        type: 'session_validation_failed',
+        severity: 'medium',
+        description: 'Error validating session',
+        context: this.createSecurityContext(),
+        metadata: { error: error.message }
+      });
+      return false;
+    }
+  }
+
+  // Validate security headers
   validateSecurityHeaders(): void {
     const requiredHeaders = [
-      'strict-transport-security',
-      'x-content-type-options',
-      'x-frame-options',
-      'x-xss-protection'
+      'X-Frame-Options',
+      'X-Content-Type-Options',
+      'Referrer-Policy'
     ];
-
+    
+    // Check if security headers are present in meta tags
     requiredHeaders.forEach(header => {
       const metaTag = document.querySelector(`meta[http-equiv="${header}"]`);
       if (!metaTag) {
-        this.onSecurityEvent({
-          type: 'suspicious_activity',
-          severity: 'low',
-          description: `Missing security header: ${header}`,
+        this.logSecurityEvent({
+          type: 'security_header_missing',
+          severity: 'medium',
+          description: `Security header missing: ${header}`,
           context: this.createSecurityContext(),
-          metadata: { missingHeader: header }
+          metadata: { header }
         });
       }
     });
   }
 
-  private createSecurityContext(riskScore: number = 0): SecurityContext {
+  private createSecurityContext() {
     return {
-      userId: this.getCurrentUserId(),
-      sessionId: this.getCurrentSessionId(),
-      ipAddress: 'client-side',
-      userAgent: navigator.userAgent,
       timestamp: new Date().toISOString(),
-      riskScore,
+      riskScore: 2,
       flags: []
     };
-  }
-
-  private getCurrentUserId(): string | undefined {
-    try {
-      const session = JSON.parse(localStorage.getItem('supabase.auth.token') || '{}');
-      return session.user?.id;
-    } catch {
-      return undefined;
-    }
-  }
-
-  private getCurrentSessionId(): string | undefined {
-    try {
-      const session = JSON.parse(localStorage.getItem('supabase.auth.token') || '{}');
-      return session.access_token?.substring(0, 10);
-    } catch {
-      return undefined;
-    }
   }
 }
