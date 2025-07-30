@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Check, X, Trash2, Settings, Filter } from 'lucide-react';
+import { Bell, Check, X, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -28,104 +27,62 @@ export function NotificationCenter() {
 
   useEffect(() => {
     if (user) {
-      fetchNotifications();
-      setupRealtimeSubscription();
+      fetchMockNotifications();
     }
   }, [user]);
 
-  const fetchNotifications = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (error) throw error;
-
-      setNotifications(data || []);
-      setUnreadCount(data?.filter(n => !n.read).length || 0);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    }
-  };
-
-  const setupRealtimeSubscription = () => {
-    const channel = supabase
-      .channel('notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user?.id}`
-        },
-        (payload) => {
-          const newNotification = payload.new as Notification;
-          setNotifications(prev => [newNotification, ...prev.slice(0, 19)]);
-          setUnreadCount(prev => prev + 1);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  };
-
-  const markAsRead = async (notificationId: string) => {
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('id', notificationId);
-
-      if (error) throw error;
-
-      setNotifications(prev =>
-        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-  };
-
-  const markAllAsRead = async () => {
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('user_id', user?.id)
-        .eq('read', false);
-
-      if (error) throw error;
-
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-      setUnreadCount(0);
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
-    }
-  };
-
-  const deleteNotification = async (notificationId: string) => {
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', notificationId);
-
-      if (error) throw error;
-
-      setNotifications(prev => prev.filter(n => n.id !== notificationId));
-      const wasUnread = notifications.find(n => n.id === notificationId)?.read === false;
-      if (wasUnread) {
-        setUnreadCount(prev => Math.max(0, prev - 1));
+  const fetchMockNotifications = () => {
+    // Mock notifications for demonstration
+    const mockNotifications: Notification[] = [
+      {
+        id: '1',
+        title: 'Course Completed!',
+        message: 'Congratulations! You have completed the JavaScript Fundamentals course.',
+        type: 'success',
+        read: false,
+        created_at: new Date(Date.now() - 3600000).toISOString(),
+        action_url: '/dashboard/learning'
+      },
+      {
+        id: '2',
+        title: 'New Mentor Match',
+        message: 'You have been matched with a new mentor in React development.',
+        type: 'info',
+        read: false,
+        created_at: new Date(Date.now() - 7200000).toISOString(),
+        action_url: '/dashboard/mentorship'
+      },
+      {
+        id: '3',
+        title: 'Study Group Invitation',
+        message: 'You have been invited to join the Advanced React study group.',
+        type: 'info',
+        read: true,
+        created_at: new Date(Date.now() - 86400000).toISOString()
       }
-    } catch (error) {
-      console.error('Error deleting notification:', error);
+    ];
+
+    setNotifications(mockNotifications);
+    setUnreadCount(mockNotifications.filter(n => !n.read).length);
+  };
+
+  const markAsRead = (notificationId: string) => {
+    setNotifications(prev =>
+      prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+    );
+    setUnreadCount(prev => Math.max(0, prev - 1));
+  };
+
+  const markAllAsRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setUnreadCount(0);
+  };
+
+  const deleteNotification = (notificationId: string) => {
+    const wasUnread = notifications.find(n => n.id === notificationId)?.read === false;
+    setNotifications(prev => prev.filter(n => n.id !== notificationId));
+    if (wasUnread) {
+      setUnreadCount(prev => Math.max(0, prev - 1));
     }
   };
 

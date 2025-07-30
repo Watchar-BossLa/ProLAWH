@@ -42,68 +42,30 @@ export function EnhancedRealtimeFeatures() {
   }, [user]);
 
   const setupPresenceTracking = () => {
-    const channel = supabase.channel('online_users');
-    
-    const userStatus = {
-      user_id: user?.id,
-      user_name: user?.user_metadata?.full_name || user?.email,
-      status: 'online',
-      last_seen: new Date().toISOString(),
-      current_activity: 'browsing'
-    };
-
-    channel.on('presence', { event: 'sync' }, () => {
-      const presenceState = channel.presenceState();
-      const users = Object.values(presenceState).flat() as OnlineUser[];
-      setOnlineUsers(users);
-    });
-
-    channel.on('presence', { event: 'join' }, ({ newPresences }) => {
-      setOnlineUsers(prev => [...prev, ...newPresences as OnlineUser[]]);
-    });
-
-    channel.on('presence', { event: 'leave' }, ({ leftPresences }) => {
-      const leftIds = (leftPresences as OnlineUser[]).map(p => p.id);
-      setOnlineUsers(prev => prev.filter(u => !leftIds.includes(u.id)));
-    });
-
-    channel.subscribe(async (status) => {
-      if (status === 'SUBSCRIBED') {
-        await channel.track(userStatus);
-        setCurrentPresence(channel);
-      }
-    });
-
-    // Update activity when user interacts
-    const updateActivity = (activity: string) => {
-      if (currentPresence) {
-        currentPresence.track({ ...userStatus, current_activity: activity });
-      }
-    };
-
-    // Listen for page visibility changes
-    document.addEventListener('visibilitychange', () => {
-      if (currentPresence) {
-        const status = document.hidden ? 'away' : 'online';
-        currentPresence.track({ ...userStatus, status });
-      }
-    });
-
-    return () => {
-      if (currentPresence) {
-        currentPresence.untrack();
-      }
-    };
-  };
-
-  const fetchOnlineUsers = async () => {
-    // Mock data for demonstration
+    // Mock presence tracking for demonstration
     const mockUsers: OnlineUser[] = [
       { id: '1', name: 'Alex Johnson', status: 'online', last_seen: new Date().toISOString(), current_activity: 'studying' },
       { id: '2', name: 'Sarah Chen', status: 'busy', last_seen: new Date().toISOString(), current_activity: 'in-meeting' },
       { id: '3', name: 'Mike Rodriguez', status: 'away', last_seen: new Date(Date.now() - 300000).toISOString() },
     ];
+    
     setOnlineUsers(mockUsers);
+
+    // Simulate real-time presence updates
+    const interval = setInterval(() => {
+      setOnlineUsers(prev => prev.map(user => ({
+        ...user,
+        last_seen: user.status === 'online' ? new Date().toISOString() : user.last_seen
+      })));
+    }, 30000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  };
+
+  const fetchOnlineUsers = async () => {
+    // Already handled in setupPresenceTracking
   };
 
   const fetchLiveSessions = async () => {
