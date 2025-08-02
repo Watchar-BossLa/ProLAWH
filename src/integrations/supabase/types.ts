@@ -1366,6 +1366,36 @@ export type Database = {
           },
         ]
       }
+      ip_whitelist: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          ip_address: unknown
+          is_active: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          ip_address: unknown
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          ip_address?: unknown
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       learning_path_courses: {
         Row: {
           course_id: string
@@ -2626,6 +2656,39 @@ export type Database = {
           },
         ]
       }
+      rate_limits: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          id: string
+          identifier: string
+          is_blocked: boolean | null
+          request_count: number | null
+          window_end: string | null
+          window_start: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          id?: string
+          identifier: string
+          is_blocked?: boolean | null
+          request_count?: number | null
+          window_end?: string | null
+          window_start?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          id?: string
+          identifier?: string
+          is_blocked?: boolean | null
+          request_count?: number | null
+          window_end?: string | null
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       read_receipts: {
         Row: {
           id: string
@@ -2714,6 +2777,48 @@ export type Database = {
           risk_level?: string
           session_id?: string | null
           timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      security_events: {
+        Row: {
+          created_at: string | null
+          description: string
+          event_type: string
+          flags: string[] | null
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          risk_score: number | null
+          severity: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          event_type: string
+          flags?: string[] | null
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          risk_score?: number | null
+          severity: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          event_type?: string
+          flags?: string[] | null
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          risk_score?: number | null
+          severity?: string
           user_agent?: string | null
           user_id?: string | null
         }
@@ -3607,11 +3712,15 @@ export type Database = {
           device_name: string
           device_type: string
           expires_at: string
+          fingerprint_hash: string | null
           id: string
           ip_address: string
           is_current: boolean
+          is_suspicious: boolean | null
           last_activity: string
           location: string | null
+          risk_score: number | null
+          security_flags: string[] | null
           user_id: string
         }
         Insert: {
@@ -3621,11 +3730,15 @@ export type Database = {
           device_name: string
           device_type: string
           expires_at: string
+          fingerprint_hash?: string | null
           id?: string
           ip_address: string
           is_current?: boolean
+          is_suspicious?: boolean | null
           last_activity?: string
           location?: string | null
+          risk_score?: number | null
+          security_flags?: string[] | null
           user_id: string
         }
         Update: {
@@ -3635,11 +3748,15 @@ export type Database = {
           device_name?: string
           device_type?: string
           expires_at?: string
+          fingerprint_hash?: string | null
           id?: string
           ip_address?: string
           is_current?: boolean
+          is_suspicious?: boolean | null
           last_activity?: string
           location?: string | null
+          risk_score?: number | null
+          security_flags?: string[] | null
           user_id?: string
         }
         Relationships: []
@@ -3751,6 +3868,15 @@ export type Database = {
       }
     }
     Functions: {
+      check_rate_limit: {
+        Args: {
+          p_identifier: string
+          p_action_type: string
+          p_max_requests?: number
+          p_window_minutes?: number
+        }
+        Returns: boolean
+      }
       clean_expired_sessions: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -3760,6 +3886,10 @@ export type Database = {
         Returns: undefined
       }
       cleanup_expired_call_signals: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_old_security_events: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
