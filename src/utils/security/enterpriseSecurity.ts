@@ -109,7 +109,34 @@ class EnterpriseSecurity {
   sanitizeInput(input: string): string {
     if (!input) return '';
     
-    // Basic XSS prevention
+    // Enhanced XSS prevention with suspicious pattern detection
+    const suspiciousPatterns = [
+      /javascript:/i,
+      /on\w+\s*=/i,
+      /eval\s*\(/i,
+      /function\s*\(/i,
+      /<iframe/i,
+      /document\.cookie/i,
+      /localStorage/i,
+      /sessionStorage/i
+    ];
+
+    // Check for suspicious patterns
+    const hasSuspiciousContent = suspiciousPatterns.some(pattern => pattern.test(input));
+    if (hasSuspiciousContent) {
+      this.logSecurityEvent({
+        type: 'injection_attempt',
+        severity: 'high',
+        description: 'Suspicious input pattern detected',
+        context: this.createSecurityContext(8),
+        metadata: { 
+          originalInput: input.substring(0, 100),
+          detectedPatterns: suspiciousPatterns.filter(p => p.test(input)).map(p => p.toString())
+        }
+      });
+    }
+    
+    // Enhanced sanitization
     return input
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
@@ -117,7 +144,39 @@ class EnterpriseSecurity {
       .replace(/'/g, '&#x27;')
       .replace(/\//g, '&#x2F;')
       .replace(/\\/g, '&#x5C;')
+      .replace(/javascript:/gi, '')
+      .replace(/on\w+\s*=/gi, '')
       .trim();
+  }
+
+  // Enhanced security monitoring methods
+  monitorDataAccess(operation: string, recordCount: number): void {
+    if (recordCount > 1000) {
+      this.logSecurityEvent({
+        type: 'data_access',
+        severity: 'medium',
+        description: `Large data access operation: ${operation}`,
+        context: this.createSecurityContext(4),
+        metadata: { operation, recordCount }
+      });
+    }
+  }
+
+  detectAnomalousActivity(userAgent: string): void {
+    // Simple bot detection
+    const botPatterns = [
+      /bot/i, /crawler/i, /spider/i, /scraper/i
+    ];
+    
+    if (botPatterns.some(pattern => pattern.test(userAgent))) {
+      this.logSecurityEvent({
+        type: 'suspicious_activity',
+        severity: 'low',
+        description: 'Bot activity detected',
+        context: this.createSecurityContext(3),
+        metadata: { userAgent }
+      });
+    }
   }
 
   private createSecurityContext(riskScore: number = 0): SecurityContext {
