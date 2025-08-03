@@ -5,6 +5,8 @@ export { rateLimiting } from './rateLimiting';
 export { securityValidation } from './securityValidation';
 export { securityMonitoring } from './securityMonitoring';
 export { inputSanitization } from './inputSanitization';
+export { enhancedTokenManager } from './enhancedTokenSecurity';
+export { applySecurityHeaders, validateSecurityHeaders } from './securityHeaders';
 export * from './types';
 
 // Import for internal use

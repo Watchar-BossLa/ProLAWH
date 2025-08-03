@@ -2824,6 +2824,51 @@ export type Database = {
         }
         Relationships: []
       }
+      security_sessions: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          fingerprint_hash: string | null
+          id: string
+          ip_address: unknown | null
+          is_suspicious: boolean | null
+          last_activity: string | null
+          risk_score: number | null
+          security_flags: string[] | null
+          session_token_hash: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          fingerprint_hash?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_suspicious?: boolean | null
+          last_activity?: string | null
+          risk_score?: number | null
+          security_flags?: string[] | null
+          session_token_hash: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          fingerprint_hash?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_suspicious?: boolean | null
+          last_activity?: string | null
+          risk_score?: number | null
+          security_flags?: string[] | null
+          session_token_hash?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       skill_badges: {
         Row: {
           category: string
@@ -3889,6 +3934,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      cleanup_expired_security_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       cleanup_old_security_events: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -3916,6 +3965,16 @@ export type Database = {
       is_admin: {
         Args: { user_id: string }
         Returns: boolean
+      }
+      log_critical_security_event: {
+        Args: {
+          p_event_type: string
+          p_severity: string
+          p_description: string
+          p_user_id?: string
+          p_metadata?: Json
+        }
+        Returns: undefined
       }
     }
     Enums: {

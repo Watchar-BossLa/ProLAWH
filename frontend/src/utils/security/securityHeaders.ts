@@ -1,6 +1,6 @@
 /**
- * Security headers configuration
- * Implements Content Security Policy and other protective headers
+ * Enhanced security headers configuration
+ * Implements strengthened Content Security Policy and other protective headers
  */
 
 export const SECURITY_HEADERS = {
@@ -34,19 +34,33 @@ export const SECURITY_HEADERS = {
 };
 
 /**
- * Apply security headers to HTML document
+ * Generate a cryptographic nonce for CSP
+ */
+function generateNonce(): string {
+  const array = new Uint8Array(16);
+  crypto.getRandomValues(array);
+  return btoa(String.fromCharCode(...array));
+}
+
+/**
+ * Apply enhanced security headers to HTML document
  */
 export function applySecurityHeaders(): void {
-  // Add meta tags for security headers
+  const nonce = generateNonce();
+  
+  // Apply headers with nonce substitution
   Object.entries(SECURITY_HEADERS).forEach(([name, content]) => {
     const existingMeta = document.querySelector(`meta[http-equiv="${name}"]`);
     if (!existingMeta) {
       const meta = document.createElement('meta');
       meta.setAttribute('http-equiv', name);
-      meta.setAttribute('content', content);
+      meta.setAttribute('content', content.replace(/{NONCE}/g, nonce));
       document.head.appendChild(meta);
     }
   });
+  
+  // Store nonce for script validation
+  (window as any).__securityNonce = nonce;
 }
 
 /**
@@ -59,6 +73,16 @@ export function validateSecurityHeaders(): { isSecure: boolean; warnings: string
   const csp = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
   if (!csp) {
     warnings.push('Content Security Policy not found');
+  } else {
+    const content = csp.getAttribute('content') || '';
+    
+    // Check for unsafe directives
+    if (content.includes("'unsafe-inline'")) {
+      warnings.push('CSP contains unsafe-inline directive');
+    }
+    if (content.includes("'unsafe-eval'")) {
+      warnings.push('CSP contains unsafe-eval directive');
+    }
   }
   
   // Check for X-Frame-Options
@@ -67,8 +91,35 @@ export function validateSecurityHeaders(): { isSecure: boolean; warnings: string
     warnings.push('X-Frame-Options not found');
   }
   
+  // Check for other security headers
+  const requiredHeaders = [
+    'X-Content-Type-Options',
+    'X-XSS-Protection',
+    'Referrer-Policy'
+  ];
+  
+  requiredHeaders.forEach(header => {
+    if (!document.querySelector(`meta[http-equiv="${header}"]`)) {
+      warnings.push(`${header} not found`);
+    }
+  });
+  
   return {
     isSecure: warnings.length === 0,
     warnings
   };
+}
+
+/**
+ * Validate script execution with nonce
+ */
+export function validateScriptNonce(scriptElement: HTMLScriptElement): boolean {
+  const expectedNonce = (window as any).__securityNonce;
+  const scriptNonce = scriptElement.getAttribute('nonce');
+  
+  if (!expectedNonce || !scriptNonce) {
+    return false;
+  }
+  
+  return scriptNonce === expectedNonce;
 }

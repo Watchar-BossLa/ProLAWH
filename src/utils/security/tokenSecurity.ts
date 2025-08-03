@@ -18,14 +18,14 @@ export class SecureTokenManager {
   /**
    * Store token securely with encryption
    */
-  storeToken(tokenInfo: TokenInfo): void {
+  async storeToken(tokenInfo: TokenInfo): Promise<void> {
     try {
-      const encrypted = this.encryptToken(JSON.stringify(tokenInfo));
+      const encrypted = await this.encryptToken(JSON.stringify(tokenInfo));
       sessionStorage.setItem(this.TOKEN_KEY, encrypted);
       
       // Store refresh token separately if available
       if (tokenInfo.refreshToken) {
-        const encryptedRefresh = this.encryptToken(tokenInfo.refreshToken);
+        const encryptedRefresh = await this.encryptToken(tokenInfo.refreshToken);
         localStorage.setItem(this.REFRESH_KEY, encryptedRefresh);
       }
     } catch (error) {
@@ -87,7 +87,7 @@ export class SecureTokenManager {
         refreshToken: data.session.refresh_token
       };
       
-      this.storeToken(tokenInfo);
+      await this.storeToken(tokenInfo);
       return true;
     } catch (error) {
       console.error('Token refresh failed:', error);
@@ -105,14 +105,41 @@ export class SecureTokenManager {
   }
   
   /**
-   * Basic encryption for token storage
-   * Note: This is client-side encryption for basic protection
+   * Enhanced encryption for token storage using Web Crypto API
    */
-  private encryptToken(data: string): string {
-    // Simple base64 encoding + timestamp salt for basic protection
-    const salt = Date.now().toString();
-    const combined = salt + ':' + data;
-    return btoa(combined);
+  private async encryptToken(data: string): Promise<string> {
+    try {
+      // Generate a random key for each encryption
+      const key = await crypto.subtle.generateKey(
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt']
+      );
+      
+      // Generate random IV
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      
+      // Encrypt the data
+      const encodedData = new TextEncoder().encode(data);
+      const encrypted = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        encodedData
+      );
+      
+      // Combine IV and encrypted data, then base64 encode
+      const combined = new Uint8Array(iv.length + encrypted.byteLength);
+      combined.set(iv);
+      combined.set(new Uint8Array(encrypted), iv.length);
+      
+      return btoa(String.fromCharCode(...combined));
+    } catch (error) {
+      console.warn('Crypto API not available, falling back to basic encoding');
+      // Fallback to simple encoding if crypto API fails
+      const salt = Date.now().toString();
+      const combined = salt + ':' + data;
+      return btoa(combined);
+    }
   }
   
   /**
