@@ -14,7 +14,7 @@ export class MessageService {
           *,
           sender_profile:profiles!sender_id(full_name, avatar_url)
         `)
-        .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+        .or(`and(sender_id.eq.${userId},receiver_id.eq.${currentRoom}),and(sender_id.eq.${currentRoom},receiver_id.eq.${userId})`)
         .order('created_at', { ascending: true });
 
       if (networkMessages && !networkError) {
@@ -22,7 +22,7 @@ export class MessageService {
           id: msg.id,
           content: msg.content,
           sender_id: msg.sender_id,
-          connection_id: msg.receiver_id,
+          connection_id: currentRoom,
           created_at: msg.created_at,
           updated_at: msg.created_at,
           message_type: 'text',
