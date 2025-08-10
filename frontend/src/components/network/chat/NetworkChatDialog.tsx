@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { NetworkConnection } from "@/types/network";
@@ -102,6 +102,8 @@ export function NetworkChatDialog({ activeChatId, activeChatConnection, onClose 
   return (
     <Dialog open={!!activeChatId} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] max-h-[80vh] flex flex-col">
+        <DialogTitle>Chat with {activeChatConnection.name}</DialogTitle>
+        <DialogDescription>Exchange messages and collaborate in real time.</DialogDescription>
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-2">
             <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
