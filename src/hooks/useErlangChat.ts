@@ -38,6 +38,23 @@ export interface ErlangChatState {
   error: string | null;
 }
 
+interface SupervisorStatus {
+  id: string;
+  childCount: number;
+  children: any[];
+}
+
+interface UserStatus {
+  id: string;
+  activeChats: string[];
+  unreadCount: number;
+}
+
+export interface SystemStatus {
+  supervisor: SupervisorStatus | null;
+  user: UserStatus | null;
+}
+
 export function useErlangChat(chatId?: string) {
   const { user } = useAuth();
   const [state, setState] = useState<ErlangChatState>({
@@ -342,9 +359,9 @@ export function useErlangChat(chatId?: string) {
   }, []);
 
   // Get system status
-  const getSystemStatus = useCallback(() => {
+  const getSystemStatus = useCallback<() => SystemStatus>(() => {
     if (!supervisorRef.current || !userActorRef.current) {
-      return { supervisor: 'not_initialized', user: 'not_initialized' };
+      return { supervisor: null, user: null };
     }
 
     return {
