@@ -25,7 +25,7 @@ export class ChatSupervisor extends Actor {
   private childSpecs: Map<string, ChildSpec> = new Map();
   private registry: ActorRegistry;
   private messageRouter: MessageRouter;
-  private monitoringInterval?: NodeJS.Timeout;
+  private monitoringInterval?: ReturnType<typeof setInterval>;
 
   constructor(
     id: string = 'chat-supervisor',

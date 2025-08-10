@@ -19,8 +19,8 @@ export interface ChatRoomState {
 export class ChatRoomActor extends Actor {
   private roomState: ChatRoomState;
   private messageRouter: MessageRouter;
-  private heartbeatInterval?: NodeJS.Timeout;
-  private typingTimeouts: Map<string, NodeJS.Timeout> = new Map();
+  private heartbeatInterval?: ReturnType<typeof setInterval>;
+  private typingTimeouts: Map<string, ReturnType<typeof setTimeout>> = new Map();
 
   constructor(roomId: string, supervisor?: Actor) {
     super(`chat-room-${roomId}`, 'chat', supervisor);

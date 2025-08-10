@@ -21,7 +21,7 @@ export interface UserState {
 export class UserActor extends Actor {
   private userState: UserState;
   private messageRouter: MessageRouter;
-  private presenceInterval?: NodeJS.Timeout;
+  private presenceInterval?: ReturnType<typeof setInterval>;
   private notificationCallbacks: Set<(type: string, data: any) => void> = new Set();
 
   constructor(userId: string, profile: any, supervisor?: Actor) {
