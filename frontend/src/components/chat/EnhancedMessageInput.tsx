@@ -31,7 +31,7 @@ export function EnhancedMessageInput({
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleSend = () => {
     if ((!message.trim() && attachedFiles.length === 0) || isLoading) return;

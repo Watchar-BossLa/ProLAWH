@@ -40,7 +40,7 @@ export class AutomationTriggers {
   private dspyService: DSPyService;
   private benchmark: PerformanceBenchmark;
   private isRunning: boolean = false;
-  private intervalId?: NodeJS.Timeout;
+  private intervalId?: ReturnType<typeof setInterval>;
 
   constructor(
     dspyService: DSPyService,

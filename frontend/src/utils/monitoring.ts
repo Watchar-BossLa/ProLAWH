@@ -15,7 +15,7 @@ interface SystemHealth {
 
 export class MonitoringService {
   private static instance: MonitoringService;
-  private healthCheckInterval?: NodeJS.Timeout;
+  private healthCheckInterval?: ReturnType<typeof setInterval>;
 
   static getInstance(): MonitoringService {
     if (!MonitoringService.instance) {

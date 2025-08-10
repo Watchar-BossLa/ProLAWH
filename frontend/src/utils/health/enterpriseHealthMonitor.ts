@@ -11,7 +11,7 @@ import { HealthUtils } from './healthUtils';
 
 class EnterpriseHealthMonitor {
   private static instance: EnterpriseHealthMonitor;
-  private healthCheckInterval?: NodeJS.Timeout;
+  private healthCheckInterval?: ReturnType<typeof setInterval>;
   private startTime: number = Date.now();
   private healthHistory: SystemHealthReport[] = [];
   private readonly maxHistorySize = 288; // 24 hours at 5-minute intervals
