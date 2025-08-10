@@ -7,7 +7,7 @@ import { TypingIndicator } from './types';
 export function useChatTyping() {
   const { user } = useAuth();
   const [typingUsers, setTypingUsers] = useState<TypingIndicator[]>([]);
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const updateTypingStatus = useCallback(async (isTyping: boolean, chatId?: string) => {
     if (!user || !chatId) return;

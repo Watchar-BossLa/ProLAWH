@@ -6,7 +6,7 @@ import { logTransport } from './logTransport';
 export class LogBuffer {
   private logBuffer: LogEntry[] = [];
   private metricsBuffer: MetricEntry[] = [];
-  private flushInterval: NodeJS.Timeout | null = null;
+  private flushInterval: ReturnType<typeof setInterval> | null = null;
   private readonly maxBufferSize = 100;
   private readonly flushIntervalMs = 30000; // 30 seconds
 

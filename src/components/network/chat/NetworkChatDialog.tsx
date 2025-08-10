@@ -23,7 +23,7 @@ export function NetworkChatDialog({ activeChatId, activeChatConnection, onClose 
   const { user } = useAuth();
   const { updateTypingStatus, isUserTypingTo } = usePresenceStatus();
   const [isTyping, setIsTyping] = useState(false);
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const { messages, sendMessage, isLoading, addReaction } = useRealTimeChat(
     activeChatId ? activeChatId : ""

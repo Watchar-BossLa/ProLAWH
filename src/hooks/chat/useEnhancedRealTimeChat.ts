@@ -56,7 +56,7 @@ export function useEnhancedRealTimeChat({ chatId }: UseEnhancedRealTimeChatProps
   const messageChannel = useRef<any>(null);
   const typingChannel = useRef<any>(null);
   const presenceChannel = useRef<any>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Fetch messages for a specific chat
   const fetchMessages = useCallback(async (targetChatId?: string) => {

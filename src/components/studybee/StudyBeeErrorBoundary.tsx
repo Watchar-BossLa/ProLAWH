@@ -19,7 +19,7 @@ export class StudyBeeErrorBoundary extends React.Component<
   StudyBeeErrorBoundaryProps,
   StudyBeeErrorBoundaryState
 > {
-  private retryTimeoutId?: NodeJS.Timeout;
+  private retryTimeoutId?: ReturnType<typeof setTimeout>;
 
   constructor(props: StudyBeeErrorBoundaryProps) {
     super(props);

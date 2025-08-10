@@ -22,7 +22,7 @@ export function RealTimeChatInterface({ chatId, chatName = "Chat" }: RealTimeCha
   const [showFileUpload, setShowFileUpload] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     messages,

@@ -16,7 +16,7 @@ export interface SecurityEvent {
 export class SecurityAuditLogger {
   private static instance: SecurityAuditLogger;
   private eventQueue: SecurityEvent[] = [];
-  private flushInterval: NodeJS.Timeout | null = null;
+  private flushInterval: ReturnType<typeof setInterval> | null = null;
 
   static getInstance(): SecurityAuditLogger {
     if (!SecurityAuditLogger.instance) {
