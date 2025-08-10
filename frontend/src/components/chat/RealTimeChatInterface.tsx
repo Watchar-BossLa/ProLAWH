@@ -28,6 +28,7 @@ export function RealTimeChatInterface({ chatId, chatName = "Chat" }: RealTimeCha
     messages,
     typingUsers,
     onlineStatus,
+    isLoading,
     sendMessage,
     addReaction,
     removeReaction,
@@ -35,7 +36,6 @@ export function RealTimeChatInterface({ chatId, chatName = "Chat" }: RealTimeCha
     uploadFile
   } = useRealTimeChat(chatId);
 
-  const isLoading = false; // Mock loading state
   const isConnected = onlineStatus === 'online';
 
   // Auto-scroll to bottom when new messages arrive

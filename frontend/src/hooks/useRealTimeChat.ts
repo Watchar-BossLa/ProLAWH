@@ -5,6 +5,7 @@ import { useChatRooms } from './chat/useChatRooms';
 import { useChatMessages } from './chat/useChatMessages';
 import { useChatReactions } from './chat/useChatReactions';
 import { useChatTyping } from './chat/useChatTyping';
+import { supabase } from '@/integrations/supabase/client';
 
 // Re-export types for backward compatibility
 export type {
@@ -69,14 +70,33 @@ export function useRealTimeChat(chatId?: string) {
     }
   };
 
-  // Mock implementation for file upload
+  // File upload using Supabase Storage
   const uploadFile = async (file: File) => {
-    // Mock implementation - return a fake URL
-    return {
-      url: URL.createObjectURL(file),
-      name: file.name,
-      size: file.size
-    };
+    if (!user || !chatId) return null;
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}/${chatId}/${Date.now()}.${fileExt || 'bin'}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('chat-uploads')
+        .upload(filePath, file, { upsert: true, cacheControl: '3600' });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('chat-uploads')
+        .getPublicUrl(filePath);
+
+      return {
+        url: urlData.publicUrl,
+        name: file.name,
+        size: file.size
+      };
+    } catch (error) {
+      console.error('File upload failed:', error);
+      return null;
+    }
   };
 
   // Initial load
