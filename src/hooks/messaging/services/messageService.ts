@@ -21,7 +21,7 @@ export class MessageService {
         .from('chat_messages')
         .select(`
           *,
-          sender_profile:profiles!sender_id(
+          profiles!chat_messages_sender_id_fkey(
             id,
             full_name,
             avatar_url
@@ -38,7 +38,7 @@ export class MessageService {
         chat_id: connectionId,
         sender_id: msg.sender_id,
         content: msg.content,
-        message_type: msg.message_type || 'text',
+        message_type: (msg.message_type as 'text' | 'file' | 'image' | 'video' | 'voice' | 'system') || 'text',
         file_url: msg.file_url,
         file_name: msg.file_name,
         reply_to_id: msg.reply_to_id,
@@ -49,12 +49,12 @@ export class MessageService {
         updated_at: msg.updated_at,
         reactions: [],
         read_receipts: [],
-        sender_profile: msg.sender_profile ? {
-          full_name: msg.sender_profile.full_name || 'Unknown User',
-          avatar_url: msg.sender_profile.avatar_url
+        sender_profile: Array.isArray(msg.profiles) && msg.profiles[0] ? {
+          full_name: msg.profiles[0].full_name || 'Unknown User',
+          avatar_url: msg.profiles[0].avatar_url
         } : undefined,
         timestamp: msg.created_at,
-        type: msg.message_type || 'text',
+        type: (msg.message_type as 'text' | 'file' | 'image' | 'video' | 'voice' | 'system') || 'text',
         read_by: []
       })) as unknown as ChatMessage[];
 
@@ -89,7 +89,7 @@ export class MessageService {
         })
         .select(`
           *,
-          sender_profile:profiles!sender_id(
+          profiles!chat_messages_sender_id_fkey(
             id,
             full_name,
             avatar_url
@@ -104,7 +104,7 @@ export class MessageService {
         chat_id: connectionId,
         sender_id: data.sender_id,
         content: data.content,
-        message_type: data.message_type || 'text',
+        message_type: (data.message_type as 'text' | 'file' | 'image' | 'video' | 'voice' | 'system') || 'text',
         file_url: data.file_url,
         file_name: data.file_name,
         reply_to_id: data.reply_to_id,
@@ -115,13 +115,13 @@ export class MessageService {
         updated_at: data.updated_at,
         reactions: [],
         read_receipts: [],
-        sender_profile: data.sender_profile ? {
-          full_name: data.sender_profile.full_name || 'Unknown User',
-          avatar_url: data.sender_profile.avatar_url
+        sender_profile: Array.isArray(data.profiles) && data.profiles[0] ? {
+          full_name: data.profiles[0].full_name || 'Unknown User',
+          avatar_url: data.profiles[0].avatar_url
         } : undefined,
         timestamp: data.created_at,
-        type: data.message_type || 'text',
-        read_by: data.read_by || []
+        type: (data.message_type as 'text' | 'file' | 'image' | 'video' | 'voice' | 'system') || 'text',
+        read_by: []
       };
 
       // Update cache
@@ -182,11 +182,11 @@ export class MessageService {
     messageIds: string[]
   ): Promise<boolean> {
     try {
-      // Since we don't have the mark_messages_as_read function, update read_by field
+      // Update read_by field with user ID
       const { error } = await supabase
         .from('chat_messages')
         .update({ 
-          read_by: supabase.raw(`array_append(read_by, '${userId}')`) 
+          read_by: JSON.stringify([...new Set([userId])]) 
         })
         .in('id', messageIds)
         .eq('connection_id', connectionId);
