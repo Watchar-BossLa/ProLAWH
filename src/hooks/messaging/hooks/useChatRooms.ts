@@ -1,6 +1,6 @@
 
 import { useState, useCallback, useEffect } from 'react';
-import { ChatRoom } from '../types';
+import { ChatRoom } from '@/hooks/chat/types';
 import { ChatRoomService } from '../services/chatRoomService';
 
 export function useChatRooms(userId: string | undefined) {

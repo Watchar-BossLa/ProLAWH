@@ -1,10 +1,10 @@
 
 import { useState, useCallback } from 'react';
-import { RealTimeMessage } from '../types';
+import { ChatMessage } from '@/hooks/chat/types';
 import { MessageService } from '../services/messageService';
 
 export function useMessageFetching(userId: string | undefined) {
-  const [messages, setMessages] = useState<RealTimeMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -16,7 +16,7 @@ export function useMessageFetching(userId: string | undefined) {
     setError(null);
 
     try {
-      const fetchedMessages = await MessageService.fetchMessages(userId, targetRoom);
+      const fetchedMessages = await MessageService.fetchMessages(targetRoom!);
       setMessages(fetchedMessages);
     } catch (err) {
       console.error('Error fetching messages:', err);

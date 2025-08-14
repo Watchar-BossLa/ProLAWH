@@ -1,115 +1,205 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
-import { RealTimeMessage, SendMessageParams } from '../types';
+import { ChatMessage, SendMessageParams } from '@/hooks/chat/types';
+import { CacheService } from './cacheService';
 
 export class MessageService {
-  static async fetchMessages(userId: string, currentRoom?: string): Promise<RealTimeMessage[]> {
-    if (!userId || !currentRoom) return [];
-
+  static async fetchMessages(
+    connectionId: string,
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<ChatMessage[]> {
     try {
-      const { data: networkMessages, error: networkError } = await supabase
-        .from('network_messages')
+      // Try cache first for recent messages (offset 0)
+      if (offset === 0) {
+        const cached = await CacheService.getChatMessages(connectionId);
+        if (cached && cached.length > 0) {
+          return cached;
+        }
+      }
+
+      const { data, error } = await supabase
+        .from('chat_messages')
         .select(`
           *,
-          sender_profile:profiles!sender_id(full_name, avatar_url)
+          sender_profile:profiles!sender_id(
+            id,
+            full_name,
+            avatar_url
+          )
         `)
-        .or(`and(sender_id.eq.${userId},receiver_id.eq.${currentRoom}),and(sender_id.eq.${currentRoom},receiver_id.eq.${userId})`)
-        .order('created_at', { ascending: true });
+        .eq('connection_id', connectionId)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
 
-      if (networkMessages && !networkError) {
-        const formattedMessages: RealTimeMessage[] = networkMessages.map((msg: any) => ({
-          id: msg.id,
-          content: msg.content,
-          sender_id: msg.sender_id,
-          connection_id: currentRoom,
-          created_at: msg.created_at,
-          updated_at: msg.created_at,
-          message_type: 'text',
-          file_name: msg.attachment_data?.file_name,
-          file_url: msg.attachment_data?.file_url,
-          reply_to_id: null,
-          reactions: msg.reactions || {},
-          sender_profile: Array.isArray(msg.sender_profile) ? msg.sender_profile[0] : msg.sender_profile
-        }));
-        return formattedMessages;
-      } else {
-        console.warn('Network messages not available, using fallback');
-        return [];
+      if (error) throw error;
+
+      const messages = (data || []).map(msg => ({
+        id: msg.id,
+        chat_id: connectionId,
+        sender_id: msg.sender_id,
+        content: msg.content,
+        message_type: msg.message_type || 'text',
+        file_url: msg.file_url,
+        file_name: msg.file_name,
+        reply_to_id: msg.reply_to_id,
+        is_edited: false,
+        is_pinned: false,
+        metadata: {},
+        created_at: msg.created_at,
+        updated_at: msg.updated_at,
+        reactions: [],
+        read_receipts: [],
+        sender_profile: msg.sender_profile ? {
+          full_name: msg.sender_profile.full_name || 'Unknown User',
+          avatar_url: msg.sender_profile.avatar_url
+        } : undefined,
+        timestamp: msg.created_at,
+        type: msg.message_type || 'text',
+        read_by: []
+      })) as unknown as ChatMessage[];
+
+      // Cache recent messages
+      if (offset === 0 && messages.length > 0) {
+        await CacheService.setChatMessages(connectionId, messages);
       }
-    } catch (err) {
-      console.error('Error fetching messages:', err);
+
+      return messages;
+    } catch (error) {
+      console.error('Error fetching messages:', error);
       return [];
     }
   }
 
-  static async sendMessage(userId: string, currentRoom: string, params: SendMessageParams): Promise<boolean> {
-    if (!userId || !currentRoom) return false;
-
+  static async sendMessage(
+    connectionId: string,
+    senderId: string,
+    params: SendMessageParams
+  ): Promise<ChatMessage | null> {
     try {
-      const messageData = {
-        content: params.content,
-        sender_id: userId,
-        receiver_id: currentRoom,
-        ...(params.fileData && { 
-          attachment_data: {
-            file_name: params.fileData.name,
-            file_url: params.fileData.url
-          }
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .insert({
+          connection_id: connectionId,
+          sender_id: senderId,
+          content: params.content,
+          message_type: params.type || 'text',
+          file_url: params.file_url,
+          file_name: params.file_name,
+          reply_to_id: params.reply_to_id || params.reply_to,
         })
+        .select(`
+          *,
+          sender_profile:profiles!sender_id(
+            id,
+            full_name,
+            avatar_url
+          )
+        `)
+        .single();
+
+      if (error) throw error;
+
+      const message: ChatMessage = {
+        id: data.id,
+        chat_id: connectionId,
+        sender_id: data.sender_id,
+        content: data.content,
+        message_type: data.message_type || 'text',
+        file_url: data.file_url,
+        file_name: data.file_name,
+        reply_to_id: data.reply_to_id,
+        is_edited: false,
+        is_pinned: false,
+        metadata: {},
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        reactions: [],
+        read_receipts: [],
+        sender_profile: data.sender_profile ? {
+          full_name: data.sender_profile.full_name || 'Unknown User',
+          avatar_url: data.sender_profile.avatar_url
+        } : undefined,
+        timestamp: data.created_at,
+        type: data.message_type || 'text',
+        read_by: data.read_by || []
       };
 
-      const { error } = await supabase
-        .from('network_messages')
-        .insert(messageData);
+      // Update cache
+      await CacheService.addMessage(connectionId, message);
 
-      if (error) {
-        console.error('Error sending message:', error);
-        toast({
-          title: "Error",
-          description: "Failed to send message",
-          variant: "destructive"
-        });
-        return false;
+      return message;
+    } catch (error) {
+      console.error('Error sending message:', error);
+      return null;
+    }
+  }
+
+  static async addReaction(
+    messageId: string,
+    userId: string,
+    emoji: string
+  ): Promise<boolean> {
+    try {
+      const { data: existing } = await supabase
+        .from('message_reactions')
+        .select('id')
+        .eq('message_id', messageId)
+        .eq('user_id', userId)
+        .eq('reaction', emoji)
+        .single();
+
+      if (existing) {
+        // Remove existing reaction
+        const { error } = await supabase
+          .from('message_reactions')
+          .delete()
+          .eq('id', existing.id);
+
+        if (error) throw error;
+      } else {
+        // Add new reaction
+        const { error } = await supabase
+          .from('message_reactions')
+          .insert({
+            message_id: messageId,
+            user_id: userId,
+            reaction: emoji
+          });
+
+        if (error) throw error;
       }
 
       return true;
-    } catch (err) {
-      console.error('Error sending message:', err);
-      toast({
-        title: "Error",
-        description: "Failed to send message",
-        variant: "destructive"
-      });
+    } catch (error) {
+      console.error('Error handling reaction:', error);
       return false;
     }
   }
 
-  static async addReaction(messageId: string, emoji: string, userId: string, currentReactions: any): Promise<Record<string, any> | null> {
+  static async markAsRead(
+    connectionId: string,
+    userId: string,
+    messageIds: string[]
+  ): Promise<boolean> {
     try {
-      const userReactions = currentReactions[userId] || [];
-      
-      const updatedReactions = userReactions.includes(emoji)
-        ? userReactions.filter((r: string) => r !== emoji)
-        : [...userReactions, emoji];
-
-      const newReactions = {
-        ...currentReactions,
-        [userId]: updatedReactions
-      };
-
+      // Since we don't have the mark_messages_as_read function, update read_by field
       const { error } = await supabase
-        .from('network_messages')
-        .update({ reactions: newReactions })
-        .eq('id', messageId);
+        .from('chat_messages')
+        .update({ 
+          read_by: supabase.raw(`array_append(read_by, '${userId}')`) 
+        })
+        .in('id', messageIds)
+        .eq('connection_id', connectionId);
 
-      if (!error) {
-        return newReactions;
-      }
-      return null;
-    } catch (err) {
-      console.error('Error adding reaction:', err);
-      return null;
+      if (error) throw error;
+
+      // Invalidate cache to get fresh read status
+      await CacheService.invalidateChatCache(connectionId);
+
+      return true;
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
+      return false;
     }
   }
 }

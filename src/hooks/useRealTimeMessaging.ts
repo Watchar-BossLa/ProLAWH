@@ -7,7 +7,7 @@ import { useChatRooms } from './messaging/hooks/useChatRooms';
 import { useRealtimeSubscription } from './messaging/hooks/useRealtimeSubscription';
 
 // Re-export types for backward compatibility
-export type { RealTimeMessage, ChatRoom } from './messaging/types';
+export type { ChatMessage as RealTimeMessage, ChatRoom } from '@/hooks/chat/types';
 
 export function useRealTimeMessaging() {
   const { user } = useAuth();

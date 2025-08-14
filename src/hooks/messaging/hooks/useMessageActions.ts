@@ -1,13 +1,13 @@
 
 import { useCallback } from 'react';
-import { RealTimeMessage, SendMessageParams } from '../types';
+import { ChatMessage, SendMessageParams } from '@/hooks/chat/types';
 import { MessageService } from '../services/messageService';
 
 interface UseMessageActionsProps {
   userId: string | undefined;
   currentRoom: string | null;
-  messages: RealTimeMessage[];
-  setMessages: (messages: RealTimeMessage[] | ((prev: RealTimeMessage[]) => RealTimeMessage[])) => void;
+  messages: ChatMessage[];
+  setMessages: (messages: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => void;
   fetchMessages: () => void;
 }
 
@@ -23,7 +23,7 @@ export function useMessageActions({
 
     const params: SendMessageParams = {
       content,
-      type,
+      type: type as 'text' | 'file' | 'image' | 'video' | 'voice',
       ...(fileData && { fileData })
     };
 
@@ -40,14 +40,10 @@ export function useMessageActions({
     const message = messages.find(m => m.id === messageId);
     if (!message) return;
 
-    const newReactions = await MessageService.addReaction(messageId, emoji, userId, message.reactions);
+    const success = await MessageService.addReaction(messageId, userId, emoji);
     
-    if (newReactions) {
-      setMessages(prev => prev.map(msg => 
-        msg.id === messageId 
-          ? { ...msg, reactions: newReactions }
-          : msg
-      ));
+    if (success) {
+      fetchMessages();
     }
   }, [userId, messages, setMessages]);
 
