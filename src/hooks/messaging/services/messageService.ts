@@ -1,18 +1,18 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { ChatMessage, SendMessageParams } from '../types';
-import { cacheService } from './cacheService';
+import { ChatMessage, SendMessageParams } from '@/hooks/chat/types';
+import { CacheService } from './cacheService';
 
 export class MessageService {
-  async fetchMessages(
+  static async fetchMessages(
     connectionId: string, 
     limit: number = 50,
     before?: string
   ): Promise<ChatMessage[]> {
     try {
       // Check cache first
-      const cachedMessages = await cacheService.getMessages(connectionId);
-      if (cachedMessages.length > 0) {
+      const cachedMessages = await CacheService.getChatMessages(connectionId);
+      if (cachedMessages && cachedMessages.length > 0) {
         return cachedMessages;
       }
 
@@ -41,34 +41,56 @@ export class MessageService {
         return [];
       }
 
+      // Fetch profiles separately since the join doesn't work
+      const senderIds = [...new Set((messages || []).map(msg => msg.sender_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', senderIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
       // Transform to ChatMessage format
-      const chatMessages = (messages || []).map(msg => ({
-        id: msg.id,
-        chat_id: connectionId,
-        sender_id: msg.sender_id,
-        content: msg.content,
-        message_type: (msg.message_type as 'text' | 'file' | 'image' | 'video' | 'voice' | 'system') || 'text',
-        file_url: msg.file_url,
-        file_name: msg.file_name,
-        reply_to_id: msg.reply_to_id,
-        created_at: msg.created_at,
-        updated_at: msg.updated_at,
-        connection_id: msg.connection_id,
-        read_by: msg.read_by || '[]',
-        reactions: {},
-        read_receipts: [],
-        sender_profile: msg.profiles ? {
-          full_name: msg.profiles.full_name || 'Unknown User',
-          avatar_url: msg.profiles.avatar_url
-        } : undefined,
-        timestamp: msg.created_at,
-        type: (msg.message_type as 'text' | 'file' | 'image' | 'video' | 'voice' | 'system') || 'text',
-        sender_name: msg.profiles?.full_name || 'Unknown User',
-        sender_avatar: msg.profiles?.avatar_url
-      })) as ChatMessage[];
+      const chatMessages: ChatMessage[] = (messages || []).map(msg => {
+        const profile = profileMap.get(msg.sender_id);
+        
+        return {
+          id: msg.id,
+          chat_id: connectionId,
+          sender_id: msg.sender_id,
+          content: msg.content,
+          message_type: (msg.message_type as 'text' | 'file' | 'image' | 'video' | 'voice' | 'system') || 'text',
+          file_url: msg.file_url,
+          file_name: msg.file_name,
+          file_size: undefined,
+          file_type: undefined,
+          reply_to_id: msg.reply_to_id,
+          thread_id: undefined,
+          is_edited: false,
+          is_pinned: false,
+          metadata: {},
+          created_at: msg.created_at,
+          updated_at: msg.updated_at,
+          edited_at: undefined,
+          reactions: [],
+          read_receipts: [],
+          sender_profile: {
+            full_name: profile?.full_name || 'Unknown User',
+            avatar_url: profile?.avatar_url || null,
+          },
+          timestamp: msg.created_at,
+          type: (msg.message_type as 'text' | 'file' | 'image' | 'video' | 'voice' | 'system') || 'text',
+          sender_name: profile?.full_name || 'Unknown User',
+          sender_avatar: profile?.avatar_url || null,
+          read_by: [],
+          receiver_id: undefined,
+          read: false,
+          attachment_data: null,
+        };
+      });
 
       // Cache the messages
-      await cacheService.cacheMessages(connectionId, chatMessages);
+      await CacheService.setChatMessages(connectionId, chatMessages);
 
       return chatMessages.reverse(); // Return in chronological order
     } catch (error) {
@@ -77,7 +99,7 @@ export class MessageService {
     }
   }
 
-  async sendMessage(
+  static async sendMessage(
     connectionId: string,
     userId: string,
     params: SendMessageParams
@@ -88,28 +110,28 @@ export class MessageService {
         sender_id: userId,
         content: params.content,
         message_type: params.type || 'text',
-        file_url: params.fileData?.url,
-        file_name: params.fileData?.name,
-        reply_to_id: params.replyToId
+        file_url: params.file_url,
+        file_name: params.file_name,
+        reply_to_id: params.reply_to_id
       };
 
       const { data, error } = await supabase
         .from('chat_messages')
         .insert(messageData)
-        .select(`
-          *,
-          profiles:sender_id(
-            id,
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .single();
 
       if (error) {
         console.error('Error sending message:', error);
         return null;
       }
+
+      // Fetch user profile separately
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .eq('id', userId)
+        .single();
 
       // Transform to ChatMessage format
       const chatMessage: ChatMessage = {
@@ -120,25 +142,34 @@ export class MessageService {
         message_type: (data.message_type as 'text' | 'file' | 'image' | 'video' | 'voice' | 'system') || 'text',
         file_url: data.file_url,
         file_name: data.file_name,
+        file_size: undefined,
+        file_type: undefined,
         reply_to_id: data.reply_to_id,
+        thread_id: undefined,
+        is_edited: false,
+        is_pinned: false,
+        metadata: {},
         created_at: data.created_at,
         updated_at: data.updated_at,
-        connection_id: data.connection_id,
-        read_by: data.read_by || '[]',
-        reactions: {},
+        edited_at: undefined,
+        reactions: [],
         read_receipts: [],
-        sender_profile: data.profiles ? {
-          full_name: data.profiles.full_name || 'Unknown User',
-          avatar_url: data.profiles.avatar_url
-        } : undefined,
+        sender_profile: {
+          full_name: profile?.full_name || 'Unknown User',
+          avatar_url: profile?.avatar_url || null,
+        },
         timestamp: data.created_at,
         type: (data.message_type as 'text' | 'file' | 'image' | 'video' | 'voice' | 'system') || 'text',
-        sender_name: data.profiles?.full_name || 'Unknown User',
-        sender_avatar: data.profiles?.avatar_url
+        sender_name: profile?.full_name || 'Unknown User',
+        sender_avatar: profile?.avatar_url || null,
+        read_by: [],
+        receiver_id: undefined,
+        read: false,
+        attachment_data: null,
       };
 
       // Update cache
-      await cacheService.addMessage(connectionId, chatMessage);
+      await CacheService.addMessage(connectionId, chatMessage);
 
       return chatMessage;
     } catch (error) {
@@ -147,7 +178,7 @@ export class MessageService {
     }
   }
 
-  async addReaction(
+  static async addReaction(
     messageId: string,
     userId: string,
     emoji: string
@@ -162,7 +193,7 @@ export class MessageService {
     }
   }
 
-  async removeReaction(
+  static async removeReaction(
     messageId: string,
     userId: string,
     emoji: string
@@ -177,7 +208,7 @@ export class MessageService {
     }
   }
 
-  async markAsRead(
+  static async markAsRead(
     connectionId: string,
     userId: string,
     messageIds: string[]
@@ -192,7 +223,7 @@ export class MessageService {
     }
   }
 
-  async deleteMessage(messageId: string, userId: string): Promise<boolean> {
+  static async deleteMessage(messageId: string, userId: string, connectionId: string): Promise<boolean> {
     try {
       const { error } = await supabase
         .from('chat_messages')
@@ -205,8 +236,8 @@ export class MessageService {
         return false;
       }
 
-      // Remove from cache
-      await cacheService.removeMessage(messageId);
+      // Clear cache to force refresh (we don't have removeMessage method)
+      await CacheService.invalidateChatCache(connectionId);
 
       return true;
     } catch (error) {
@@ -216,4 +247,4 @@ export class MessageService {
   }
 }
 
-export const messageService = new MessageService();
+// Export static class, no need for instance
