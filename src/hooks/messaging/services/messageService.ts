@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { RealTimeMessage, SendMessageParams } from '../types';
-import { CacheService } from './cacheService';
+
 
 export class MessageService {
   static async fetchMessages(
