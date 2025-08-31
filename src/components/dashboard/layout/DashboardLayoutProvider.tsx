@@ -1,69 +1,32 @@
 
-import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
-import { useAuth } from '@/components/auth/SimpleAuthProvider';
-import { CONFIG, ENV } from "@/config";
+import React, { createContext, useContext, useState, ReactNode } from "react";
 
-interface DashboardLayoutContextType {
-  user: any;
-  loading: boolean;
+interface DashboardLayoutContextValue {
   sidebarCollapsed: boolean;
+  setSidebarCollapsed: (val: boolean) => void;
   toggleSidebar: () => void;
 }
 
-const DashboardLayoutContext = createContext<DashboardLayoutContextType | undefined>(undefined);
+const DashboardLayoutContext = createContext<DashboardLayoutContextValue | undefined>(undefined);
 
-export function useDashboardLayoutContext() {
-  const context = useContext(DashboardLayoutContext);
-  if (!context) {
-    throw new Error('useDashboardLayoutContext must be used within DashboardLayoutProvider');
-  }
-  return context;
-}
-
-interface DashboardLayoutProviderProps {
-  children: ReactNode;
-}
-
-export function DashboardLayoutProvider({ children }: DashboardLayoutProviderProps) {
-  const { user, isLoading } = useAuth();
+export function DashboardLayoutProvider({ children }: { children: ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  // Use development bypass if enabled
-  const effectiveUser = (!ENV.isProduction && CONFIG.BYPASS_AUTH) ? CONFIG.MOCK_USER : user;
-  const effectiveLoading = (!ENV.isProduction && CONFIG.BYPASS_AUTH) ? false : isLoading;
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setSidebarCollapsed(true);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    handleResize(); // Check initial size
-
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const toggleSidebar = () => {
-    setSidebarCollapsed(prev => !prev);
-  };
-
-  // Add development mode indicator
-  if (!ENV.isProduction && CONFIG.BYPASS_AUTH) {
-    console.log('🚀 Development mode: Authentication bypass enabled');
-  }
-
-  const value = {
-    user: effectiveUser,
-    loading: effectiveLoading,
-    sidebarCollapsed,
-    toggleSidebar
-  };
+  const toggleSidebar = () => setSidebarCollapsed((prev) => !prev);
 
   return (
-    <DashboardLayoutContext.Provider value={value}>
+    <DashboardLayoutContext.Provider
+      value={{ sidebarCollapsed, setSidebarCollapsed, toggleSidebar }}
+    >
       {children}
     </DashboardLayoutContext.Provider>
   );
+}
+
+export function useDashboardLayoutContext() {
+  const ctx = useContext(DashboardLayoutContext);
+  if (!ctx) {
+    throw new Error("useDashboardLayoutContext must be used within DashboardLayoutProvider");
+  }
+  return ctx;
 }
